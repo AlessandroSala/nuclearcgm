@@ -92,7 +92,12 @@ Using the fact that $A$ and $B$ are symemtric
 \nabla \lambda(x)=2\frac{ Axx^T Bx - Bxx^T Ax}{(x^T Bx)^2}=2\frac{Ax-\lambda(x)Bx}{x^T Bx}
 \end{equation}
 \subsection{Non linear conjugate gradient}
-
+Using a non quadratic form as function to be minimized, the things that will change will be
+\begin{itemize}
+\item The step size $\alpha_i$ will be different, we may now have multiple zeros regarding the orthogonality of the gradient and search direction.
+\item The factor $\beta$ to compute conjugated directions no longer has equivalent forms.
+\item The residual needs to be computed each time as $-\nabla f(x_i)$
+\end{itemize}
 
 \end{document}
 
