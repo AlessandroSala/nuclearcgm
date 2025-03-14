@@ -1,0 +1,98 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{physics}
+
+\title{Notes}
+\date{}
+\begin{document}
+\maketitle
+\section{Conjugate Gradient Method}
+\subsection{Overview}
+The conjugate gradient method (cgm) is an algorithm used to solve a linear system of the form
+\begin{equation}
+    Ax = b
+\end{equation}
+Where $A$ is a symmetric ($A^T=A$) positive definite ($x^TAx>0$) $n\times n$ matrix, $x,\ b$ vectors.
+\\The algorithm is iterative, starting from a guess solution $x_0$ and taking a step towards the solution at each cycle.
+\\The search directions are calculated from the residual term, defined as $r_i=b - Ax_i$. 
+\\It is possible to prove that by choosing the step direction to be A-orthogonal to all the previous ones, the solution converges the fastest (i.e. the error term $\norm{e_i}=\norm{x_i-x}$ is minimized).
+\subsection{Steepest descent}
+A simpler algorithm is the steepest descent.
+\\The idea is to take a step in the direction of the residual so that the quadratic form is minimized.
+\begin{equation}
+    x_{i+1} = x_i + \alpha_i r_i 
+\end{equation}
+\begin{equation}
+    \alpha_i \text{ such that } \frac{d f(x_{i+1})}{d\alpha_i} = 0 \implies \alpha_i = \frac{\norm{r_i}}{\norm{r_i}_A}
+\end{equation}
+This method is inefficient as $x_i$ often finds itself oscillating around the solution, since the search directions explore non-disjoint subspaces.
+\subsection{The algorithm}
+A better alternative is to set the search direction to be A-orthogonal to the error at the next iteration. If this is the case, it can be proven that an exact solution be found after $n$ iterations.
+\begin{equation}
+    d^T_i Ae_{i+1} = 0 \implies \frac{d f(x_{i+1})}{d\alpha_i} = -r_{i+1}^T d_i = 0
+\end{equation}
+\begin{equation}
+    \alpha_i = \frac{r_i^T d_i}{\norm{d_{i}}_A}
+\end{equation}
+By definition, the residual is orthogonal to the previous search directions, we also have $r_i^T r_j=\delta_{ij}$. Since
+\begin{equation}
+    r_{i+1} = -A(e_{i+1}) = -A(e_i + \alpha_i d_i) = r_i - \alpha_i A d_i
+\end{equation}
+
+Finire
+%Start with a guess solution $x_0$.
+%\\Calculate the residual $r_0=b-Ax_0$.
+%\\In terms of quadratic form, $r_0$ is the opposite of the gradient of $f(x)=x^TAx-b^Tx$, whose minimum is the solution of the linear system.
+
+\subsection{Preconditioning}
+The rate of convergance of cgm depends on the conditioning of the matrix $A$, defined as $\kappa(A)=\frac{\max{\lambda_i}}{\min{\lambda_i}}$, where $\lambda_i$ are the eigenvalues of the matrix.
+\\The closer $\kappa(A)$ is to 1, the faster the convergence of the method.
+\\Given a certain matrix $M$, symmetric, positive definite and easily invertible and such that $M^{-1}A$ has better conditioning than $A$, which is to say $M$ well approximates $A$, we can hope to solve the problem
+\begin{equation}
+    M^{-1}Ax = M^{-1}b 
+\end{equation}
+much faster than the original problem, where the two solutions will be the same.
+\\The problem is that $M^{-1}A$ is not necessarily symmetric or positive definite.
+\\The fact that $\exists E$ such that $M=EE^T$ and $E^{-1}AE^{-T}$ is symmetric and positive definite, we can solve the problem.
+\begin{equation}
+    E^{-1}AE^{-T}x = E^{-1}b
+\end{equation}
+By using some clever substitutions, we can go back to the original problem with the aid of the preconditioner, giving the following algorithm
+Finire
+\section{Finding the smallest eigenvalue}
+Finding the smallest eigenvalue/eigenvector pair of a matrix amounts to evaluating the minimum of the Reyleigh quotient
+\begin{equation}
+    \lambda(x)=\frac{x^T Ax}{x^T x}
+\end{equation}
+Or, more generally
+\begin{equation}
+    Ax = B\omega x \implies \lambda(x)=\frac{x^T Ax}{x^T Bx}
+\end{equation}
+$\lambda$ is not a quadratic form, hence te cgm needs to be modified to use it.
+\subsection{Useful multivariable relations}
+Given $f(x)=x^T Ax$ and taking the derivative of $f$ in the direction of $v$
+\begin{equation}
+    f(x+hv) = (x+hv)^T A(x+hv) = f(x) + hv^T A x + hx^T A  v + o(h)
+\end{equation}
+\begin{equation}
+    \dv{f}{v} = \lim_{h\to 0} \frac{f(x+hv)-f(x)}{h} = v^T Ax + x^T A v = v^T A x + v^T A^T x
+\end{equation}
+We can now evaluate the gradient of $f$ in x
+\begin{equation}
+    \nabla_x f(x) = \dv{f}{v} (x) = (A+A^T)x
+\end{equation}
+We can now take the gradient of the Rayleigh quotient
+\begin{equation}
+    \nabla \lambda(x) = \frac{(A+A^T)xx^T Bx - (B+B^T)x x^T Ax }{(x^T Bx)^2} 
+\end{equation}
+Using the fact that $A$ and $B$ are symemtric
+\begin{equation}
+\nabla \lambda(x)=2\frac{ Axx^T Bx - Bxx^T Ax}{(x^T Bx)^2}=2\frac{Ax-\lambda(x)Bx}{x^T Bx}
+\end{equation}
+\subsection{Non linear conjugate gradient}
+
+
+\end{document}
+
