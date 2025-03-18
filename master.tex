@@ -25,23 +25,37 @@ A simpler algorithm is the steepest descent.
     x_{i+1} = x_i + \alpha_i r_i 
 \end{equation}
 \begin{equation}
-    \alpha_i \text{ such that } \frac{d f(x_{i+1})}{d\alpha_i} = 0 \implies \alpha_i = \frac{\norm{r_i}}{\norm{r_i}_A}
+    \alpha_i \text{ such that } \frac{d f(x_{i+1})}{d\alpha_i} = 0 \implies \alpha_i = \frac{r_i^T r_i}{r_i^T A r_i}
 \end{equation}
 This method is inefficient as $x_i$ often finds itself oscillating around the solution, since the search directions explore non-disjoint subspaces.
 \subsection{The algorithm}
-A better alternative is to set the search direction to be A-orthogonal to the error at the next iteration. If this is the case, it can be proven that an exact solution be found after $n$ iterations.
+A better alternative is to set the search direction to be A-orthogonal to the error at the next iteration. If this is the case, it can be proven that the components of the error term are reduced to zero at each iteration, implying a convergence to the exact solution in $n$ steps.
 \begin{equation}
     d^T_i Ae_{i+1} = 0 \implies \frac{d f(x_{i+1})}{d\alpha_i} = -r_{i+1}^T d_i = 0
 \end{equation}
 \begin{equation}
-    \alpha_i = \frac{r_i^T d_i}{\norm{d_{i}}_A}
+    \alpha_i = \frac{r_i^T d_i}{d_i^T A d_i}
 \end{equation}
 By definition, the residual is orthogonal to the previous search directions, we also have $r_i^T r_j=\delta_{ij}$. Since
 \begin{equation}
     r_{i+1} = -A(e_{i+1}) = -A(e_i + \alpha_i d_i) = r_i - \alpha_i A d_i
 \end{equation}
+\subsubsection{Procedure}
+The cgm algorithm can be summed up as follows:
+\\Start with a guess solution $x_0$.
+\\Let the first direction be the residual in $x_0$
+\begin{equation}
+    d_0 = r_0 = b-Ax_0
+\end{equation}
+Now, at each iteration, we can compute
+\begin{align*}
+    \alpha_i = \frac{r_i^T r_i}{d_i^T A d_i}  
+    \\x_{i+1} = x_i + \alpha_i d_i
+    \\r_{i+1} = r_i - \alpha_i A d_i
+    \\\beta_{i+1} = \frac{r_{i+1}^T r_{i+1}}{r_i^T r_i}
+    \\d_{i+1} = r_{i+1} + \beta_{i+1} d_i
+\end{align*}
 
-Finire
 %Start with a guess solution $x_0$.
 %\\Calculate the residual $r_0=b-Ax_0$.
 %\\In terms of quadratic form, $r_0$ is the opposite of the gradient of $f(x)=x^TAx-b^Tx$, whose minimum is the solution of the linear system.
@@ -60,9 +74,18 @@ much faster than the original problem, where the two solutions will be the same.
     E^{-1}AE^{-T}x = E^{-1}b
 \end{equation}
 By using some clever substitutions, we can go back to the original problem with the aid of the preconditioner, giving the following algorithm
-Finire
+\begin{align*}
+    r_0 = b - A x_0 \\
+    d_0 = M^{-1} r_0 \\
+    \alpha_i = \frac{r_i^T M^{-1} r_i}{d_i^T A d_i} \\
+    x_{i+1} = x_i + \alpha_i d_i \\
+    r_{i+1} = r_i - \alpha_i A d_i \\
+    \beta_{i+1} = \frac{r_{i+1}^T M^{-1} r_{i+1}}{r_i^T M^{-1} r_i} \\
+    d_{i+1} = M^{-1} r_{i+1} + \beta_{i+1} d_i
+\end{align*}
+
 \section{Finding the smallest eigenvalue}
-Finding the smallest eigenvalue/eigenvector pair of a matrix amounts to evaluating the minimum of the Reyleigh quotient
+Finding the smallest/biggest eigenvalue-eigenvector pair of a matrix amounts to evaluating the unconstrained minimum/maximum of the Reyleigh quotient
 \begin{equation}
     \lambda(x)=\frac{x^T Ax}{x^T x}
 \end{equation}
@@ -70,7 +93,7 @@ Or, more generally
 \begin{equation}
     Ax = B\omega x \implies \lambda(x)=\frac{x^T Ax}{x^T Bx}
 \end{equation}
-$\lambda$ is not a quadratic form, hence te cgm needs to be modified to use it.
+$\lambda$ is not a quadratic form, hence the cgm needs to be modified to use it.
 \subsection{Useful multivariable relations}
 Given $f(x)=x^T Ax$ and taking the derivative of $f$ in the direction of $v$
 \begin{equation}
@@ -98,6 +121,41 @@ Using a non quadratic form as function to be minimized, the things that will cha
 \item The factor $\beta$ to compute conjugated directions no longer has equivalent forms.
 \item The residual needs to be computed each time as $-\nabla f(x_i)$
 \end{itemize}
+Let's take a look at each problem and find a workaround.
+\subsubsection{Step size}
+We ought to find the step size for which $\lambda$ is minimized at each iteration. Being non linear (and non quadratic), an approximation must be done.
+\\We can Taylor expand the function around $x_i$, in the direction $\alpha d_i$, and find the minimum of the polynomial.
+\\Regarding the Rayleigh quotient, it amounts to finding the positive roots of the following polynomial:
+\begin{gather*}
+a \alpha_i^2 + b \alpha_i + c = 0 \\
+a = (d_i^T A d_i) (x_i^T B d_i) - (x_i^T A d_i) (d_i^T B d_i) \\
+b = (d_i^T A d_i) (x_i^T B x_i) - (x_i^T A x_i) (d_i^T B d_i) \\
+c = (x_i^T A d_i) (x_i^T B x_i) - (x_i^T A x_i) (x_i^T B d_i)
+\end{gather*}
+Being the search direction always descending, we can simply select the positive root.
+\subsubsection{Factor $\beta$}
+The choice for $\beta$ is neither trivial nor unique, different formulations lead to distinct convergence properties and applicabilities.
+\\Two possible choices are
+\begin{equation}
+\beta_{i+1}^{\text{FR}} = \frac{r_{i+1}^T r_{i+1}}{r_i^T r_i} 
+\quad \text{or} \quad 
+\beta_{i+1}^{\text{PR}} = \max \left\{ \frac{r_{i+1}^T (r_{i+1} - r_i)}{r_i^T r_i}, 0 \right\}
+\end{equation}
+The max operation will restart the method if $\beta$ is negative in the Polak Ribière, guaranteeing convergence.
+\subsubsection{Algorithm}
+The algorithm for minimizing the Rayleigh quotient can now be formulated as follows.
+\\Choose an initial guess $x_0$.
+\\Set the first search direction as the residual in $x_0$: $d_0 = r_0 = -g(x_0)$.
+\\At each iteration, we can compute
+\begin{align*}
+    \alpha_i \text{ such that } f(x+\alpha_i d_i) \text{ minimized}
+    \\x_{i+1} = x_i + \alpha_i d_i
+    \\r_{i+1} = - g(x_{i+1})
+    \\\beta_{i+1} \text{ from one of the possible choices}
+    \\d_{i+1} = r_{i+1} + \beta_{i+1} d_i
+\end{align*}
+Since $\lambda(x)$ is not a quadratic form, the algorithm won't converge in $n$ steps, so that we will need to check for convergence at each iteration.
+
 
 \end{document}
 
