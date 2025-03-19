@@ -155,7 +155,42 @@ The algorithm for minimizing the Rayleigh quotient can now be formulated as foll
     \\d_{i+1} = r_{i+1} + \beta_{i+1} d_i
 \end{align*}
 Since $\lambda(x)$ is not a quadratic form, the algorithm won't converge in $n$ steps, so that we will need to check for convergence at each iteration.
+\subsubsection{Stopping}
+As suggested in [painless conjugate gradient], a possible stopping criterion can be to check whether 
+\begin{equation}
+    \norm{g(x_i)} < \epsilon \norm{g(x_0)}
+\end{equation}
 
+\section{Finite Differences}
+We can employ discretization methods such as finite differences to approximate the solution of a differential equation.
+\subsection{Second order ODEs}
+The taylor expansion of a function $\psi(x\pm h)$ around a point $x$ is given by
+\begin{equation}
+    \psi(x\pm h) = \psi(x) \pm h \psi'(x) + \frac{h^2}{2!} \psi''(x) + \ldots
+\end{equation}
+\subsubsection{First derivative}
+By subtracting $\psi(x+h)$ and $\psi(x-h)$, we get an approximation for the first derivative
+\begin{equation}
+    \psi'(x) \approx \frac{\psi(x+h) - \psi(x-h)}{2h}
+\end{equation}
+By adding them, we can get an approximation for the second derivative
+\begin{equation}
+    \psi''(x) \approx \frac{\psi(x+h) - 2\psi(x) + \psi(x-h)}{h^2}
+\end{equation}
+\subsection{Discretization}
+Given an eigenvalue boundary problem, formulated as
+\begin{align*}
+    \psi''(x)  = f(x, \psi, \psi', E) \ \ \forall x \in [a, b]
+\end{align*}
+We can build a lattice of $n$ points
+\begin{equation} 
+    X = \{x_i = a + ih \ \forall i = 0, \ldots, n-1\}
+\end{equation}
+Writing $\psi(x_i) = \psi_i$, and the equation $\psi''_i = f(x_i, \psi_i, \psi'_i, E)$ $\forall i$ we get a linear system of the form
+\begin{equation}
+    A \underline{\psi} = E\underline{\psi}
+\end{equation}
+Finding the eigenvalues and eigenvectors of $A$ amounts to finding the solutions $\psi$ and the corrisponding eigenvalues $E$.
 
 \end{document}
 
