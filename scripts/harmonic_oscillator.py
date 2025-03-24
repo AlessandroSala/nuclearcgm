@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from eigen import find_eigenpair
-from constants import *
+from nuc_constants import *
 import util as u
-
-a = 5e-2
-omega = 10
+A = 16
+a = 10
+omega = 41/h_bar/A**(1/3)
 
 def matsetup_oscillator(n):
     A = np.zeros((n, n))
@@ -27,14 +27,23 @@ res = find_eigenpair(mat[0], np.random.rand(n), tol = 1e-20)
 #min_eig = np.argmin(np.abs(gauss[0]))
 #
 #print(f"Error: {res[1] - gauss[0][min_eig]}")
-print(f"Energy value: {res[1]/ev} eV") 
+print(f"GS Energy value: {res[1]} MeV") 
 E_real = h_bar * omega * 0.5
-print(f"Error: {round((res[1]/E_real - 1)*100, 2)}%")
+print(f"Error GS: {round((res[1]/E_real - 1)*100, 2)}%")
 y = u.positive_vector(u.normalize(res[0]))
 x = mat[1]
 #plt.plot(x, u.positive_vector(u.normalize (gauss[1][:, min_eig])))
-plt.plot(x, y)
+#res_2 = find_eigenpair_constrained(mat[0], u.normalize(guess), u.normalize(res[0]), tol = 1e-22, c= 1000)
+plt.plot(x, y**2, label="$|\\psi|^2$")
+plt.xlabel("$x$ [fm]")
+plt.legend()
+#plt.plot(x, (u.normalize(res_2[0])))
 plt.grid()
-
 plt.show()
+
+#print(f"Error ES: {round((res_2[1]/(h_bar*omega*1.5) - 1)*100, 2)}%")
+#print(np.column_stack((res[0], guess)).shape)
+#res_cgc = lobpcg(mat[0], np.column_stack((np.random.rand(n), np.random.rand(n))), tol=1e-30, maxiter=100000) 
+#print(f"Error gcg GS: {round((res_cgc[0][0]/(h_bar*omega*0.5) - 1)*100, 2)}%")
+#plt.show()
 
