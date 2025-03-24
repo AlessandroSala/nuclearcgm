@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{physics}
+\usepackage{braket}
 
 \title{Notes}
 \date{}
@@ -168,20 +169,20 @@ The taylor expansion of a function $\psi(x\pm h)$ around a point $x$ is given by
 \begin{equation}
     \psi(x\pm h) = \psi(x) \pm h \psi'(x) + \frac{h^2}{2!} \psi''(x) + \ldots
 \end{equation}
-\subsubsection{First derivative}
+\subsubsection{First and second derivative}
 By subtracting $\psi(x+h)$ and $\psi(x-h)$, we get an approximation for the first derivative
 \begin{equation}
     \psi'(x) \approx \frac{\psi(x+h) - \psi(x-h)}{2h}
 \end{equation}
 By adding them, we can get an approximation for the second derivative
 \begin{equation}
-    \psi''(x) \approx \frac{\psi(x+h) - 2\psi(x) + \psi(x-h)}{h^2}
+    \psi''(x) \approx \frac{\psi(x+h) - 2\psi(x) + \psi(x-h)}{h^2} \label{eq:finite_diff_2nd}
 \end{equation}
 \subsection{Discretization}
 Given an eigenvalue boundary problem, formulated as
-\begin{align*}
-    \psi''(x)  = f(x, \psi, \psi', E) \ \ \forall x \in [a, b]
-\end{align*}
+\begin{align}
+    \psi''(x)  = f(x, \psi, \psi', E) \ \ \forall x \in [a, b] \label{eq:bvp_eigenvalue}
+\end{align}
 We can build a lattice of $n$ points
 \begin{equation} 
     X = \{x_i = a + ih \ \forall i = 0, \ldots, n-1\}
@@ -190,7 +191,60 @@ Writing $\psi(x_i) = \psi_i$, and the equation $\psi''_i = f(x_i, \psi_i, \psi'_
 \begin{equation}
     A \underline{\psi} = E\underline{\psi}
 \end{equation}
-Finding the eigenvalues and eigenvectors of $A$ amounts to finding the solutions $\psi$ and the corrisponding eigenvalues $E$.
+Finding the eigenvalues and eigenvectors of $A$ amounts to finding the solutions $\psi$ and the corrisponding eigenvalues $E$ of the eigenvalue problem \ref{eq:bvp_eigenvalue}.
+\subsection{1D Harmonic oscillator}
+In quantum mechanics, one often finds necessary to solve the reduced Schrödinger equation
+\begin{equation}
+    \hat H \psi = (\hat T + \hat V)\psi =E\psi 
+\end{equation}
+Where $\hat H$ is the Hamiltonian, a differential operator, and $E$ the energy associated to a state $\psi$.
+\\A simple but rather useful example is the harmonic oscillator, where the potential is given by
+\begin{equation}
+    V(x) = \frac{1}{2}m\omega^2(x-x_0)^2
+\end{equation}
+\subsubsection{Harmonic oscillator and equilibrium}
+The power of the harmonic oscillator comes from the fact that a system at equilibrium will roughly have its particles in the minium of the potential energy.
+\\From a single particle point of view, we can say that the potential to which it's subjected is a function of its position $x$, which at equilibrium can be expanded as
+\begin{equation}
+    V(x) = V(x_0) + \dv{V}{x}\bigg|_{x_0}(x-x_0)+ \frac 1 2 \dv[2]{V}{x}\bigg|_{x_0}(x-x_0)^2
+\end{equation}
+Since the first derivative is zero at equilibrium, and the potential additive constant can be ignored, we can write
+\begin{equation}
+    V(x) = \frac{1}{2}m\omega^2(x-x_0)^2
+\end{equation}
+Where 
+\begin{equation}
+    m\omega^2 = \dv[2]{V}{x}\bigg|_{x_0}
+\end{equation}
 
+\subsection{Matrix solution}
+Given the Hamiltonian
+\begin{equation}
+    \hat H = \frac{-\hbar^2}{2m}\dv[2]{}{x}+\frac 1 2 m \omega^2 x^2
+\end{equation}
+We can combine \ref{eq:bvp_eigenvalue} and \ref{eq:finite_diff_2nd}, using a step size $\Delta$ to get
+\begin{equation}
+    \frac{(\frac K 2 m\omega^2 x_i^2 \Delta ^2 - 2)\psi_j + \psi_{j-1} + \psi_{j+1}}{\Delta ^2 K} = E\psi_j \label{eq:finite_diff_ho}
+\end{equation}
+Where $K = {-2m}/{\hbar^2}$.
+\\The left hand side of \ref{eq:finite_diff_ho} gives the entries of matrix A, for which the smallest eigenvalue can be found by minimizing the Rayleigh quotient with the non linear cgm.
+\subsubsection{Harmonic oscillator applied to nuclei}
+A numerical solution to the harmonic oscillator is now given for the applied case of a nucleon in the nucleus.
+\\The value of $\omega$ can be calculated from the empirical density of nuclei, which can be written as a function of $\sqrt{\braket{r^2}}$, analytically known in the case of an harmonic oscillator.
+\begin{equation}
+    \hbar \omega = \frac{41}{A^{1/3}} \text{MeV}
+\end{equation}
+\\This may seem tautological but the aim is to verify the validity of the numerical solution while seeing the method in action for a real case.
+\\The mass of the particle is assumed to be 939 MeV.
+\\A calculation was performed on a grid of 1000 points, in an interval $[-a, a]$ such that $a=10$ fm.
+\\The resulting wavefunction is shown in figure \ref{fig:1D_ho}.
+\\The associated eigenvalue (energy) is 8.143 MeV.
+\\Since the computation was done in one dimension, a factor of 3 is needed to compare it to a real nucleus.
+\\Assuming the nucleon to be bound through a potential well of $\approx$ 40 MeV, the binding energy will be $\approx$ 40 - 8.143 $\cdot$ 3 = 15.571 MeV.
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/1D_ho.png}
+\caption{\label{fig:1D_ho} Ground state wavefunction of the harmonic oscillator. The solution starts roughly vanishes for $|x|>3$ fm, as expected for a nucleus of this size.}
+\end{figure}
 \end{document}
 
