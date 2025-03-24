@@ -20,9 +20,9 @@ def matsetup_oscillator(n):
     A[-1, 0] = 0
     return A, xs
 
-n = 1000
+n = 20
 mat = matsetup_oscillator(n)
-res = find_eigenpair(mat[0], np.random.rand(n), tol = 1e-20)
+res = find_eigenpair(mat[0], np.random.rand(n), tol = 1e-26)
 #gauss =np.linalg.eig(mat[0]) 
 #min_eig = np.argmin(np.abs(gauss[0]))
 #

@@ -246,5 +246,33 @@ A numerical solution to the harmonic oscillator is now given for the applied cas
 \includegraphics[width=0.8\textwidth]{figures/1D_ho.png}
 \caption{\label{fig:1D_ho} Ground state wavefunction of the harmonic oscillator. The solution starts roughly vanishes for $|x|>3$ fm, as expected for a nucleus of this size.}
 \end{figure}
+\subsection{Second order PDEs}
+The method of finite differences can be extended to second order PDEs.
+\\For the moment, we will consider only a 2 dimensional problem, without losing generality.
+\\Given the boundary eigenvalue problem
+\begin{equation}
+\pdv[2]{\psi}{x}+\pdv[2]{\psi}{y} = f(\psi, \psi_x, \psi_y, x, y, E)
+\end{equation}
+We can build a lattice of $n_x, n_y$ points as follows
+\begin{equation}
+    X = \{x_i = a_x + ih_x \ \forall i = 0, \ldots, n_x-1\}, \quad Y = \{y_j = a_y + jh_y \ \forall j = 0, \ldots, n_y-1\}
+\end{equation}
+For simplicity, we can assume that $f$ does not depend on $\psi_x, \psi_y$, as most simple Hamiltonians do.
+\\By applying the finite differences method on $x$ we get
+\begin{equation}
+    \pdv[2]{\psi_i}{y} + \frac{\psi_{i+1}(y) - 2\psi_i(y) + \psi_{i-1}(y)}{h_x^2} = f(\psi_i(y), x_i, y, E)
+\end{equation}
+We can now write $\psi_{yy, i}$ as a function of $\psi_k(y), y, E$ and apply the finite differences method on $y$, which yields:
+\begin{equation}
+    \frac{\psi_{i, j+1}+\psi_{i, j-1}-2\psi_{i, j}}{h_y^2} + \frac{\psi_{i+1, j}-2\psi_{i, j}+\psi_{i-1, j}}{h_x^2} = f(\psi_{i, j}, x_i, y_j, E)\label{eq:finite_diff_2nd_pde}
+\end{equation}
+The next task will be to find a way to express $\ref{eq:finite_diff_2nd_pde}$ as a linear system of equations, by finding a single index $\mu$ that encapsulates the relation for all pairs $(i, j)$, with the constraint that the resulting matrix is symmetric.
+\\Formally
+\begin{equation}
+    \mu = F(i, j),\ \mu' = F(i',j')\implies\ A_{\mu\mu'} = A_{\mu'\mu}
+\end{equation}
+
+
+
 \end{document}
 
