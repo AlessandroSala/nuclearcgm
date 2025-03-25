@@ -6,7 +6,7 @@ import util as u
 A = 16
 a = 10
 omega = 41/h_bar/A**(1/3)
-n = 10
+n = 100
 
 xs = np.linspace(-a, a, n)
 ys = np.linspace(-a, a, n)
@@ -17,9 +17,9 @@ def idx(i, j):
 
 def A(i, j, i1, j1):
     if i1 == i and j1 == j:
-        pot = 0.5*2*xs[i]**2*m*omega**2*C*h**2
-        return (pot-2)/(C*h**2)
-    elif i==j1+1 or i==j1-1:
+        pot = 0.5*(xs[i]**2+ys[j]**2)*m*omega**2*C*h**2
+        return (pot-4)/(C*h**2)
+    elif (i==i1 and (j==j1+1 or j==j1-1)) or (j==j1 and (i==i1+1 or i==i1-1)):
         return 1/(C*h**2)
 
     return 0
@@ -38,9 +38,13 @@ def matsetup_oscillator(n):
     return mat
 
 mat = matsetup_oscillator(n)
+print(mat)
 print("Matrix generated")
-print(f"Is matrix symmetric? {(mat == mat.T).all()}")
-res = find_eigenpair(mat, np.random.rand(n**2), tol = 1e-27, n_max = 1000)
+res = find_eigenpair(mat, np.random.rand(n**2), tol = 1e-31, n_max = 5000, verbose=True)
+np.savetxt("output/ho_2d/eigenvectors.txt", res[0])
+np.savetxt("output/ho_2d/eigenvalues.txt", np.array([res[1]]))
+np.savetxt("output/ho_2d/x.txt", xs)
+np.savetxt("output/ho_2d/y.txt", ys)
 #gauss =np.linalg.eig(mat[0]) 
 #min_eig = np.argmin(np.abs(gauss[0]))
 #
@@ -48,9 +52,11 @@ res = find_eigenpair(mat, np.random.rand(n**2), tol = 1e-27, n_max = 1000)
 print(f"GS Energy value: {res[1]} MeV") 
 E_real = h_bar * omega * 1
 print(f"Error GS: {round((res[1]/E_real - 1)*100, 2)}%")
+print(f"Is matrix symmetric? {(mat == mat.T).all()}")
 y = u.positive_vector(u.normalize(res[0]))
-x = mat[1]
-#plt.plot(x, u.positive_vector(u.normalize (gauss[1][:, min_eig])))
+
+plt.plot(xs, u.positive_vector(u.normalize (res[0][5*n:6*n])))
+plt.show()
 #res_2 = find_eigenpair_constrained(mat[0], u.normalize(guess), u.normalize(res[0]), tol = 1e-22, c= 1000)
 #plt.plot(x, y**2, label="$|\\psi|^2$")
 #plt.xlabel("$x$ [fm]")

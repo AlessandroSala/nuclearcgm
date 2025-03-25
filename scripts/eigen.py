@@ -1,7 +1,7 @@
 import numpy as np
 import time
 from scipy.optimize import minimize_scalar
-def find_eigenpair(A, x0, tol = 1e-20, n_max = 100000):
+def find_eigenpair(A, x0, tol = 1e-20, n_max = 100000, verbose = False):
     # Rayleigh quotient definition
     f = lambda x: np.dot(x, A @ x)/np.dot(x, x)
     # Rayleigh quotient gradient
@@ -32,7 +32,8 @@ def find_eigenpair(A, x0, tol = 1e-20, n_max = 100000):
         b = compute_beta_PR(r_new, r_old)
         d = r_new + b * d
         n = i
-        print(f"iteration {i}")
+        if verbose:
+            print(f"iteration {i}")
     
     print(f"Done in {n} iterations")
     print(f"Smallest eigenvalue: {f(x)}") 

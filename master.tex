@@ -238,7 +238,7 @@ A numerical solution to the harmonic oscillator is now given for the applied cas
 \\The mass of the particle is assumed to be 939 MeV.
 \\A calculation was performed on a grid of 1000 points, in an interval $[-a, a]$ such that $a=10$ fm.
 \\The resulting wavefunction is shown in figure \ref{fig:1D_ho}.
-\\The associated eigenvalue (energy) is 8.143 MeV.
+\\Assuming a mass number of $A=16$, the eigenvalue (energy) associated to the graound state is 8.143 MeV.
 \\Since the computation was done in one dimension, a factor of 3 is needed to compare it to a real nucleus.
 \\Assuming the nucleon to be bound through a potential well of $\approx$ 40 MeV, the binding energy will be $\approx$ 40 - 8.143 $\cdot$ 3 = 15.571 MeV.
 \begin{figure}[!htb]
@@ -253,25 +253,46 @@ The method of finite differences can be extended to second order PDEs.
 \begin{equation}
 \pdv[2]{\psi}{x}+\pdv[2]{\psi}{y} = f(\psi, \psi_x, \psi_y, x, y, E)
 \end{equation}
-We can build a lattice of $n_x, n_y$ points as follows
+Here, coordinate indeces $x\text{ and } y$, are used to denote partial derivatives of $\psi$ with respect to $x$ and $y$ respectively.
+\\We can build a lattice of $n_x, n_y$ points as follows
 \begin{equation}
-    X = \{x_i = a_x + ih_x \ \forall i = 0, \ldots, n_x-1\}, \quad Y = \{y_j = a_y + jh_y \ \forall j = 0, \ldots, n_y-1\}
+    X = \{x_i = a_x + ih_x \ \forall i = 0, \ldots, N_x-1\}, \  Y = \{y_j = a_y + jh_y \ \forall j = 0, \ldots, N_y-1\}
 \end{equation}
 For simplicity, we can assume that $f$ does not depend on $\psi_x, \psi_y$, as most simple Hamiltonians do.
 \\By applying the finite differences method on $x$ we get
 \begin{equation}
     \pdv[2]{\psi_i}{y} + \frac{\psi_{i+1}(y) - 2\psi_i(y) + \psi_{i-1}(y)}{h_x^2} = f(\psi_i(y), x_i, y, E)
 \end{equation}
-We can now write $\psi_{yy, i}$ as a function of $\psi_k(y), y, E$ and apply the finite differences method on $y$, which yields:
+We can now write $\psi_{yy, i}$ as a function of $\psi_i(y), y, E, x_i$ and apply the finite differences method on $y$, which yields:
 \begin{equation}
-    \frac{\psi_{i, j+1}+\psi_{i, j-1}-2\psi_{i, j}}{h_y^2} + \frac{\psi_{i+1, j}-2\psi_{i, j}+\psi_{i-1, j}}{h_x^2} = f(\psi_{i, j}, x_i, y_j, E)\label{eq:finite_diff_2nd_pde}
+    \frac{\psi_{i, j+1}+\psi_{i, j-1}-2\psi_{i, j}}{h_y^2} + \frac{\psi_{i+1, j}+\psi_{i-1, j}-2\psi_{i,j}}{h_x^2} = f(\psi_{i, j}, x_i, y_j, E)\label{eq:finite_diff_2nd_pde}
 \end{equation}
-The next task will be to find a way to express $\ref{eq:finite_diff_2nd_pde}$ as a linear system of equations, by finding a single index $\mu$ that encapsulates the relation for all pairs $(i, j)$, with the constraint that the resulting matrix is symmetric.
+Rearranging the terms, it's possible to obtain the following system of equations:
+\begin{equation}
+    \sum_{i'j'}A_{i,j,i',j'}\psi_{i'j'} = E\psi_{i,j}\label{eq:hypermatrix_2d}
+\end{equation}
+Where $A_{i,j,i',j'}$ is a hypermatrix of size $N_x \times N_y \times N_x \times N_y$.
+\\The next task will be to find a way to express $\ref{eq:hypermatrix_2d}$ as a linear system of equations, by finding a single index $\mu$ that encapsulates the relation for all pairs $(i, j)$, with the constraint that the resulting matrix is symmetric.
 \\Formally
 \begin{equation}
-    \mu = F(i, j),\ \mu' = F(i',j')\implies\ A_{\mu\mu'} = A_{\mu'\mu}
+    F:(i,j)\mapsto \mu \text{ such that }\mu = F(i, j),\ \mu' = F(i',j')\implies\ A_{\mu\mu'} = A_{\mu'\mu}
 \end{equation}
-
+\subsubsection{Indeces parametrization}
+A possible map $(i, j) \mapsto \mu$ is
+\begin{equation}
+F(i, j) = \mu = i + N_x j \label{eq:indeces_parametrization}
+\end{equation}
+Using this map, the entries of $\psi_\mu$ will be organized as 
+\begin{equation}
+\psi = (\psi_{(0, 0)}, \psi_{(1, 0)}, \ldots, \psi_{(N_x-1, 0)}, \psi_{(0, 1)}, \ldots, \psi_{(N_x-1, N_y-1)})
+\end{equation}
+And the problem will be reduced to 
+\begin{equation}
+\sum_{\mu'=0}^{N_x N_y}A_{\mu\mu'}\psi_{\mu'} = E\psi_\mu
+\end{equation}
+Which can be diagonalized to find the solutions to the eigenvalue problem in multiple dimensions. Moreover, an approximate solution can be found using cgm, since the resulting matrix will be symmetric.
+\subsubsection{3D case}
+The 3D case follows trivially by performing discretization on the z-axis, adding a new index $k$ and using the map $F(i, j, k) = i + N_x (j + N_y k)$.
 
 
 \end{document}
