@@ -20,9 +20,9 @@ def matsetup_oscillator(n):
     A[-1, 0] = 0
     return A, xs
 
-n = 20
+n = 1000
 mat = matsetup_oscillator(n)
-res = find_eigenpair(mat[0], np.random.rand(n), tol = 1e-26)
+res = find_eigenpair(mat[0], np.random.rand(n), tol = 1e-26, n_max=5000)
 #gauss =np.linalg.eig(mat[0]) 
 #min_eig = np.argmin(np.abs(gauss[0]))
 #
@@ -40,6 +40,8 @@ plt.legend()
 #plt.plot(x, (u.normalize(res_2[0])))
 plt.grid()
 plt.show()
+
+print(mat[0])
 
 #print(f"Error ES: {round((res_2[1]/(h_bar*omega*1.5) - 1)*100, 2)}%")
 #print(np.column_stack((res[0], guess)).shape)

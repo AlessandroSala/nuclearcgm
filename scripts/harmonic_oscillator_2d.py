@@ -4,9 +4,10 @@ from eigen import find_eigenpair
 from nuc_constants import *
 import util as u
 A = 16
-a = 10
+a = 5.5
 omega = 41/h_bar/A**(1/3)
-n = 100
+n = 60
+save = True
 
 xs = np.linspace(-a, a, n)
 ys = np.linspace(-a, a, n)
@@ -23,6 +24,7 @@ def A(i, j, i1, j1):
         return 1/(C*h**2)
 
     return 0
+
 
 def matsetup_oscillator(n):
     mat = np.zeros((n**2, n**2))
@@ -41,10 +43,11 @@ mat = matsetup_oscillator(n)
 print(mat)
 print("Matrix generated")
 res = find_eigenpair(mat, np.random.rand(n**2), tol = 1e-31, n_max = 5000, verbose=True)
-np.savetxt("output/ho_2d/eigenvectors.txt", res[0])
-np.savetxt("output/ho_2d/eigenvalues.txt", np.array([res[1]]))
-np.savetxt("output/ho_2d/x.txt", xs)
-np.savetxt("output/ho_2d/y.txt", ys)
+if save:
+    np.savetxt("output/ho_2d/eigenvectors.txt", res[0])
+    np.savetxt("output/ho_2d/eigenvalues.txt", np.array([res[1]]))
+    np.savetxt("output/ho_2d/x.txt", xs)
+    np.savetxt("output/ho_2d/y.txt", ys)
 #gauss =np.linalg.eig(mat[0]) 
 #min_eig = np.argmin(np.abs(gauss[0]))
 #
