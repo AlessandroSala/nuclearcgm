@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1743276056.09234 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1743276056.38243 0
-  "/home/ale/dev/nuclearcgm/master.tex" 1743276055.93901 17239 45a1be428f32c747b21a5a070002503d ""
+["pdflatex"] 1743277624.17258 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1743277624.46124 0
+  "/home/ale/dev/nuclearcgm/master.tex" 1743277623.71694 17147 8d95ece1683ca47bddc5ba6acb298aea ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -70,8 +70,8 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1735924908 7757846 09d24f7cdc708213b287ee23eb4d9a9c ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
   "figures/ws_gs.png" 1743275533.18922 33682 d6c21bd3faa2eea0ee0238eeb333a900 ""
-  "master.aux" 1743276056.343 3658 1d9d3afe39dd06c42716e859e97f82d1 "pdflatex"
-  "master.tex" 1743276055.93901 17239 45a1be428f32c747b21a5a070002503d ""
+  "master.aux" 1743277624.41493 3566 58736fea1b1239d1b620645a79b0744f "pdflatex"
+  "master.tex" 1743277623.71694 17147 8d95ece1683ca47bddc5ba6acb298aea ""
   (generated)
   "master.aux"
   "master.log"
