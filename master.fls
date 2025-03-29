@@ -280,6 +280,11 @@ INPUT ./figures/1D_ho.png
 INPUT figures/1D_ho.png
 INPUT ./figures/1D_ho.png
 INPUT ./figures/1D_ho.png
+INPUT ./figures/ws_gs.png
+INPUT ./figures/ws_gs.png
+INPUT figures/ws_gs.png
+INPUT ./figures/ws_gs.png
+INPUT ./figures/ws_gs.png
 INPUT master.aux
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb

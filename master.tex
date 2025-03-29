@@ -37,7 +37,7 @@ A better alternative is to set the search direction to be A-orthogonal to the er
 \begin{equation}
     \alpha_i = \frac{r_i^T d_i}{d_i^T A d_i}
 \end{equation}
-By definition, the residual is orthogonal to the previous search directions, we also have $r_i^T r_j=\delta_{ij}$. Since
+By definition, the residual is orthogonal to the previous search directions, we also have $r_i^T r_j=\gamma{ij}$. Since
 \begin{equation}
     r_{i+1} = -A(e_{i+1}) = -A(e_i + \alpha_i d_i) = r_i - \alpha_i A d_i
 \end{equation}
@@ -222,11 +222,11 @@ Given the Hamiltonian
 \begin{equation}
     \hat H = \frac{-\hbar^2}{2m}\dv[2]{}{x}+\frac 1 2 m \omega^2 x^2
 \end{equation}
-We can combine \ref{eq:bvp_eigenvalue} and \ref{eq:finite_diff_2nd}, using a step size $\Delta$ to get
+We can combine \ref{eq:bvp_eigenvalue} and \ref{eq:finite_diff_2nd}, using a step size $h$ to get
 \begin{equation}
-    \frac{(\frac K 2 m\omega^2 x_i^2 \Delta ^2 - 2)\psi_j + \psi_{j-1} + \psi_{j+1}}{\Delta ^2 K} = E\psi_j \label{eq:finite_diff_ho}
+    \frac{(\frac C 2 m\omega^2 x_i^2 h ^2 - 2)\psi_j + \psi_{j-1} + \psi_{j+1}}{h ^2 C} = E\psi_j \label{eq:finite_diff_ho}
 \end{equation}
-Where $K = {-2m}/{\hbar^2}$.
+Where $C = {-2m}/{\hbar^2}$.
 \\The left hand side of \ref{eq:finite_diff_ho} gives the entries of matrix A, for which the smallest eigenvalue can be found by minimizing the Rayleigh quotient with the non linear cgm.
 \subsubsection{Harmonic oscillator applied to nuclei}
 A numerical solution to the harmonic oscillator is now given for the applied case of a nucleon in the nucleus.
@@ -240,7 +240,7 @@ A numerical solution to the harmonic oscillator is now given for the applied cas
 \\The resulting wavefunction is shown in figure \ref{fig:1D_ho}.
 \\Assuming a mass number of $A=16$, the eigenvalue (energy) associated to the graound state is 8.143 MeV.
 \\Since the computation was done in one dimension, a factor of 3 is needed to compare it to a real nucleus.
-\\Assuming the nucleon to be bound through a potential well of $\approx$ 40 MeV, the binding energy will be $\approx$ 40 - 8.143 $\cdot$ 3 = 15.571 MeV.
+\\Assuming the nucleon to be bound through a potential well of $\approx$ 40 MeV, the separation energy will be $\approx$ 40 - 8.143 $\cdot$ 3 = 15.571 MeV.
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/1D_ho.png}
@@ -251,36 +251,39 @@ The method of finite differences can be extended to second order PDEs.
 \\For the moment, we will consider only a 2 dimensional problem, without losing generality.
 \\Given the boundary eigenvalue problem
 \begin{equation}
-\pdv[2]{\psi}{x}+\pdv[2]{\psi}{y} = f(\psi, \psi_x, \psi_y, x, y, E)
+\pdv[2]{\psi}{x}+\pdv[2]{\psi}{y} = f(\psi, \pdv{\psi}{x}, \pdv{\psi}{y}, x, y, E)
 \end{equation}
-Here, coordinate indeces $x\text{ and } y$, are used to denote partial derivatives of $\psi$ with respect to $x$ and $y$ respectively.
-\\We can build a lattice of $n_x, n_y$ points as follows
+\\We can build a lattice of $N_x, N_y$ points as follows
 \begin{equation}
     X = \{x_i = a_x + ih_x \ \forall i = 0, \ldots, N_x-1\}, \  Y = \{y_j = a_y + jh_y \ \forall j = 0, \ldots, N_y-1\}
 \end{equation}
-For simplicity, we can assume that $f$ does not depend on $\psi_x, \psi_y$, as most simple Hamiltonians do.
-\\By applying the finite differences method on $x$ we get
+By applying the finite differences method on $x$ we get
 \begin{equation}
-    \pdv[2]{\psi_i}{y} + \frac{\psi_{i+1}(y) - 2\psi_i(y) + \psi_{i-1}(y)}{h_x^2} = f(\psi_i(y), x_i, y, E)
+    \pdv[2]{\psi_i}{y} + \frac{\psi_{i+1}(y) - 2\psi_i(y) + \psi_{i-1}(y)}{h_x^2} = f(\psi_i(y), \fdv{\psi_i}{x}, \pdv{\psi_i}{y}, x_i, y, E)
 \end{equation}
-We can now write $\psi_{yy, i}$ as a function of $\psi_i(y), y, E, x_i$ and apply the finite differences method on $y$, which yields:
+Where the $\delta$ denotes the first partial derivative in the finite differences approximation.
+\\We can now apply again the finite differences approximation to the $y$ coordinate, which yields
 \begin{equation}
-    \frac{\psi_{i, j+1}+\psi_{i, j-1}-2\psi_{i, j}}{h_y^2} + \frac{\psi_{i+1, j}+\psi_{i-1, j}-2\psi_{i,j}}{h_x^2} = f(\psi_{i, j}, x_i, y_j, E)\label{eq:finite_diff_2nd_pde}
+    \frac{\psi_{i, j+1}+\psi_{i, j-1}-2\psi_{i, j}}{h_y^2} + \frac{\psi_{i+1, j}+\psi_{i-1, j}-2\psi_{i,j}}{h_x^2} = f(\psi_{i, j}, x_i, y_j, \fdv{\psi_{ij}}{x}, \fdv{\psi_{ij}}{y}, E)\label{eq:finite_diff_2nd_pde}
 \end{equation}
 Rearranging the terms, it's possible to obtain the following system of equations:
 \begin{equation}
     \sum_{i'j'}A_{i,j,i',j'}\psi_{i'j'} = E\psi_{i,j}\label{eq:hypermatrix_2d}
 \end{equation}
 Where $A_{i,j,i',j'}$ is a hypermatrix of size $N_x \times N_y \times N_x \times N_y$.
-\\The next task will be to find a way to express $\ref{eq:hypermatrix_2d}$ as a linear system of equations, by finding a single index $\mu$ that encapsulates the relation for all pairs $(i, j)$, with the constraint that the resulting matrix is symmetric.
+\\The next task will be to find a way to express $\ref{eq:hypermatrix_2d}$ as a linear system of equations, by finding a choice of index that encapsulates the relation for all pairs $(i, j)$, with the constraint that the resulting matrix is symmetric.
 \\Formally
 \begin{equation}
-    F:(i,j)\mapsto \mu \text{ such that }\mu = F(i, j),\ \mu' = F(i',j')\implies\ A_{\mu\mu'} = A_{\mu'\mu}
+    F:(i,j)\mapsto \gamma \text{ such that }\alpha = F(i, j),\ \beta = F(i',j')\implies\ A_{\alpha\beta} = A_{\beta\alpha}
+\end{equation}
+This is guaranteed if the factors $A_{i,j,i',j'}$ are symmetric under the exchange  $i \leftrightarrow i'$ and $j \leftrightarrow j'$ and the map $F$ is bijective.
+\begin{equation}
+    A_{F(i,j),F(i',j')} = A_{i,j,i',j'} = A_{i', j', i, j} = A_{F(i',j'),F(i,j)}
 \end{equation}
 \subsubsection{Indeces parametrization}
-A possible map $(i, j) \mapsto \mu$ is
+A possible map $(i, j) \mapsto \gamma$ is
 \begin{equation}
-F(i, j) = \mu = i + N_x j \label{eq:indeces_parametrization}
+F(i, j) = \gamma = i + N_x j \label{eq:indeces_parametrization}
 \end{equation}
 Using this map, the entries of $\psi_\mu$ will be organized as 
 \begin{equation}
@@ -288,11 +291,33 @@ Using this map, the entries of $\psi_\mu$ will be organized as
 \end{equation}
 And the problem will be reduced to 
 \begin{equation}
-\sum_{\mu'=0}^{N_x N_y}A_{\mu\mu'}\psi_{\mu'} = E\psi_\mu
+\sum_{\beta=0}^{N_x N_y}A_{\alpha\beta}\psi_{\beta} = E\psi_\alpha
 \end{equation}
-Which can be diagonalized to find the solutions to the eigenvalue problem in multiple dimensions. Moreover, an approximate solution can be found using cgm, since the resulting matrix will be symmetric.
+
 \subsubsection{3D case}
 The 3D case follows trivially by performing discretization on the z-axis, adding a new index $k$ and using the map $F(i, j, k) = i + N_x (j + N_y k)$.
+\subsection{Woods Saxon}
+Now that the machinery for solving 3D eigenvalue problems is in place, we can apply to the Woods-Saxon potential.
+\\The Woods-Saxon potential is a phenomenological one, it comes from the distribution of electric charge in a nucleus, which we can gather from electron scattering experiments.
+\\The potential is assumed to have the same functional form, but with consants which are empirically determined as to fit the experimental data.
+\\The potential is given by
+\begin{equation}
+    V_{\text{WS}}(r) = \frac{-V_0}{1+e^{\frac{r-R}{a}}}
+\end{equation}
+Where the usual parametrization is
+\begin{gather}
+    R=r_0A^{1/3} =1.27A^{1/3} \text{ fm} \\
+    a = 0.67 \text{ fm}\\
+    V_0 = \bigg(51\pm33\frac{N-Z}{A}\bigg) \text{ MeV}
+\end{gather}
+Solving the associated Hamiltonian on a lattice of $N_x=N_y=N_z=100$ points, in an interval of [-10, 10] fm for all three axes, we get a ground state energy of $31.103 \text{ MeV}$ and the wavefunction in figure \ref{fig:ws_gs}.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/ws_gs.png}
+    \caption{\label{fig:ws_gs} Ground state wavefunction of the Woods-Saxon potential. The solution starts roughly vanishes for $|x|>3$ fm, as expected for a nucleus of this size.}
+\end{figure}
+
+
 
 
 \end{document}
