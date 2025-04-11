@@ -1,18 +1,20 @@
 import numpy as np
-
+from scipy.sparse.linalg import lobpcg
+import numpy as np
+from eigen import find_eigenpair, g, find_eigenpair_rev
+import util
+import math
 def rayleigh_ritz(S, A, B=None):
     """ Implementa la procedura di Rayleigh-Ritz """
     if B is None:
         B = np.eye(S.shape[0])
 
     M = S.T @ B @ S
-    D = np.diag(np.diag(M)**(-0.5))
-    R = np.linalg.cholesky(D @ M @ D)
-    eigvals, eigvecs = np.linalg.eig(np.linalg.inv(R.T) @ D @ (S.T @ A @ S) @ D @ np.linalg.inv(R))  
+    eigvals, eigvecs = np.linalg.eigh(np.linalg.inv(M) @ (S.T @ A @ S))
     
     return eigvecs, np.diag(eigvals)
 
-def lobpcg_simple(A, X0, B=None, max_iter=1000, tol=1e-25):
+def lobpcg_simple(A, X0, B=None, max_iter=100, tol=1e-6):
     """ Implementazione semplificata dell'algoritmo LOBPCG """
     if B is None:
         B = np.eye(A.shape[0])
@@ -23,12 +25,11 @@ def lobpcg_simple(A, X0, B=None, max_iter=1000, tol=1e-25):
     R = A @ X - B @ X @ Theta
     P = None
 
-    for i in range(max_iter):
+    for _ in range(max_iter):
         if np.linalg.norm(R) < tol:
-            print("Convergenza raggiunta in ", i, " iterazioni")
             break
 
-        W = R  # Risolve B W = R
+        W = np.linalg.solve(B, R)  # Risolve B W = R
         if P is None:
             S = np.hstack((X, W))
         else:
@@ -44,23 +45,63 @@ def lobpcg_simple(A, X0, B=None, max_iter=1000, tol=1e-25):
 
     return Theta, X
 
+def acgm(A, X0, tol = 1e-6, max_iter = 100):
+    w = X0.copy()
+    k = X0.shape[1]
+    eigenvalues = np.zeros(k)
+    diag_eigenvalues = np.zeros(k)
+
+    for iteration in range(max_iter):
+        for i in range(k):
+            Q = proj_mat(w[:, :i])
+            pair = find_eigenpair_rev(Q @ A @ Q, w[:, i], tol = tol, max_iter = max_iter)
+            if(math.isnan(pair[1] ) ):
+                print("NaN")
+                return w, eigenvalues, diag_eigenvalues
+
+            w[:, i] = pair[0]
+            eigenvalues[i] = pair[1]
+        M = w.T @ A @ w
+        res = np.linalg.eig(M)
+        idx = res[0].argsort()
+        res = res[0][idx], res[1][:, idx]
+        diag_eigenvalues = res[0]
+        w_copy = w.copy()
+        for i in range(k):
+            s = 0
+            for j in range(k):
+                s += res[1][j, i] * w_copy[:, j]
+            w[:, i] = s 
+        
+    return w, eigenvalues, diag_eigenvalues
+
+
+def proj_mat(W):
+    return np.eye(W.shape[0]) - W @ W.T
 # Test
 def test_lobpcg():
-    np.random.seed(42)
+    #np.random.seed(43)
     n = 100
-    eigenvalues = np.linspace(1, 100, n)  # Autovalori ben separati tra 1 e 100
-    Q, _ = np.linalg.qr(np.random.rand(n, n))  # Matrice ortogonale casuale
-    A = Q @ np.diag(eigenvalues) @ Q.T
-    X0 = np.random.rand(n, 2)  # Generiamo due vettori casuali
-    X0, _ = np.linalg.qr(X0)   # Ortonormalizzazione con QR
+    k = 6
+    A = np.random.rand(n, n)
+    A = A + A.T
+    X0 = np.random.rand(n, k)
+    X0, _ = np.linalg.qr(X0)
+    
 
 
     eigenvalues_numpy, eigenvectors_numpy = np.linalg.eigh(A)
 
-    eigenvalues_lobpcg, eigenvectors_lobpcg = lobpcg_simple(A, eigenvectors_numpy[:, :2])
+    eigenvalues_lobpcg, eigenvectors_lobpcg = lobpcg_simple(A, eigenvectors_numpy[:, :k])
+    eigenvalues_lobpcg_scipy, eigenvectors_lobpcg_scipy = lobpcg(A, eigenvectors_numpy[:, :k], None, np.diag(np.diag(A)) , maxiter=1000, tol=1e-10)
+    eigenvectors_acgm, eigenvalues_acgm, diag_eigenvalues_acgm = acgm(A, X0)
 
-    print("LOBPCG autovalori:", np.sort(np.diag(eigenvalues_lobpcg)))
-    print("NumPy autovalori:", np.sort(eigenvalues_numpy[:2]))
+    #print("LOBPCG mio autovalori:", np.sort(np.diag(eigenvalues_lobpcg)))
+    #print("LOBPCG scipy autovalori:", np.sort(eigenvalues_lobpcg_scipy))
+    print("accelerated cgm ", np.sort(eigenvalues_acgm))
+    print("accelerated cgm diagonal ", np.sort(diag_eigenvalues_acgm))
+    #print("LOBPCG mio autovalori:", np.sort(eigenvalues_lobpcg_scipy))
+    print("NumPy autovalori:", np.sort(eigenvalues_numpy[:k]))
 
 if __name__ == "__main__":
     test_lobpcg()

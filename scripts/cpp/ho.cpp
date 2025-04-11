@@ -12,7 +12,7 @@ using namespace std;
 using namespace Eigen;
 using namespace nuclearConstants;
 
-const int n = 1000;
+int n = 100;
 const double a = 10.0;
 const double h = 2 * a / (n-1);
 const double V0 = 57.0;
@@ -35,7 +35,7 @@ SparseMatrix<double> matsetup_oscillator(int n, const vector<double>& xs, const 
     SparseMatrix<double> mat(n, n);
     vector<Triplet<double>> tripletList;
 
-    #pragma omp parallel for collapse(3)
+    #pragma omp parallel for collapse(1)
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             double val = 0;
@@ -54,7 +54,22 @@ SparseMatrix<double> matsetup_oscillator(int n, const vector<double>& xs, const 
     return mat;
 }
 
-int main() {
+int main(int argc, char** argv) {
+    int k = 3;
+    int acgm_cycles = 5;
+    int n = 100;
+    if(argc >= 1){
+        k = atoi(argv[1]);
+        cout << "Calculating " << k << " eigenvalues" << endl;
+    }
+    if(argc >= 2) {
+        acgm_cycles = atoi(argv[2]);
+        cout << "ACGM cycles: " << acgm_cycles << endl;
+    }
+    if(argc >= 3) {
+        n = atoi(argv[3]);
+        cout << "n: " << n << endl;
+    }
     vector<double> xs(n), ys(n), zs(n);
     string path = "output/ho_cpp/";
     for (int i = 0; i < n; ++i) {
@@ -65,16 +80,26 @@ int main() {
     cout << "Matrix generated" << endl;
 
     
-    pair<double, VectorXd> eigenpair = find_eigenpair(mat);
-    cout << "Smallest eigenvalue (iterative): " << eigenpair.first << endl;
-    double e_real = h_bar * omega * 0.5;
-    cout << "Real energy: " << e_real << " MeV" << endl;
-    cout << "Error: " << ((eigenpair.first)/e_real - 1)*100 << "%" << endl;
+    pair<MatrixXd, VectorXd> gcgm_pair;
+    //accelerated_eigenpair = accelerated_cgm(mat, random_orthonormal_matrix(n, k), 200, 1e-15, acgm_cycles);
+    //accelerated_eigenpair = lobpcg(mat, random_orthonormal_matrix(n, k), 200, 1e-15, acgm_cycles);
+    //std::cout << "LOBPCG eigenvalues: " << accelerated_eigenpair.first << std::endl;
+    gcgm_pair = gcgm(mat, MatrixXd::Identity(n, n), random_orthonormal_matrix(n, k), k);
+    //cout << "GCGM eigenvalues: " << gcgm_pair.second << endl;
+
+    //cout << "Accelerated eigenvalues: " << accelerated_eigenpair.first << endl;
+    double coeff = h_bar * omega;
+    double en;
+    for(int i=0; i<k; i++) {
+        en = coeff * (i+0.5);
+        cout << "Energy N=" << i << ": " << en << " MeV" << endl;
+        cout << "Error: N=" << i << ": " << (gcgm_pair.second(i)/en - 1)*100 << "%" << endl;
+    }
 
     ofstream file(path + "eigenvectors.txt");
-    for (int i = 0; i < eigenpair.second.size(); ++i) {
-        file << eigenpair.second(i) << endl;
-    }
+    //for (int i = 0; i < eigenpair.second.size(); ++i) {
+        //file << eigenpair.second(i) << endl;
+    //}
     file.close();
 
     ofstream file2(path + "x.txt");

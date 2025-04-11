@@ -7,7 +7,7 @@ A = 16
 a = 5.5
 omega = 41/h_bar/A**(1/3)
 n = 60
-save = True
+save = False
 
 xs = np.linspace(-a, a, n)
 ys = np.linspace(-a, a, n)

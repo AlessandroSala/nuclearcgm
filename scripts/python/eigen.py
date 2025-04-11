@@ -1,100 +1,50 @@
 import numpy as np
 import time
 from scipy.optimize import minimize_scalar
-def find_eigenpair_constrained(A, x0, C, h, tol = 1e-20, n_max = 100000, verbose = False):
-    # Rayleigh quotient definition
-    f = lambda x: np.dot(x, A @ x)/np.dot(x, x)
-    # Rayleigh quotient gradient
-    g = lambda x: 2*(A @ x - f(x)*x)/np.dot(x, x)
 
-    # Initial guess
-    x = x0
-    # Initial guess gradient
-    grad = g(x)
-    # Initial guess gradient norm, to be used for stopping criterion
-    g0 = np.dot(grad, grad)
-    # Initial search direction
-    d = -grad
-    r_new = -grad
+# Rayleigh quotient definition
+def f (x, Ax, xx):
+    return x.T @ Ax / xx
 
-    n = 0
+# Rayleigh quotient gradient
+def g (x, Ax, xx):
+    return 2*(Ax - f(x, Ax, xx)*x)/ xx
 
-    for i in range(n_max):
-        r_old = r_new
-        x = x + find_positive_root(A, x, d) * d
-        grad = g(x)
-        
-        # Convergence check, as suggested by (1)
-        if n > 10 and np.dot(grad, grad) < tol*g0:
+def g_norm(x, Ax):
+    return (Ax - f(x, Ax, x.T @ x)*x)
+
+def find_eigenpair_rev(A, x0, tol = 1e-6, max_iter = 100, verbose = False):
+    x = x0.copy() / np.linalg.norm(x0)
+    Ax = A @ x
+    f = lambda x, Ax: x.T @ Ax
+    g = lambda x, Ax: Ax - f(x, Ax)*x
+    l = f(x, Ax)
+    g0 = g(x, Ax)
+    p = g0
+    z = A@p
+    for i in range(max_iter):
+        a = z.T @ x
+        b = z.T @ p
+        c = x.T @ p
+        d = p.T @ p
+        delta = (l*d - b)**2 - 4*(b*c - a*d)*(a-l*c)
+        alfa = (l*d - b + np.sqrt(delta) )/(2*(b*c - a*d))
+        gamma = np.sqrt(1+2*c*alfa+d*alfa**2)
+        l = (l+a*alfa)/(1+c*alfa) # new
+        x = (x+alfa*p)/gamma
+        Ax = (Ax+alfa*z)/gamma
+        grad = Ax - l*x
+        if np.linalg.norm(grad) < tol*l:
+            print("Done in ", i, " iterations")
             break
-        r_new = -grad
+        beta = -(grad.T @ z)/(b)
+        p = grad + beta*p
+        z = A@p
+    #print(f"Done in {max_iter} iterations")
+    return x, l
 
-        b = compute_beta_PR(r_new, r_old)
-        d = r_new + b * d
-        n = i
-        if verbose:
-            print(f"iteration {i}")
-    
-    print(f"Done in {n} iterations")
-    print(f"Smallest eigenvalue: {f(x)}") 
-    return (x, f(x))
 
-def mat_mult(A, x, n):
-    y = np.zeros(n)
-    for i in range(n):
-        for j in range(n):
-            y[i] = y[i] + A(i, j)*x[j]
-
-def find_eigenpair_unalloc(A, x0, tol = 1e-20, n_max = 100000, verbose = False):
-    # Rayleigh quotient definition
-    f = lambda x, Ax, xx: np.dot(x, Ax)/xx
-    # Rayleigh quotient gradient
-    g = lambda x, Ax, xx: 2*(Ax - f(x, Ax, xx)*x)/xx
-
-    # Initial guess
-    x = x0
-    n = x.shape[0]
-    # Initial Ax, xx, needed for performance
-    Ax = mat_mult(A, x, n)
-    xx = np.dot(x, x)
-    # Initial guess gradient
-    grad = g(x, Ax, xx)
-    # Initial guess gradient norm, to be used for stopping criterion
-    g0 = np.dot(grad, grad)
-    # Initial search direction
-    d = -grad
-    r_new = -grad
-
-    n = 0
-
-    for i in range(n_max):
-        r_old = r_new
-        x = x + find_positive_root(A, x, d, Ax, xx) * d
-        Ax = mat_mult(A, x, n)
-        xx = np.dot(x, x)
-        grad = g(x, Ax, xx)
-        
-        # Convergence check, as suggested by (1)
-        if n > 10 and np.dot(grad, grad) < tol*g0:
-            break
-        r_new = -grad
-
-        b = compute_beta_PR(r_new, r_old)
-        d = r_new + b * d
-        n = i
-        if verbose:
-            print(f"iteration {i}")
-    l = f(x, Ax, xx)
-    print("Tolerance reached: ", np.dot(grad, grad)/g0)
-    print(f"Done in {n} iterations")
-    print(f"Smallest eigenvalue: {l}") 
-    return (x, l)
 def find_eigenpair(A, x0, tol = 1e-20, n_max = 100000, verbose = False):
-    # Rayleigh quotient definition
-    f = lambda x, Ax, xx: np.dot(x, Ax)/xx
-    # Rayleigh quotient gradient
-    g = lambda x, Ax, xx: 2*(Ax - f(x, Ax, xx)*x)/xx
-
     # Initial guess
     x = x0
     # Initial Ax, xx, needed for performance
@@ -125,12 +75,13 @@ def find_eigenpair(A, x0, tol = 1e-20, n_max = 100000, verbose = False):
         b = compute_beta_PR(r_new, r_old)
         d = r_new + b * d
         n = i
-        if verbose:
-            print(f"iteration {i}")
+        #if verbose:
+            #print(f"iteration {i}")
     l = f(x, Ax, xx)
-    print("Tolerance reached: ", np.dot(grad, grad)/g0)
-    print(f"Done in {n} iterations")
-    print(f"Smallest eigenvalue: {l}") 
+    if verbose:
+        print("Tolerance reached: ", np.dot(grad, grad)/g0)
+        print(f"Done in {n} iterations")
+        print(f"Smallest eigenvalue: {l}") 
     return (x, l)
 
 
@@ -167,26 +118,20 @@ def compute_beta_PR(r_new, r_old):
     return max(np.dot(r_new, r_new-r_old)/np.dot(r_old, r_old), 0)
 
 def test():
-    n = 1000
+    n = 100
     A = np.random.rand(n, n)
 
     # Rendiamola simmetrica
     A_sym = (A + A.T) / 2 
-    A_sym = A_sym
     t = time.perf_counter()
     res = np.linalg.eig(A_sym)
     t = time.perf_counter() - t
     print(t)
-    print(res[1][:, np.argmin(res[0])])
-    #print(res[1][:, 0])
     t = time.perf_counter()
-    cgm = find_eigenpair(A_sym, np.random.rand(n))
-    print(cgm[0]/np.dot(cgm[0], cgm[0])**0.5)
+    cgm = find_eigenpair_rev(A_sym, np.random.rand(n), tol=1e-20, max_iter=10000, verbose=True)
     t = time.perf_counter() - t
     print(t)
-    print(f"Error: {np.min(res[0]) - cgm[1]}")
-    lob = lobpcg(A_sym, np.linalg.qr(np.random.rand(n, 2))[0])
-    print(f"Error lobpcg: {np.min(lob[0]) - np.min(res[0])}")
+    print(f"Error: {round(100*(np.min(res[0]) - cgm[1])/np.min(res[0]), 2)}%")
 if __name__ == "__main__":
     print("Running eigensolvers tests")
     test()
