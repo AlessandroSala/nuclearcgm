@@ -12,7 +12,7 @@ using namespace std;
 using namespace Eigen;
 using namespace nuclearConstants;
 
-const int n = 100;
+const int n = 10;
 const double a = 10.0;
 const double h = 2 * a / (n-1);
 const double V0 = 51.0;
@@ -71,6 +71,9 @@ SparseMatrix<double> matsetup_oscillator(int n, const vector<double>& xs, const 
 int main() {
     vector<double> xs(n), ys(n), zs(n);
     string path = "output/wd_3d/";
+
+    int k = 10;
+
     for (int i = 0; i < n; ++i) {
         xs[i] = ys[i] = zs[i] = -a + i * h;
     }
@@ -78,12 +81,22 @@ int main() {
     SparseMatrix<double> mat = matsetup_oscillator(n, xs, ys, zs);
     cout << "Matrix generated" << endl;
 
+    int N = mat.rows();
     
-    pair<double, VectorXd> eigenpair = find_eigenpair(mat);
-    cout << "Smallest eigenvalue (iterative): " << eigenpair.first << endl;
+    pair<double, VectorXd> eigenpair = find_eigenpair_constrained(mat, VectorXd::Random(N));
+
+    cout << "Smallest eigenvalue (RCGM): " << eigenpair.first << endl;
+
+
+    pair<MatrixXd, VectorXd> eigenpairs = gcgm(mat,MatrixXd::Identity(N, N), random_orthonormal_matrix(N, k),  k, - eigenpair.first + 0.3, 5000 ); 
+
+    std::cout << "GCGM eigenvalues: " << eigenpairs.second << std::endl;
+
+
     double e_real = -31.091;
     cout << "Real energy: " << e_real << " MeV" << endl;
     cout << "Error: " << ((eigenpair.first)/e_real - 1)*100 << "%" << endl;
+
 
     ofstream file(path + "eigenvectors.txt");
     for (int i = 0; i < eigenpair.second.size(); ++i) {
