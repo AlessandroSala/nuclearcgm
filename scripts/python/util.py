@@ -12,3 +12,6 @@ def positive_vector(v):
         sum = sum + v[i]
     return v if sum > 0 else -v
 
+
+def ps(v):
+    return normalize(positive_vector(v))
