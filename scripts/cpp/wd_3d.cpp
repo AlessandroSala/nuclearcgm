@@ -12,7 +12,9 @@ using namespace std;
 using namespace Eigen;
 using namespace nuclearConstants;
 
-const int n = 10;
+int n = 10;
+int k = 7;
+int acgm_cycles = 50;
 const double a = 10.0;
 const double h = 2 * a / (n-1);
 const double V0 = 51.0;
@@ -22,6 +24,7 @@ const double diff = 0.67;
 const int max_iter = 5000;
 const double tol = 1e-29;
 const double omega = 41*pow(A_val, -1.0/3.0)/h_bar;
+
 
 inline int idx(int i, int j, int k) {
     return i + n * (j + n * k);
@@ -68,11 +71,21 @@ SparseMatrix<double> matsetup_oscillator(int n, const vector<double>& xs, const 
     return mat;
 }
 
-int main() {
+int main(int argc, char** argv) {
+
+    if(argc >= 1) {
+        n = atoi(argv[1]);
+
+    } 
+    if(argc >= 2) {
+        k = atoi(argv[2]);
+    } 
+    if(argc >= 3) {
+        acgm_cycles = atoi(argv[3]);
+    }
+
     vector<double> xs(n), ys(n), zs(n);
     string path = "output/wd_3d/";
-
-    int k = 10;
 
     for (int i = 0; i < n; ++i) {
         xs[i] = ys[i] = zs[i] = -a + i * h;
@@ -83,12 +96,13 @@ int main() {
 
     int N = mat.rows();
     
-    pair<double, VectorXd> eigenpair = find_eigenpair_constrained(mat, VectorXd::Random(N));
+    pair<double, VectorXd> eigenpair = find_eigenpair_constrained(mat, VectorXd::Random(N).normalized(), 200, 1e-10);
 
     cout << "Smallest eigenvalue (RCGM): " << eigenpair.first << endl;
 
-
-    pair<MatrixXd, VectorXd> eigenpairs = gcgm(mat,MatrixXd::Identity(N, N), random_orthonormal_matrix(N, k),  k, - eigenpair.first + 0.3, 5000 ); 
+    SparseMatrix<double> B(N, N);
+    B.setIdentity();
+    pair<MatrixXd, VectorXd> eigenpairs = gcgm(mat, B, random_orthonormal_matrix(N, k), k, 35 + 0.01, acgm_cycles, 1.0e-9, 50 ); 
 
     std::cout << "GCGM eigenvalues: " << eigenpairs.second << std::endl;
 
