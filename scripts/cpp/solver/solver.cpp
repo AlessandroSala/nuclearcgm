@@ -174,8 +174,8 @@ std::pair<DenseMatrix, DenseVector> rayleighRitz(
  * Restituisce matrici/vettori vuoti in caso di errore grave.
  */
 std::pair<DenseMatrix, DenseVector> gcgm(
-    const DenseMatrix& A,           // Usa SparseMatrix se necessario
-    const DenseMatrix& B,           // Usa SparseMatrix se necessario
+    const SparseMatrix<double>& A,           // Usa SparseMatrix se necessario
+    const SparseMatrix<double>& B,           // Usa SparseMatrix se necessario
     const DenseMatrix& X_initial,
     int nev,
     double shift = 0.0,
@@ -241,11 +241,11 @@ std::pair<DenseMatrix, DenseVector> gcgm(
         // Assicurati che lo shift scelto renda A+shift*B definita positiva!
         std::cout << "Iter: " << iter + 1 << ", Current Shift: " << current_shift << std::endl;
 
-        DenseMatrix A_shifted = A + current_shift * B;
+        SparseMatrix<double> A_shifted = A + current_shift * B;
         DenseMatrix BXLambda = B * X * Lambda.asDiagonal();
         
         // Configura il solver CG (per matrici dense A - usare versioni per sparse se A è sparsa)
-        ConjugateGradient<DenseMatrix, Lower|Upper> cg;
+        ConjugateGradient<SparseMatrix<double>, Lower|Upper> cg;
         cg.setMaxIterations(cg_steps); // Limita i passi come da PDF
         cg.compute(A_shifted); // Precomputa se possibile (per A densa, non fa molto)
 
