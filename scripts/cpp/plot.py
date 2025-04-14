@@ -27,7 +27,7 @@ def plot_ho_2d():
     plt.show()
 
 def plot_ws():
-    eigenvectors = u.normalize(np.loadtxt("output/wd_3d/eigenvectors.txt"))
+    eigenvectors = u.normalize(np.loadtxt("output/wd_3d/eigenvectors_1.txt"))
     
     xs = np.loadtxt("output/wd_3d/x.txt")
     

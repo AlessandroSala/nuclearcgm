@@ -9,6 +9,8 @@
 #include <Eigen/IterativeLinearSolvers>
 #include <Eigen/Core>
 #include <iostream>
+#include <thread>
+#include <omp.h>
 using namespace Eigen;
 
 double f_constrained(const VectorXd& x, const VectorXd& Ax) {
@@ -17,6 +19,7 @@ double f_constrained(const VectorXd& x, const VectorXd& Ax) {
 VectorXd g_constrained(const VectorXd& x, const VectorXd& Ax ) {
     return Ax - f_constrained(x, Ax) * x;
 }
+
 
 std::pair<double, VectorXd> find_eigenpair_constrained(const SparseMatrix<double>& A, const VectorXd& X0, int max_iter = 100, double tol = 1e-6) {
     int N = A.rows();
@@ -53,7 +56,309 @@ std::pair<double, VectorXd> find_eigenpair_constrained(const SparseMatrix<double
     return {f_constrained(x, Ax), x};
 
 }
+// === Typedefs per la versione Complessa ===
+typedef std::complex<double> ComplexScalar;
+typedef Eigen::Matrix<ComplexScalar, Eigen::Dynamic, Eigen::Dynamic> ComplexDenseMatrix;
+typedef Eigen::Matrix<ComplexScalar, Eigen::Dynamic, 1> ComplexDenseVector;
+typedef Eigen::SparseMatrix<ComplexScalar> ComplexSparseMatrix;
 
+// === Typedefs per la versione Reale (come riferimento) ===
+typedef Eigen::MatrixXd DenseMatrix;
+typedef Eigen::VectorXd DenseVector;
+typedef Eigen::SparseMatrix<double> RealSparseMatrix;
+
+
+/**
+ * @brief Ortogonalizzazione di Gram-Schmidt Modificata Complessa rispetto a B reale.
+ * Modifica V sul posto. Assume B Reale Simmetrica Definitia Positiva (SPD).
+ *
+ * @param V Matrice complessa le cui colonne verranno B-ortogonalizzate.
+ * @param B Matrice reale SPD che definisce il prodotto scalare.
+ */
+void b_modified_gram_schmidt_complex(ComplexDenseMatrix& V, const RealSparseMatrix& B) {
+    if (V.cols() == 0) return;
+
+    for (int j = 0; j < V.cols(); ++j) {
+        // Normalizza la colonna j: norm_b_sq = V_j^adjoint * B * V_j (dovrebbe essere reale)
+        // Nota: B è reale, quindi B*V.col(j) produce un vettore complesso.
+        //       V.col(j).adjoint() * (risultato complesso) produce uno scalare complesso.
+        //       Ma il risultato V†BV dovrebbe essere reale se B è SPD.
+        ComplexScalar norm_b_sq_complex = V.col(j).adjoint() * B * V.col(j);
+        double norm_b_sq = std::real(norm_b_sq_complex); // Prendi la parte reale
+
+        // Aggiungi un controllo sulla parte immaginaria per sicurezza numerica
+        if (std::abs(std::imag(norm_b_sq_complex)) > 1e-12 * norm_b_sq) {
+             std::cerr << "Warning: Non-real B-norm squared (" << norm_b_sq_complex
+                       << ") encountered in complex MGS for column " << j << std::endl;
+        }
+
+        double norm_b = (norm_b_sq > 1e-24) ? std::sqrt(norm_b_sq) : 0.0;
+
+        if (norm_b < 1e-12) {
+            V.col(j).setZero();
+            // std::cerr << "Warning: Vector " << j << " has near-zero B-norm in complex MGS." << std::endl;
+            continue;
+        }
+        V.col(j) /= norm_b; // norm_b è reale
+
+        // Rendi le colonne successive (k > j) ortogonali alla colonna j
+        #pragma omp parallel for // Opzionale
+        for (int k = j + 1; k < V.cols(); ++k) {
+            // proj = V_j^adjoint * B * V_k (prodotto scalare complesso)
+            ComplexScalar proj = V.col(j).adjoint() * B * V.col(k);
+            V.col(k) -= proj * V.col(j); // proj è complesso
+        }
+    }
+}
+
+
+/**
+ * @brief Procedura di Rayleigh-Ritz Complessa per Ax = lambda Bx (A Hermitiana, B Reale SPD).
+ *
+ * @param V Matrice complessa la cui base (colonne) Spannano il sottospazio. DEVE essere B-ortonormale.
+ * @param A Matrice Complessa Hermitiana A.
+ * @param B Matrice Reale SPD B.
+ * @param nev Numero di autovalori/autovettori desiderati.
+ * @return std::pair<ComplexDenseMatrix, DenseVector> Pair contenente:
+ * - Matrice C complessa dei coefficienti (colonne sono autovettori proiettati).
+ * - Vettore Lambda reale dei corrispondenti autovalori.
+ */
+std::pair<ComplexDenseMatrix, DenseVector> rayleighRitz_complex(
+    const ComplexDenseMatrix& V,
+    const ComplexSparseMatrix& A, // A è complessa Hermitiana
+    const RealSparseMatrix& B,    // B è reale SPD
+    int nev)
+{
+    if (V.cols() == 0) {
+        std::cerr << "Error: Complex Rayleigh-Ritz called with empty basis V." << std::endl;
+        return {};
+    }
+
+    // 1. Proietta le matrici: A_proj = V^adjoint * A * V, B_proj = V^adjoint * B * V
+    ComplexDenseMatrix A_proj = V.adjoint() * A * V;
+    ComplexDenseMatrix B_proj = V.adjoint() * B * V; // B_proj è Hermitiana (vicina a Identità)
+
+    // Debug check: Verifica che B_proj sia vicina all'identità
+    // double b_proj_identity_diff = (B_proj - ComplexDenseMatrix::Identity(V.cols(), V.cols())).norm();
+    // if (b_proj_identity_diff > 1e-9) {
+    //      std::cerr << "Warning: B_proj deviation from Identity: " << b_proj_identity_diff << std::endl;
+    // }
+
+    // 2. Risolvi il problema proiettato: A_proj * C = lambda * B_proj * C
+    //    Usiamo GeneralizedSelfAdjointEigenSolver per matrici complesse
+    Eigen::GeneralizedSelfAdjointEigenSolver<ComplexDenseMatrix> ges;
+    ges.compute(A_proj, B_proj); // A_proj Hermitiana, B_proj Hermitiana Def. Pos.
+
+    if (ges.info() != Eigen::Success) {
+        std::cerr << "Error: Complex Rayleigh-Ritz eigenvalue computation failed!" << std::endl;
+        return {};
+    }
+
+    DenseVector eigenvalues_all = ges.eigenvalues(); // Gli autovalori sono REALI
+    ComplexDenseMatrix eigenvectors_proj_all = ges.eigenvectors(); // Gli autovettori sono COMPLESSI
+
+    // 3. Seleziona i 'nev' più piccoli
+    int num_found = eigenvalues_all.size();
+    if (num_found < nev) {
+         std::cerr << "Warning: Complex Rayleigh-Ritz found only " << num_found << " eigenvalues, requested " << nev << "." << std::endl;
+         nev = num_found;
+    }
+     if (nev <= 0) {
+         std::cerr << "Error: No eigenvalues found or requested in complex Rayleigh-Ritz." << std::endl;
+         return {};
+     }
+
+    DenseVector lambda_new = eigenvalues_all.head(nev);
+    ComplexDenseMatrix C = eigenvectors_proj_all.leftCols(nev);
+
+    return {C, lambda_new};
+}
+
+/**
+ * @brief Algoritmo GCGM Complesso per Ax = lambda Bx (A Hermitiana, B Reale SPD).
+ *
+ * @param A Matrice Complessa Hermitiana A.
+ * @param B Matrice Reale SPD B.
+ * @param X_initial Stima iniziale Complessa per gli autovettori.
+ * @param nev Numero di autocoppie da calcolare.
+ * @param shift Shift iniziale (reale).
+ * @param max_iter Max iterazioni GCGM.
+ * @param tolerance Tolleranza sul residuo relativo.
+ * @param cg_steps Numero di passi del solver iterativo (es. BiCGSTAB) per W.
+ * @return std::pair<ComplexDenseMatrix, DenseVector> Pair contenente:
+ * - Matrice X complessa degli autovettori.
+ * - Vettore Lambda reale degli autovalori.
+ */
+std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
+    const ComplexSparseMatrix& A,  // A Complessa Hermitiana
+    const RealSparseMatrix& B,     // B Reale SPD
+    const ComplexDenseMatrix& X_initial,
+    int nev,
+    double shift = 0.0,            // Shift rimane reale
+    int max_iter = 100,
+    double tolerance = 1e-8,
+    int cg_steps = 10              // Passi BiCGSTAB (o altro solver complesso)
+) {
+
+    std::cout << "GCGM Complex" << std::endl;
+    // Codice per info OpenMP/thread (invariato)
+    // ... (come nella versione originale) ...
+
+    int n = A.rows();
+
+    // --- Validazione Input --- (controlli dimensioni simili)
+    if (A.rows() != n || A.cols() != n || B.rows() != n || B.cols() != n || X_initial.rows() != n) {
+        std::cerr << "Error: Matrix dimensions mismatch (Complex GCGM)." << std::endl;
+        return {};
+    }
+    if (X_initial.cols() < nev || nev <= 0) {
+         std::cerr << "Error: Initial guess must have at least 'nev' columns, and nev > 0 (Complex GCGM)." << std::endl;
+         return {};
+    }
+
+    // --- Inizializzazione Complessa ---
+    ComplexDenseMatrix X = X_initial.leftCols(nev);
+    ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, nev);
+    ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, nev);
+    DenseVector Lambda;             // Autovalori reali
+    double current_shift = shift;   // Shift reale
+
+    b_modified_gram_schmidt_complex(X, B); // Rendi X B-ortonormale
+
+    // Rayleigh-Ritz iniziale
+    {
+        ComplexSparseMatrix A_initial_shifted = A + ComplexScalar(current_shift) * B.cast<ComplexScalar>(); // Shift A
+        auto rr_init = rayleighRitz_complex(X, A_initial_shifted, B, nev);
+        if (rr_init.first.cols() == 0) {
+            std::cerr << "Error: Initial Complex Rayleigh-Ritz failed." << std::endl;
+            return {};
+        }
+        X = X * rr_init.first; // X = X * C (complesso)
+        Lambda = rr_init.second - DenseVector::Constant(rr_init.second.size(), current_shift); // Lambda reale
+        b_modified_gram_schmidt_complex(X, B); // Ri-ortogonalizza
+    }
+
+    // --- Iterazioni GCGM Complesso ---
+    for (int iter = 0; iter < max_iter; ++iter) {
+
+        // 1. Genera W (approx. A_shifted * W = B * X * diag(Lambda))
+        if (Lambda.size() == nev && Lambda(0) != 0) {
+           // Strategia shift (invariata, usa Lambda reale)
+           current_shift = (Lambda(nev-1) - 100.0 * Lambda(0)) / 99.0;
+           // Controlli shift
+        }
+        std::cout << "Iter: " << iter + 1 << ", Current Shift: " << current_shift << std::endl;
+
+        // A_shifted è Complessa Hermitiana (potenzialmente indefinita)
+        ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * B.cast<ComplexScalar>();
+
+        // BXLambda è Complessa
+        ComplexDenseMatrix BXLambda = B.cast<ComplexScalar>() * X * Lambda.asDiagonal();
+
+        // Usa BiCGSTAB (o altro solver iterativo complesso) invece di CG
+        ConjugateGradient<ComplexSparseMatrix, Lower|Upper> cg;
+        cg.setMaxIterations(cg_steps);
+        cg.setTolerance(tolerance * 0.1);
+        cg.compute(A_shifted); // Analizza pattern
+
+        if (cg.info() != Eigen::Success && iter == 0) {
+             std::cerr << "Error: CG compute structure failed (Complex GCGM)." << std::endl;
+             // Questo errore è meno probabile con BiCGSTAB che con CG
+             return {};
+        }
+
+        #pragma omp parallel for // Opzionale
+        for (int k = 0; k < nev; ++k) {
+            // Risolvi A_shifted * w_k = (BXLambda)_k
+            W.col(k) = cg.solveWithGuess(BXLambda.col(k), X.col(k)); // W è complesso
+            // Controllo errore solve opzionale
+        }
+
+        // 2. Costruisci V = [X, P, W] (tutte complesse)
+        int p_cols = (iter == 0) ? 0 : nev;
+        ComplexDenseMatrix V(n, nev + p_cols + nev);
+        V.leftCols(nev) = X;
+        if (p_cols > 0) {
+            V.block(0, nev, n, p_cols) = P;
+        }
+        V.rightCols(nev) = W;
+
+        // 3. B-Ortogonalizza V (complessa)
+        b_modified_gram_schmidt_complex(V, B);
+
+        // --- Gestione Dipendenze Lineari (come prima, ma su V complessa) ---
+        std::vector<int> keep_cols;
+        for(int k=0; k < V.cols(); ++k) {
+            // Usa squaredNorm() che funziona per complessi (è ||v||^2 = v†v)
+            if (V.col(k).squaredNorm() > 1e-20) {
+                keep_cols.push_back(k);
+            }
+        }
+        if (keep_cols.size() < nev) {
+             std::cerr << "Warning: Complex Basis V rank collapsed below nev (" << keep_cols.size() << ") at iteration " << iter << std::endl;
+             return {X, Lambda};
+        }
+        ComplexDenseMatrix V_eff(n, keep_cols.size());
+        for(size_t i=0; i < keep_cols.size(); ++i) {
+            V_eff.col(i) = V.col(keep_cols[i]);
+        }
+
+        // 4. Rayleigh-Ritz su V_eff (complessa)
+        int current_dim = V_eff.cols();
+        int rr_nev = std::min(nev, current_dim);
+
+        auto rr_result = rayleighRitz_complex(V_eff, A_shifted, B, rr_nev);
+        if (rr_result.first.cols() == 0) {
+             std::cerr << "Error: Complex Rayleigh-Ritz failed in iteration " << iter << std::endl;
+             return {X, Lambda};
+        }
+
+        ComplexDenseMatrix C = rr_result.first;         // Coefficienti complessi
+        DenseVector Lambda_proj = rr_result.second; // Autovalori reali shftati
+        DenseVector Lambda_new = Lambda_proj - DenseVector::Constant(Lambda_proj.size(), current_shift); // Autovalori reali
+
+        ComplexDenseMatrix X_new = V_eff * C;           // Autovettori complessi
+
+        // 5. Verifica Convergenza (Residuo complesso, norma reale)
+        ComplexDenseMatrix Residual = A * X_new - B.cast<ComplexScalar>() * X_new * Lambda_new.asDiagonal();
+        double residual_norm = Residual.norm(); // Norma di Frobenius (reale)
+        double x_norm = X_new.norm();
+        double relative_residual = (x_norm > 1e-12) ? (residual_norm / x_norm) : residual_norm;
+
+        std::cout << "Iter: " << iter + 1
+                  << ", Dim(V): " << current_dim
+                  << ", Rel. Res: " << relative_residual << std::endl;
+
+        if (relative_residual < tolerance) {
+            std::cout << "Converged (Complex GCGM) in " << iter + 1 << " iterations." << std::endl;
+            std::cout << "Eigenvalues: " << Lambda_new.transpose() << std::endl;
+            return std::make_pair(X_new, Lambda_new);
+        }
+
+        // 6. Aggiorna P (complesso)
+        P = X_new - X;
+        // Eventuale ri-ortogonalizzazione di P
+
+        // 7. Aggiorna X (complesso) e Lambda (reale)
+        X = X_new;
+        Lambda = Lambda_new;
+        // Eventuale ri-ortogonalizzazione di X
+        // if (iter % 5 == 0) b_modified_gram_schmidt_complex(X, B);
+
+    } // Fine ciclo iterazioni
+
+    std::cerr << "Warning: Complex GCGM did not converge within " << max_iter << " iterations." << std::endl;
+    return {X, Lambda};
+}
+
+
+// --- Funzioni Originali (Reali) per riferimento o uso separato ---
+// (Includi qui le definizioni originali di
+//  b_modified_gram_schmidt, rayleighRitz, gcgm
+//  se vuoi mantenerle nello stesso file,
+//  assicurandoti che usino i typedef reali:
+//  DenseMatrix, DenseVector, RealSparseMatrix)
+// ...
 
 // Typedef per chiarezza (usa SparseMatrix se A, B sono sparse)
 typedef MatrixXd DenseMatrix;
@@ -67,7 +372,7 @@ typedef VectorXd DenseVector;
  * @param V Matrice le cui colonne verranno B-ortogonalizzate.
  * @param B Matrice SPD che definisce il prodotto scalare.
  */
-void b_modified_gram_schmidt(DenseMatrix& V, const DenseMatrix& B) {
+void b_modified_gram_schmidt(DenseMatrix& V, const SparseMatrix<double>& B) {
     if (V.cols() == 0) return;
 
     for (int j = 0; j < V.cols(); ++j) {
@@ -110,8 +415,8 @@ void b_modified_gram_schmidt(DenseMatrix& V, const DenseMatrix& B) {
  */
 std::pair<DenseMatrix, DenseVector> rayleighRitz(
     const DenseMatrix& V,
-    const DenseMatrix& A,
-    const DenseMatrix& B,
+    const SparseMatrix<double>& A,
+    const SparseMatrix<double>& B,
     int nev)
 {
     if (V.cols() == 0) {
@@ -183,6 +488,21 @@ std::pair<DenseMatrix, DenseVector> gcgm(
     double tolerance = 1e-8,
     int cg_steps = 10              // Passi CG per W (come da PDF step 2)
 ) {
+
+    std::cout << "GCGM" << std::endl;
+    int max_threads_omp_will_use = omp_get_max_threads();
+    int num_procs_omp_sees = omp_get_num_procs();
+    unsigned int hardware_threads_std = std::thread::hardware_concurrency();
+
+    std::cout << "--- Informazioni Prima della Regione Parallela ---" << std::endl;
+    std::cout << "OpenMP - Max threads che verranno usati (omp_get_max_threads): "
+              << max_threads_omp_will_use << std::endl;
+    std::cout << "OpenMP - Numero processori rilevati (omp_get_num_procs):     "
+              << num_procs_omp_sees << std::endl;
+    std::cout << "C++ std  - Numero thread hardware (hardware_concurrency):   "
+              << hardware_threads_std << std::endl;
+    std::cout << "----------------------------------------------------" << std::endl;
+
     int n = A.rows(); // Dimensione del problema
 
     // --- Validazione Input ---
@@ -208,7 +528,7 @@ std::pair<DenseMatrix, DenseVector> gcgm(
     // Rayleigh-Ritz iniziale per ottenere Lambda
     DenseVector Lambda;
     {
-        DenseMatrix A_initial_shifted = A + current_shift * B; // Usa shift iniziale
+        SparseMatrix<double> A_initial_shifted = A + current_shift * B; // Usa shift iniziale
 
         auto rr_init = rayleighRitz(X, A_initial_shifted, B, nev);
         if (rr_init.first.cols() == 0) { // Fallimento RR iniziale
@@ -247,6 +567,7 @@ std::pair<DenseMatrix, DenseVector> gcgm(
         // Configura il solver CG (per matrici dense A - usare versioni per sparse se A è sparsa)
         ConjugateGradient<SparseMatrix<double>, Lower|Upper> cg;
         cg.setMaxIterations(cg_steps); // Limita i passi come da PDF
+        cg.setTolerance(tolerance*0.1);
         cg.compute(A_shifted); // Precomputa se possibile (per A densa, non fa molto)
 
         if (cg.info() != Success && iter == 0) { // Controlla solo la prima volta se compute fallisce
