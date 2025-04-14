@@ -14,9 +14,9 @@ using namespace nuclearConstants;
 
 int n = 10;
 int k = 7;
+const double a = 15.0;
+double h = 2.0 * a / (n-1);
 int acgm_cycles = 50;
-const double a = 10.0;
-const double h = 2 * a / (n-1);
 const double V0 = 51.0;
 const double A_val = 16;
 const double R = 1.27 * pow(A_val, 1.0/3.0);
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 
     if(argc >= 1) {
         n = atoi(argv[1]);
-
+        h = 2.0 * a / (n-1);
     } 
     if(argc >= 2) {
         k = atoi(argv[2]);
@@ -102,21 +102,25 @@ int main(int argc, char** argv) {
 
     SparseMatrix<double> B(N, N);
     B.setIdentity();
-    pair<MatrixXd, VectorXd> eigenpairs = gcgm(mat, B, random_orthonormal_matrix(N, k), k, 35 + 0.01, acgm_cycles, 1.0e-9, 50 ); 
+    pair<MatrixXd, VectorXd> eigenpairs = gcgm(mat, B, random_orthonormal_matrix(N, k), k, 35 + 0.01, acgm_cycles, 1.0e-9, 100 ); 
 
     std::cout << "GCGM eigenvalues: " << eigenpairs.second << std::endl;
 
 
     double e_real = -31.091;
-    cout << "Real energy: " << e_real << " MeV" << endl;
-    cout << "Error: " << ((eigenpair.first)/e_real - 1)*100 << "%" << endl;
+    cout << "Real GS energy: " << e_real << " MeV" << endl;
+    cout << "Error: " << ((eigenpairs.second(0))/e_real - 1)*100 << "%" << endl;
 
 
-    ofstream file(path + "eigenvectors.txt");
-    for (int i = 0; i < eigenpair.second.size(); ++i) {
-        file << eigenpair.second(i) << endl;
+    for(int ev = 0; ev < eigenpairs.second.size(); ++ev) {
+
+        ofstream file(path + "eigenvectors_" + std::to_string(ev) + ".txt");
+        for (int i = 0; i < eigenpairs.first.rows(); ++i) {
+            file << eigenpairs.first(i, ev) << endl;
+        }
+        
+        file.close();
     }
-    file.close();
 
     ofstream file2(path + "x.txt");
     for(const auto &e : xs) {
