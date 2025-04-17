@@ -172,6 +172,7 @@ The taylor expansion of a function $\psi(x\pm h)$ around a point $x$ is given by
 \subsubsection{First and second derivative}
 By subtracting $\psi(x+h)$ and $\psi(x-h)$, we get an approximation for the first derivative
 \begin{equation}
+    \label{eq:finite_diff_first_dv}
     \psi'(x) \approx \frac{\psi(x+h) - \psi(x-h)}{2h}
 \end{equation}
 By adding them, we can get an approximation for the second derivative
@@ -284,7 +285,7 @@ This is guaranteed if the factors $A_{i,j,i',j'}$ are symmetric under the exchan
 A possible map $(i, j) \mapsto \gamma$ is
 \begin{equation}
 F(i, j) = \gamma = i + N_x j \label{eq:indeces_parametrization}
-\end{equation}
+    \end{equation}
 Using this map, the entries of $\psi_\mu$ will be organized as 
 \begin{equation}
 \psi = (\psi_{(0, 0)}, \psi_{(1, 0)}, \ldots, \psi_{(N_x-1, 0)}, \psi_{(0, 1)}, \ldots, \psi_{(N_x-1, N_y-1)})
@@ -293,9 +294,9 @@ And the problem will be reduced to
 \begin{equation}
 \sum_{\beta=0}^{N_x N_y}A_{\alpha\beta}\psi_{\beta} = E\psi_\alpha
 \end{equation}
-
 \subsubsection{3D case}
 The 3D case follows trivially by performing discretization on the z-axis, adding a new index $k$ and using the map $F(i, j, k) = i + N_x (j + N_y k)$.
+\input{chapters/finite_differences/boundary_conditions/boundary_conditions.tex}
 \subsection{Woods Saxon}
 Now that the machinery for solving 3D eigenvalue problems is in place, we can apply to the Woods-Saxon potential.
 \\The Woods-Saxon potential is a phenomenological one, it comes from the distribution of electric charge in a nucleus, which we can gather from electron scattering experiments.
@@ -317,7 +318,8 @@ Solving the associated Hamiltonian on a lattice of $N_x=N_y=N_z=100$ points, in 
     \caption{\label{fig:ws_gs} Ground state wavefunction of the Woods-Saxon potential. }
 \end{figure}
 
-
+\input{chapters/finite_differences/spin/spin_treatment.tex}
+%\input{chapters/hartree_fock/introduction/hartree_fock_introduction.tex}
 
 
 \end{document}

@@ -83,7 +83,8 @@ void b_modified_gram_schmidt_complex(ComplexDenseMatrix& V, const RealSparseMatr
         // Nota: B è reale, quindi B*V.col(j) produce un vettore complesso.
         //       V.col(j).adjoint() * (risultato complesso) produce uno scalare complesso.
         //       Ma il risultato V†BV dovrebbe essere reale se B è SPD.
-        ComplexScalar norm_b_sq_complex = V.col(j).adjoint() * B * V.col(j);
+        ComplexDenseMatrix BV = B * V;
+        ComplexScalar norm_b_sq_complex = V.col(j).adjoint() * BV.col(j);
         double norm_b_sq = std::real(norm_b_sq_complex); // Prendi la parte reale
 
         // Aggiungi un controllo sulla parte immaginaria per sicurezza numerica
@@ -105,7 +106,7 @@ void b_modified_gram_schmidt_complex(ComplexDenseMatrix& V, const RealSparseMatr
         #pragma omp parallel for // Opzionale
         for (int k = j + 1; k < V.cols(); ++k) {
             // proj = V_j^adjoint * B * V_k (prodotto scalare complesso)
-            ComplexScalar proj = V.col(j).adjoint() * B * V.col(k);
+            ComplexScalar proj = V.col(j).adjoint() * BV.col(k);
             V.col(k) -= proj * V.col(j); // proj è complesso
         }
     }
@@ -204,7 +205,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
     // Codice per info OpenMP/thread (invariato)
     // ... (come nella versione originale) ...
 
+
     int n = A.rows();
+    ComplexSparseMatrix B_complex = B.cast<ComplexScalar>();
+
 
     // --- Validazione Input --- (controlli dimensioni simili)
     if (A.rows() != n || A.cols() != n || B.rows() != n || B.cols() != n || X_initial.rows() != n) {
@@ -227,7 +231,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
 
     // Rayleigh-Ritz iniziale
     {
-        ComplexSparseMatrix A_initial_shifted = A + ComplexScalar(current_shift) * B.cast<ComplexScalar>(); // Shift A
+        ComplexSparseMatrix A_initial_shifted = A + ComplexScalar(current_shift) * B_complex; // Shift A
         auto rr_init = rayleighRitz_complex(X, A_initial_shifted, B, nev);
         if (rr_init.first.cols() == 0) {
             std::cerr << "Error: Initial Complex Rayleigh-Ritz failed." << std::endl;
@@ -250,10 +254,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
         std::cout << "Iter: " << iter + 1 << ", Current Shift: " << current_shift << std::endl;
 
         // A_shifted è Complessa Hermitiana (potenzialmente indefinita)
-        ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * B.cast<ComplexScalar>();
+        ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * B_complex;
 
         // BXLambda è Complessa
-        ComplexDenseMatrix BXLambda = B.cast<ComplexScalar>() * X * Lambda.asDiagonal();
+        ComplexDenseMatrix BXLambda = B_complex * X * Lambda.asDiagonal();
 
         // Usa BiCGSTAB (o altro solver iterativo complesso) invece di CG
         ConjugateGradient<ComplexSparseMatrix, Lower|Upper> cg;
@@ -320,7 +324,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
         ComplexDenseMatrix X_new = V_eff * C;           // Autovettori complessi
 
         // 5. Verifica Convergenza (Residuo complesso, norma reale)
-        ComplexDenseMatrix Residual = A * X_new - B.cast<ComplexScalar>() * X_new * Lambda_new.asDiagonal();
+        ComplexDenseMatrix Residual = A * X_new - B_complex * X_new * Lambda_new.asDiagonal();
         double residual_norm = Residual.norm(); // Norma di Frobenius (reale)
         double x_norm = X_new.norm();
         double relative_residual = (x_norm > 1e-12) ? (residual_norm / x_norm) : residual_norm;
@@ -352,13 +356,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
 }
 
 
-// --- Funzioni Originali (Reali) per riferimento o uso separato ---
-// (Includi qui le definizioni originali di
-//  b_modified_gram_schmidt, rayleighRitz, gcgm
-//  se vuoi mantenerle nello stesso file,
-//  assicurandoti che usino i typedef reali:
-//  DenseMatrix, DenseVector, RealSparseMatrix)
-// ...
 
 // Typedef per chiarezza (usa SparseMatrix se A, B sono sparse)
 typedef MatrixXd DenseMatrix;
