@@ -1,0 +1,24 @@
+
+\subsubsection{Boundary conditions}
+For a short range potential, we can expect bound solutions to decay rapidly near the boundaries, prompting for Dirichlet boundary conditions.
+\\In a simple 1D case, where the domain is $[a, b]$, $\psi_0 = \psi(a)$, $\psi_{N-1} = \psi(b)$, the approximation for the derivatives asks for $\psi_{-1}$ and $\psi_N$.
+\\Since we are not contemplating these points in the domain, we can simply set them to zero, which formally corresponds to solving
+\begin{equation}
+    \begin{pmatrix}
+        0 & 0 & 0 
+        \\0 & A & 0
+        \\0 & 0 & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+        0\\\mathbf{\psi}\\0
+    \end{pmatrix}
+    = E 
+    \begin{pmatrix}
+        0\\\mathbf{\psi}\\0
+    \end{pmatrix}
+\end{equation}
+This implies that the solution $\psi$ satisfies the boundary conditions for 
+\begin{equation}
+    \psi(a-h)=0 \text{ and } \psi(b+h)=0.
+\end{equation}
+\\Working with a sufficiently fine mesh, this slight deviation is physically negligible, since $h \approx 0$. Nonetheless, it's possible to satisfy the exact BC by working in the domain $[a+h, b-h]$. 

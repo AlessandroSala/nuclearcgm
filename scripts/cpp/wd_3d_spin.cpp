@@ -5,8 +5,9 @@
 #include <Eigen/Eigenvalues>
 #include <omp.h>
 #include <fstream>
-#include "constants.hpp"
+#include "common/constants.hpp"
 #include "solver/solver.cpp"
+#include <chrono>
 
 using namespace std;
 using namespace Eigen;
@@ -16,7 +17,7 @@ typedef Matrix<complex<double>, 2, 2> SpinMatrix;
 
 int n = 10;
 int k = 7;
-const double a = 15.0;
+double a = 10.0;
 double h = 2.0 * a / (n-1);
 int acgm_cycles = 50;
 const double V0 = 51.0;
@@ -100,17 +101,30 @@ SparseMatrix<std::complex<double>> matsetup_oscillator(int n, const vector<doubl
     mat.setFromTriplets(tripletList.begin(), tripletList.end());
     return mat;
 }
-
+ComplexDenseMatrix gaussian_guess(int n, int nev, const vector<double>& xs, const vector<double>& ys, const vector<double>& zs) {  
+    ComplexDenseMatrix guess(n*n*n*2, nev);
+    for(int ev = 0; ev < nev; ++ev) {
+    for(int i = 0; i < n; ++i) {
+        for(int j = 0; j < n; ++j) {
+            for(int k = 0; k < n; ++k) {
+                double r = xs[i]*xs[i] + ys[j]*ys[j] + zs[k]*zs[k];
+                r = (sqrt(r))/(a);
+                for(int s = 0; s < 2; ++s) {
+                    guess(idx(i, j, k, s), ev) = pow(r, ev)*ComplexScalar(exp(-pow(r, 2)), 0);
+                }
+            }
+        }
+    }
+    }
+    for (int ev = 0; ev < nev; ++ev) {
+        guess.col(ev).normalize();
+    }
+    return guess;
+}
 int main(int argc, char** argv) {
 
-    std::cout << "Pauli matrices: " << std::endl;
-    for(int i = 0; i < 3; ++i) {
-        std::cout << pauli[i] << std::endl;
-    }
-
     if(argc >= 2) {
-        n = atoi(argv[1]);
-        h = 2.0 * a / (n-1);
+        a = atof(argv[1]);
     } 
     if(argc >= 3) {
         k = atoi(argv[2]);
@@ -118,6 +132,11 @@ int main(int argc, char** argv) {
     if(argc >= 4) {
         acgm_cycles = atoi(argv[3]);
     }
+    if(argc >= 5) {
+        n = atoi(argv[4]);
+        h = 2.0 * a / (n-1);
+    }
+    ComplexDenseMatrix guess;
 
     vector<double> xs(n), ys(n), zs(n);
     string path = "output/wd_3d/";
@@ -125,21 +144,31 @@ int main(int argc, char** argv) {
     for (int i = 0; i < n; ++i) {
         xs[i] = ys[i] = zs[i] = -a + i * h;
     }
+    if(argc >= 6) {
+        guess = gaussian_guess(n, k, xs, ys, zs);
+    } else {
+        guess = MatrixXcd(random_orthonormal_matrix(n*n*n*2, k));
+    }
     
     SparseMatrix<std::complex<double>> mat = matsetup_oscillator(n, xs, ys, zs);
     cout << "Matrix generated" << endl;
 
-    cout << "Hermit: " << endl;
-    //cout << mat.toDense() << endl;
 
     int N = mat.rows();
 
     
     SparseMatrix<double> B(N, N);
     B.setIdentity();
-    pair<MatrixXcd, VectorXd> eigenpairs = gcgm_complex(mat, B, MatrixXcd(random_orthonormal_matrix(N, k)), k, 35 + 0.01, acgm_cycles, 1.0e-9, 100 ); 
 
-    std::cout << "GCGM eigenvalues: " << eigenpairs.second << std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    pair<MatrixXcd, VectorXd> eigenpairs = gcgm_complex(mat, B, guess, k, 35 + 0.01, acgm_cycles, 1.0e-4, 100 ); 
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    cout << "Time elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
+
+    //std::cout << "GCGM eigenvalues: " << eigenpairs.second << std::endl;
 
 
     double e_real = -31.091;
@@ -147,21 +176,21 @@ int main(int argc, char** argv) {
     cout << "Error: " << ((eigenpairs.second(0))/e_real - 1)*100 << "%" << endl;
 
 
-    for(int ev = 0; ev < eigenpairs.second.size(); ++ev) {
+    //for(int ev = 0; ev < eigenpairs.second.size(); ++ev) {
 
-        ofstream file(path + "eigenvectors_" + std::to_string(ev) + ".txt");
-        for (int i = 0; i < eigenpairs.first.rows(); ++i) {
-            file << eigenpairs.first(i, ev) << endl;
-        }
+        //ofstream file(path + "eigenvectors_" + std::to_string(ev) + ".txt");
+        //for (int i = 0; i < eigenpairs.first.rows(); ++i) {
+            //file << eigenpairs.first(i, ev) << endl;
+        //}
         
-        file.close();
-    }
+        //file.close();
+    //}
 
-    ofstream file2(path + "x.txt");
-    for(const auto &e : xs) {
-        file2 << e << endl;
-    }
-    file2.close();
+    //ofstream file2(path + "x.txt");
+    //for(const auto &e : xs) {
+        //file2 << e << endl;
+    //}
+    //file2.close();
     //cout << MatrixXd(mat) << endl;
     
     
