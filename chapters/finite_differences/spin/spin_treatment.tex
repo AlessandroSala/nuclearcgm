@@ -42,5 +42,10 @@ Using finite differences, thanks to the approximation in equation \ref{eq:finite
     ;&\ \pdv{\psi}{z} = \frac {\psi_{i, j, k+1} - \psi_{i, j, k-1}}{2h_z}
 \end{align*}
 It's obious that the matrix elements describing the spin orbit interaction will be off-diagonal, since they are non local.
+\\The matrix elements of $H_\text{SO}$ will then be defined by
+\begin{equation}
+    \hat{H}_\text{SO} \rightarrow -v_\text{LS}(r)\frac{i\hbar^2}{2} \bigg[\sigma_x \bigg(y_j \frac{\psi_{ijk+1} - \psi_{ijk-1}}{2h_z} - z_k \frac{\psi_{ij+1, jk} - \psi_{ij-1k}}{2h_y}\bigg) + \ldots\bigg]
+\end{equation}
+Where the expression above acts on a $2\times 1$ spin vector.
 \\The discretized $\hat H$, a matrix $2N_x N_y N_z\times 2N_x N_y N_z$ will then be the sum $T + V + H_{\text{SO}}$ of the kinetic energy, the potential energy and the spin orbit interaction. 
 
