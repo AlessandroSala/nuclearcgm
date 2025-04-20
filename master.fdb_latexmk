@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1744896233.04838 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1744896233.33197 0
-  "/home/ale/dev/nuclearcgm/master.tex" 1744893035.48331 17400 6c921fa72bcace4102e884272b18a981 ""
+["pdflatex"] 1744981968.17533 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1744981968.51313 0
+  "/home/ale/dev/nuclearcgm/master.tex" 1744980894.72378 17464 31c3653549566c12326ba1cb44e3d6c9 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -79,11 +79,12 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1735925046.91841 4547823 614eba97e0451aad345770236b030e55 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1735924908 7757846 09d24f7cdc708213b287ee23eb4d9a9c ""
   "chapters/finite_differences/boundary_conditions/boundary_conditions.tex" 1744894251.81758 1102 f414331fc96beba3b43ed22ea5fe8d3d ""
+  "chapters/finite_differences/shell_model/shell_model.tex" 1744981967.15585 857 91c8cffcf1f2ded5b5b9eca905340915 ""
   "chapters/finite_differences/spin/spin_treatment.tex" 1744896232.89807 3589 967e04f8b8a661cc6f8bf85fa7ee8b80 ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
   "figures/ws_gs.png" 1743275533.18922 33682 d6c21bd3faa2eea0ee0238eeb333a900 ""
-  "master.aux" 1744896233.29207 4110 f8273ec420436f2e5a7210053fbbc107 "pdflatex"
-  "master.tex" 1744893035.48331 17400 6c921fa72bcace4102e884272b18a981 ""
+  "master.aux" 1744981968.46285 4451 0073eb5ecec0852c189232fc9f1ee243 "pdflatex"
+  "master.tex" 1744980894.72378 17464 31c3653549566c12326ba1cb44e3d6c9 ""
   (generated)
   "master.aux"
   "master.log"
