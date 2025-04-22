@@ -71,7 +71,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
     int max_iter,
     double tolerance,
     int cg_steps, // Passi BiCGSTAB (o altro solver complesso)
-    double cg_tol
+    double cg_tol,
+    bool benchmark
 );
 
 std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
@@ -82,7 +83,9 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     int max_iter,
     double tolerance,
     int cg_steps, // Passi BiCGSTAB (o altro solver complesso)
-    double cg_tol
+    double cg_tol,
+    bool benchmark,
+    int blockSize
 );
 
 Eigen::MatrixXd random_orthonormal_matrix(int n, int k);

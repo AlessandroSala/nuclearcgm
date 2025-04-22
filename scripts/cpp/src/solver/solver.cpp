@@ -1,5 +1,9 @@
 
 #include "solver.hpp"
+#include <chrono>
+
+using Clock = std::chrono::high_resolution_clock;
+using Duration = std::chrono::duration<double>;
 
 using namespace Eigen;
 
@@ -186,6 +190,10 @@ std::pair<ComplexDenseMatrix, DenseVector> rayleighRitz_complex(
     return {C, lambda_new};
 }
 
+void durMs(const Duration& d) {
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(d).count() << "ms" << std::endl;
+}
+
 /**
  * @brief Algoritmo GCGM Complesso per Ax = lambda Bx (A Hermitiana, B Reale SPD).
  *
@@ -210,10 +218,13 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
     int max_iter = 100,
     double tolerance = 1e-8,
     int cg_steps = 10, // Passi BiCGSTAB (o altro solver complesso)
-    double cg_tol = 1e-9
+    double cg_tol = 1e-3,
+    bool benchmark = false
 )
 {
 
+    auto start = Clock::now();
+    auto end = Clock::now();
     std::cout << "GCGM Complex" << std::endl;
     // Codice per info OpenMP/thread (invariato)
     // ... (come nella versione originale) ...
@@ -223,6 +234,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
     ConjugateGradient<ComplexSparseMatrix, Lower | Upper> cg;
     cg.setMaxIterations(cg_steps);
     cg.setTolerance(cg_tol);
+
+    //Block size definition
+    const int blockSize = std::max(1, nev / 4);
+    std::cout << "Using block size " << blockSize << std::endl;
 
     // --- Validazione Input --- (controlli dimensioni simili)
     if (A.rows() != n || A.cols() != n || B.rows() != n || B.cols() != n || X_initial.rows() != n)
@@ -238,8 +253,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
 
     // --- Inizializzazione Complessa ---
     ComplexDenseMatrix X = X_initial.leftCols(nev);
-    ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, nev);
-    ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, nev);
+    ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, blockSize);
+    ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, blockSize);
     DenseVector Lambda;           // Autovalori reali
     double current_shift = shift; // Shift reale
 
@@ -289,13 +304,18 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
             // Questo errore è meno probabile con BiCGSTAB che con CG
             return {};
         }
-
+        start = Clock::now();
 #pragma omp parallel for // Opzionale
         for (int k = 0; k < nev; ++k)
         {
             // Risolvi A_shifted * w_k = (BXLambda)_k
             W.col(k) = cg.solveWithGuess(BXLambda.col(k), W.col(k)); // W è complesso
             // Controllo errore solve opzionale
+        }
+        end = Clock::now();
+        if(benchmark) {
+            std::cout << "Time CG: ";
+            durMs(end - start);
         }
 
         // 2. Costruisci V = [X, P, W] (tutte complesse)
@@ -308,8 +328,14 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
         }
         V.rightCols(nev) = W;
 
+        start = Clock::now();
         // 3. B-Ortogonalizza V (complessa)
         b_modified_gram_schmidt_complex(V, B);
+        end = Clock::now();
+        if(benchmark) {
+            std::cout << "Time B-Ort: ";
+            durMs(end - start);
+        }
 
         // --- Gestione Dipendenze Lineari (come prima, ma su V complessa) ---
         std::vector<int> keep_cols;
@@ -336,7 +362,13 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex(
         int current_dim = V_eff.cols();
         int rr_nev = std::min(nev, current_dim);
 
+        start = Clock::now();
         auto rr_result = rayleighRitz_complex(V_eff, A_shifted, B, rr_nev);
+        end = Clock::now();
+        if(benchmark) {
+            std::cout << "Time Rayleigh-Ritz: ";
+            durMs(end - start);
+        }
         if (rr_result.first.cols() == 0)
         {
             std::cerr << "Error: Complex Rayleigh-Ritz failed in iteration " << iter << std::endl;
@@ -526,9 +558,15 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     int max_iter = 100,
     double tolerance = 1e-8,
     int cg_steps = 10, // Passi BiCGSTAB (o altro solver complesso)
-    double cg_tol = 1e-9
+    double cg_tol = 1e-9,
+    bool benchmark = false,
+    int size = 4
 )
 {
+
+    auto start = Clock::now();
+    auto end = Clock::now();
+
 
     std::cout << "GCGM Complex" << std::endl;
     // Codice per info OpenMP/thread (invariato)
@@ -538,6 +576,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     ConjugateGradient<ComplexSparseMatrix, Lower | Upper> cg;
     cg.setMaxIterations(cg_steps);
     cg.setTolerance(cg_tol);
+    const int blockSize = std::max(1, nev / size);
+    std::cout << "Using block size " << blockSize << std::endl;
 
     // --- Validazione Input --- (controlli dimensioni simili)
     if (A.rows() != n || A.cols() != n || X_initial.rows() != n)
@@ -553,12 +593,14 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 
     // --- Inizializzazione Complessa ---
     ComplexDenseMatrix X = X_initial.leftCols(nev);
-    ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, nev);
-    ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, nev);
+    ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, blockSize);
+    ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, blockSize);
     DenseVector Lambda;           // Autovalori reali
     double current_shift = shift; // Shift reale
     ComplexSparseMatrix Id(n, n);
     Id.setIdentity();
+    RealSparseMatrix Id_real(n, n);
+    Id_real.setIdentity();
 
     b_modified_gram_schmidt_complex_no_B(X); // Rendi X B-ortonormale
 
@@ -607,27 +649,40 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
             // Questo errore è meno probabile con BiCGSTAB che con CG
             return {};
         }
+        start = Clock::now();
 
 #pragma omp parallel for // Opzionale
-        for (int k = 0; k < nev; ++k)
+        for (int k = 0; k < blockSize; ++k)
         {
             // Risolvi A_shifted * w_k = (BXLambda)_k
             W.col(k) = cg.solveWithGuess(BXLambda.col(k), W.col(k)); // W è complesso
             // Controllo errore solve opzionale
         }
+        end = Clock::now();
+        if(benchmark) {
+            std::cout << "Time CG: ";
+            durMs(end - start);
+        }
 
         // 2. Costruisci V = [X, P, W] (tutte complesse)
-        int p_cols = (iter == 0) ? 0 : nev;
-        ComplexDenseMatrix V(n, nev + p_cols + nev);
+        int p_cols = (iter == 0) ? 0 : blockSize;
+        ComplexDenseMatrix V(n, nev + p_cols + blockSize);
         V.leftCols(nev) = X;
         if (p_cols > 0)
         {
-            V.block(0, nev, n, p_cols) = P;
+            V.block(0, nev, n, blockSize) = P;
         }
-        V.rightCols(nev) = W;
+        V.rightCols(blockSize) = W;
+
+        start = Clock::now();
 
         // 3. B-Ortogonalizza V (complessa)
         b_modified_gram_schmidt_complex_no_B(V);
+        end = Clock::now();
+        if(benchmark) {
+            std::cout << "Time B-Ort: ";
+            durMs(end - start);
+        }
 
         // --- Gestione Dipendenze Lineari (come prima, ma su V complessa) ---
         std::vector<int> keep_cols;
@@ -652,9 +707,16 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 
         // 4. Rayleigh-Ritz su V_eff (complessa)
         int current_dim = V_eff.cols();
+
         int rr_nev = std::min(nev, current_dim);
 
+        start = Clock::now();
         auto rr_result = rayleighRitz_complex_no_B(V_eff, A_shifted, rr_nev);
+        end = Clock::now();
+        if(benchmark) {
+            std::cout << "Time Rayleigh-Ritz: ";
+            durMs(end - start);
+        }
         if (rr_result.first.cols() == 0)
         {
             std::cerr << "Error: Complex Rayleigh-Ritz failed in iteration " << iter << std::endl;
@@ -683,9 +745,9 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
             std::cout << "Eigenvalues: " << Lambda_new.transpose() << std::endl;
             return std::make_pair(X_new, Lambda_new);
         }
-
-        // 6. Aggiorna P (complesso)
-        P = X_new - X;
+        ComplexDenseMatrix coeff = X.adjoint() * X;
+        P = X_new - X*coeff;
+        //P = X_new - X;
         // Eventuale ri-ortogonalizzazione di P
 
         // 7. Aggiorna X (complesso) e Lambda (reale)
