@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     B.setIdentity();
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    pair<MatrixXcd, VectorXd> eigenpairs_ham_no_B = gcgm_complex_no_B(ham_mat, guess, k, 35 + 0.01, acgm_cycles, 1.0e-4, 50, 1.0e-5/k, true, 1); 
+    pair<MatrixXcd, VectorXd> eigenpairs_ham_no_B = gcgm_complex_no_B(ham_mat, guess, k, 35 + 0.01, acgm_cycles, 1.0e-3, 50, 1.0e-5/k, true, 1); 
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     auto ham_time_no_B = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();

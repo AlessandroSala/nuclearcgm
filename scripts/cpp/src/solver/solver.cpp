@@ -599,8 +599,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     double current_shift = shift; // Shift reale
     ComplexSparseMatrix Id(n, n);
     Id.setIdentity();
-    RealSparseMatrix Id_real(n, n);
-    Id_real.setIdentity();
 
     b_modified_gram_schmidt_complex_no_B(X); // Rendi X B-ortonormale
 
@@ -651,7 +649,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
         }
         start = Clock::now();
 
-#pragma omp parallel for // Opzionale
+    #pragma omp parallel for // Opzionale
         for (int k = 0; k < blockSize; ++k)
         {
             // Risolvi A_shifted * w_k = (BXLambda)_k
