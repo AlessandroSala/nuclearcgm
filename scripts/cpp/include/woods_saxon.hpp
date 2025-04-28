@@ -1,10 +1,10 @@
 #pragma once
-#include "potential.hpp"
+#include "local_potential.hpp"
 /**
  * @brief Implements a Woods-Saxon central potential.
  * V(r) = -V0 / (1 + exp((r - R) / diff))
  */
-class WoodsSaxonPotential : public Potential {
+class WoodsSaxonPotential : public LocalPotential {
 public:
     /**
      * @brief Constructs a Woods-Saxon potential term.
@@ -19,7 +19,6 @@ public:
      * Only non-zero for diagonal elements (n0 == n1).
      */
     double getValue(double x, double y, double z) const override;
-    std::complex<double> getElement(int i, int j, int k, int s, int i1, int j1, int k1, int s1, const Grid& grid) const override;
 
 public:
     double V0;   // Potential depth
