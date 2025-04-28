@@ -571,11 +571,14 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     std::cout << "GCGM Complex" << std::endl;
     // Codice per info OpenMP/thread (invariato)
     // ... (come nella versione originale) ...
+    int maxThreads = omp_get_max_threads();
+    std::vector<ConjugateGradient<ComplexSparseMatrix, Lower|Upper>> cgSolvers(maxThreads);
+
 
     int n = A.rows();
-    ConjugateGradient<ComplexSparseMatrix, Lower | Upper> cg;
-    cg.setMaxIterations(cg_steps);
-    cg.setTolerance(cg_tol);
+    //ConjugateGradient<ComplexSparseMatrix, Lower | Upper> cg;
+    //cg.setMaxIterations(cg_steps);
+    //cg.setTolerance(cg_tol);
     const int blockSize = std::max(1, nev / size);
     std::cout << "Using block size " << blockSize << std::endl;
 
@@ -637,23 +640,34 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
         ComplexDenseMatrix BXLambda = X * Lambda.asDiagonal();
 
         // Usa BiCGSTAB (o altro solver iterativo complesso) invece di CG
-        cg.compute(A_shifted); // Analizza pattern
         //if(iter > 0) cg.setMaxIterations(std::min(cg_steps, 10));
         //std::cout << "Using " << cg.maxIterations() << " iterations" << std::endl;
 
-        if (cg.info() != Eigen::Success && iter == 0)
-        {
-            std::cerr << "Error: CG compute structure failed (Complex GCGM)." << std::endl;
-            // Questo errore è meno probabile con BiCGSTAB che con CG
-            return {};
-        }
+        //if (cg.info() != Eigen::Success && iter == 0)
+        //{
+            //std::cerr << "Error: CG compute structure failed (Complex GCGM)." << std::endl;
+            //// Questo errore è meno probabile con BiCGSTAB che con CG
+            //return {};
+        //}
         start = Clock::now();
+
+        //Prepare cg solvers
+        #pragma omp parallel for
+        for(int i = 0; i < maxThreads; ++i) {
+            cgSolvers[i].setMaxIterations(cg_steps);
+            cgSolvers[i].setTolerance(cg_tol);
+            // Se usi un precondizionatore, impostalo qui per ogni solver
+            // cg_solvers[i].setPreconditioner(...);
+            cgSolvers[i].compute(A_shifted); // Ogni thread prepara il suo solver
+            // Verifica cg_solvers[i].info() se necessario
+        }
 
     #pragma omp parallel for // Opzionale
         for (int k = 0; k < blockSize; ++k)
         {
+            int threadId = omp_get_thread_num();
             // Risolvi A_shifted * w_k = (BXLambda)_k
-            W.col(k) = cg.solveWithGuess(BXLambda.col(k), W.col(k)); // W è complesso
+            W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(k), W.col(k)); // W è complesso
             // Controllo errore solve opzionale
         }
         end = Clock::now();

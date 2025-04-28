@@ -11,6 +11,7 @@
 #include "constants.hpp"
 #include <chrono>
 #include "spherical_coulomb.hpp"
+#include "harmonic_oscillator.hpp"
 
 using namespace std;
 using namespace Eigen;
@@ -30,6 +31,7 @@ const double R = r_0 * pow(A_val, 1.0/3.0);
 int main(int argc, char** argv) {
     Eigen::initParallel();
 
+    double omega = 0.5;
     if(argc >= 2) {
         a = atof(argv[1]);
     } 
@@ -46,12 +48,15 @@ int main(int argc, char** argv) {
     ComplexDenseMatrix guess;
 
     Grid grid(n, a);
+    cout << "Grid domain: [-" << grid.get_a() << ", " << -grid.get_a() + grid.get_h()*(grid.get_n()-1) << "]" << endl;
     vector<shared_ptr<Potential>> pots;
     pots.push_back(make_shared<SpinOrbitPotential>(SpinOrbitPotential(V0, r_0, R)));
     pots.push_back(make_shared<WoodsSaxonPotential>(WoodsSaxonPotential(V0, R, diff)));
+    //pots.push_back(make_shared<HarmonicOscillatorPotential>(HarmonicOscillatorPotential(omega, omega, omega)));
 
     if(argc >= 6) {
         pots.push_back(make_shared<SphericalCoulombPotential>(SphericalCoulombPotential(A_val/2, R)));
+        cout << "Adding coulomb potential" << endl;
     }
 
     Hamiltonian ham(make_shared<Grid>(grid), pots);
@@ -60,12 +65,13 @@ int main(int argc, char** argv) {
     guess = gaussian_guess(grid, k, a);
     //guess = random_orthonormal_matrix(grid.get_total_points(), k);
     
-    SparseMatrix<double> B(grid.get_total_points(), grid.get_total_points());
     ComplexSparseMatrix ham_mat = ham.build_matrix();
-    B.setIdentity();
+    //cout << ham_mat << endl;
+    //SelfAdjointEigenSolver<ComplexSparseMatrix> eigensolver(ham_mat);
+    //cout << "Exact eigenvalues: " << eigensolver.eigenvalues().transpose() << endl;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    pair<MatrixXcd, VectorXd> eigenpairs_ham_no_B = gcgm_complex_no_B(ham_mat, guess, k, 35 + 0.01, acgm_cycles, 1.0e-3, 50, 1.0e-5/k, true, 1); 
+    pair<MatrixXcd, VectorXd> eigenpairs_ham_no_B = gcgm_complex_no_B(ham_mat, guess, k, 35 + 0.01, acgm_cycles, 1.0e-3, 50, 1.0e-4/(k), true, 1); 
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     auto ham_time_no_B = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
@@ -77,7 +83,8 @@ int main(int argc, char** argv) {
 
 
     double e_real = -38.842;
-    cout << "Real GS energy: " << e_real << " MeV" << endl;
+    //cout << "Real GS energy: " << e_real << " MeV" << endl;
+    cout << "HO energy: " << h_bar * omega * 0.5 * 3 << " MeV" << endl;
     cout << "Error: " << ((eigenpairs_ham_no_B.second(0))/e_real - 1)*100 << "%" << endl;
 
 

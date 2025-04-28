@@ -132,6 +132,7 @@ ComplexSparseMatrix Hamiltonian::build_matrix()
     // Build sparse matrix
     ComplexSparseMatrix H(N_total, N_total);
     H.setFromTriplets(tripletList.begin(), tripletList.end());
+    H.makeCompressed();
 
     return H;
 }
