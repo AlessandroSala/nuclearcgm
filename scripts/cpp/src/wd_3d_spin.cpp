@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
     pots.push_back(make_shared<WoodsSaxonPotential>(WoodsSaxonPotential(V0, R, diff)));
     //pots.push_back(make_shared<HarmonicOscillatorPotential>(HarmonicOscillatorPotential(omega, omega, omega)));
 
+    cout << "Electric charge " << (A_val / 2) << endl;
     if(argc >= 6) {
         pots.push_back(make_shared<SphericalCoulombPotential>(SphericalCoulombPotential(A_val/2, R)));
         cout << "Adding coulomb potential" << endl;
@@ -65,27 +66,23 @@ int main(int argc, char** argv) {
     guess = gaussian_guess(grid, k, a);
     //guess = random_orthonormal_matrix(grid.get_total_points(), k);
     
-    ComplexSparseMatrix ham_mat = ham.build_matrix();
+    ComplexSparseMatrix ham_mat_5p = ham.build_matrix5p();
+    cout << "5 point matrix generated" << endl;
     //cout << ham_mat << endl;
     //SelfAdjointEigenSolver<ComplexSparseMatrix> eigensolver(ham_mat);
     //cout << "Exact eigenvalues: " << eigensolver.eigenvalues().transpose() << endl;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    pair<MatrixXcd, VectorXd> eigenpairs_ham_no_B = gcgm_complex_no_B(ham_mat, guess, k, 35 + 0.01, acgm_cycles, 1.0e-3, 50, 1.0e-4/(k), true, 1); 
-    
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    auto ham_time_no_B = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+
+    begin = std::chrono::steady_clock::now();
+    gcgm_complex_no_B(ham_mat_5p, guess, k, 35 + 0.01, acgm_cycles, 1.0e-3, 50, 1.0e-4/(k), false, 1); 
+    end = std::chrono::steady_clock::now();
+    auto ham_time_no_B_5p = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
     
     
-    cout << "Time elapsed no B: " << ham_time_no_B << "[ms]" << endl;
+    cout << "Time elapsed 5 points: " << ham_time_no_B_5p << "[ms]" << endl;
 
-    //std::cout << "GCGM eigenvalues: " << eigenpairs.second << std::endl;
-
-
-    double e_real = -38.842;
-    //cout << "Real GS energy: " << e_real << " MeV" << endl;
-    cout << "HO energy: " << h_bar * omega * 0.5 * 3 << " MeV" << endl;
-    cout << "Error: " << ((eigenpairs_ham_no_B.second(0))/e_real - 1)*100 << "%" << endl;
 
 
     //for(int ev = 0; ev < eigenpairs.second.size(); ++ev) {

@@ -757,7 +757,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
             std::cout << "Eigenvalues: " << Lambda_new.transpose() << std::endl;
             return std::make_pair(X_new, Lambda_new);
         }
-        ComplexDenseMatrix coeff = X.adjoint() * X;
+        ComplexDenseMatrix coeff = X.adjoint() * X_new;
         P = X_new - X*coeff;
         //P = X_new - X;
         // Eventuale ri-ortogonalizzazione di P

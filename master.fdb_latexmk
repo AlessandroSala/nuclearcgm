@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1745331535.83952 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1745331536.34335 0
+["pdflatex"] 1746007915.7607 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1746007916.27269 0
   "/home/ale/dev/nuclearcgm/master.tex" 1745330876.38473 17663 f6cf3b09e8f3e22f5c50b2ce50eb6f1d ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -123,14 +123,14 @@
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1735924908 7757846 09d24f7cdc708213b287ee23eb4d9a9c ""
   "chapters/conjugate_gradient/gcg.tex" 1745312897.63375 3429 f075861e3d21942cfe63bcdb4b5bf103 ""
   "chapters/finite_differences/boundary_conditions/boundary_conditions.tex" 1744894251.81758 1102 f414331fc96beba3b43ed22ea5fe8d3d ""
-  "chapters/finite_differences/shell_model/shell_model.tex" 1745331535.10135 2991 deb4ec0308b1788f0f13f56820d39efc ""
+  "chapters/finite_differences/shell_model/shell_model.tex" 1746007915.59401 3296 1d5a0391473728117fdc497646b3fd07 ""
   "chapters/finite_differences/spin/spin_treatment.tex" 1744896232.89807 3589 967e04f8b8a661cc6f8bf85fa7ee8b80 ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
   "figures/ws_gs.png" 1743275533.18922 33682 d6c21bd3faa2eea0ee0238eeb333a900 ""
-  "master.aux" 1745331536.25235 7141 df126ed7d1efce012f38630736c84ac6 "pdflatex"
-  "master.out" 1745331536.25235 5376 7ba58e622c929ffc7be7140f45e35313 "pdflatex"
+  "master.aux" 1746007916.16601 7141 df126ed7d1efce012f38630736c84ac6 "pdflatex"
+  "master.out" 1746007916.16701 5376 7ba58e622c929ffc7be7140f45e35313 "pdflatex"
   "master.tex" 1745330876.38473 17663 f6cf3b09e8f3e22f5c50b2ce50eb6f1d ""
-  "master.toc" 1745331536.25335 2943 5ddea85514b986b972f3e832ac92590d "pdflatex"
+  "master.toc" 1746007916.16701 2943 5ddea85514b986b972f3e832ac92590d "pdflatex"
   (generated)
   "master.aux"
   "master.log"

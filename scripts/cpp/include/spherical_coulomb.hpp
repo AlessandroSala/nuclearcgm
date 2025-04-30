@@ -1,6 +1,6 @@
 #pragma once
-#include "potential.hpp"
-class SphericalCoulombPotential : public Potential {
+#include "local_potential.hpp"
+class SphericalCoulombPotential : public LocalPotential {
 public:
     /**
      * @brief Constructs a Coulomb potential of a spherical charge distribution.
@@ -9,7 +9,6 @@ public:
     SphericalCoulombPotential(int Z, double R);
 
     double getValue(double x, double y, double z) const override;
-    std::complex<double> getElement(int i, int j, int k, int s, int i1, int j1, int k1, int s1, const Grid& grid) const override;
 
 public:
     int Z;

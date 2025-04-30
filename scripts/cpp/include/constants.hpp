@@ -7,8 +7,8 @@
 
 namespace nuclearConstants {
     constexpr double h_bar = 197.326971;
-    constexpr double m = 939.5653;
     constexpr double ev = 1.60218e-19;
+    constexpr double m = 938.272;
     constexpr double C = -2*m/(h_bar*h_bar);
     constexpr double diff = 0.67;
     
