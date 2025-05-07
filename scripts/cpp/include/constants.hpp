@@ -11,6 +11,7 @@ namespace nuclearConstants {
     constexpr double m = 938.272;
     constexpr double C = -2*m/(h_bar*h_bar);
     constexpr double diff = 0.67;
+    constexpr double lambda = 0.35;
     
 
     std::vector<SpinMatrix, Eigen::aligned_allocator<SpinMatrix>> getPauli();
