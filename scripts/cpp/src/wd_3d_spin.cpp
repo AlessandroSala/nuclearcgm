@@ -15,6 +15,7 @@
 #include <chrono>
 #include "spherical_coulomb.hpp"
 #include "harmonic_oscillator.hpp"
+#include "operators/angular_momentum.hpp"
 
 using namespace std;
 using namespace Eigen;
@@ -60,18 +61,27 @@ int main(int argc, char **argv)
 
     std::pair<ComplexDenseMatrix, DenseVector> eigenpair;
     vector<shared_ptr<Potential>> pots;
-    // pots.push_back(make_shared<SpinOrbitPotential>(SpinOrbitPotential(V0, r_0, R)));
+    //pots.push_back(make_shared<SpinOrbitPotential>(SpinOrbitPotential(V0, r_0, R)));
+    //pots.push_back(make_shared<WoodsSaxonPotential>(WoodsSaxonPotential(V0, R, 0.67)));
     pots.push_back(make_shared<DeformedSpinOrbitPotential>(DeformedSpinOrbitPotential(V0, Radius(0, r_0_so, A_val), 0.7)));
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(DeformedWoodsSaxonPotential(V0, Radius(0, r_0, A_val), 0.7)));
 
     Hamiltonian ham(make_shared<Grid>(grid), pots);
-    guess = gaussian_guess(grid, k, a);
-    eigenpair = gcgm_complex_no_B(ham.build_matrix5p(), guess, k, 35 + 0.01, acgm_cycles, 1.0e-3, 40, 1.0e-4 / (k), false, 1);
+    eigenpair = gcgm_complex_no_B(ham.build_matrix5p(), gaussian_guess(grid, k, a), k, 35 + 0.01, acgm_cycles, 1.0e-3, 40, 1.0e-4 / (k), false, 1);
+    //return 0;
     pots.clear();
     guess = eigenpair.first(all, seq(0, k - 1));
 
+    //for(int i = 0; i < guess.cols(); ++i) {
+        //cout << "m: " << Operators::Jz(guess(all, i), grid).norm()/h_bar<< endl;
+        ////cout << "m: " << Operators::JzExp(guess(all, i), grid)/h_bar<< endl;
+
+    //}
+    //return 0;
+
     int n_betas = 11;
     DenseMatrix energies(k, n_betas);
+    DenseMatrix ms(k, n_betas);
     int i = 0;
     for (double Beta = -0.5; Beta < 0.55; Beta += 0.1)
     {
@@ -90,9 +100,9 @@ int main(int argc, char **argv)
         // double epsilon = 0.1;
         // pots.push_back(make_shared<HarmonicOscillatorPotential>(HarmonicOscillatorPotential(omega, omega_y, omega_z)));
 
-        cout << "Electric charge " << (A_val / 2) << endl;
         if (argc >= 6)
         {
+            cout << "Electric charge " << (A_val / 2) << endl;
             pots.push_back(make_shared<SphericalCoulombPotential>(SphericalCoulombPotential(A_val / 2, R)));
             cout << "Adding coulomb potential" << endl;
         }
@@ -118,6 +128,14 @@ int main(int argc, char **argv)
 
         eigenpair = gcgm_complex_no_B(ham_mat_5p, guess, k, 35 + 0.01, 10, 1.0e-3, 40, 1.0e-4 / (k), false, 1);
         end = std::chrono::steady_clock::now();
+        for(int j = 0; j < k; ++j) {
+            double m = Operators::Jz(eigenpair.first(all, j), grid).norm()/h_bar;
+            ms(j, i) = m;
+            cout << "m: " << m << endl;
+            //cout << "m: " << Operators::JzExp(guess(all, i), grid)/h_bar<< endl;
+
+        }
+        //if(i==2) return 0;
 
         // double gs = h_bar * 0.5 * (omega + omega_y + omega_z);
         // cout << h_bar*omega << " " << h_bar*omega_y << " " << h_bar*omega_z << endl;
@@ -142,10 +160,15 @@ int main(int argc, char **argv)
         cout << b << " ";
     }
     cout << endl;
+    
+    //return 0;
 
     std::string path = "output/";
     ofstream file(path + "def.csv");
     file << energies << endl;
+    //return 0;
+    ofstream fileM(path + "m.csv");
+    fileM << ms << endl;
 
     // file.close();
     //}
