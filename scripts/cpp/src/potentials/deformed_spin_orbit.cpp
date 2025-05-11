@@ -85,7 +85,7 @@ std::complex<double> DeformedSpinOrbitPotential::getElement5p(int i, int j, int 
     //ls = 0;
     using namespace nuclearConstants;
     std::complex<double> img = std::complex<double>(0, 1.0);
-    spin = -(1.0/h)*img*ls*spin; //*h_bar
+    spin = (1.0/h)*img*ls*spin;
 
     return spin(s, s1);
 }
