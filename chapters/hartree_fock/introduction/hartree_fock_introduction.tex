@@ -1,4 +1,27 @@
 \section{The Hartree-Fock method}
 A many body system, like the nucleus, is made of indistinguishible particles from the standpoint of quantum mechanics.
 \\Suppose to have a nucleus, with $A$ nucleons, where the mass difference between neutrons and protons is neglected.
-\\A certain state of the system must be antisymmetric with respect to coordinate 
+\\The state of the system will be described by a wavefunction $\Psi(\mathbf{r_1}, \ldots, \mathbf{r_A})$.
+\\The HF approximation states that the wavefunction can be approximated as a product of single particle states:
+\begin{equation}
+    \Psi(\mathbf{r_1}, \ldots, \mathbf{r_A}) = \prod_{i=1}^A \phi_i(\mathbf{r_i})
+\end{equation}
+Since we are dealing with fermions, the correct state must be antisymmetric with respect to a particle exchange, forcing the use of a slater determinant:
+\begin{equation}
+    \Psi(\mathbf{r_1}, \ldots, \mathbf{r_A}) = \frac{1}{\sqrt{A!}}\det
+    \begin{pmatrix}
+        \phi_1(\mathbf{r_1}) & \ldots & \phi_A(\mathbf{r_A}) \\
+        \ldots & \ddots & \ldots \\
+        \phi_1(\mathbf{r_A}) & \ldots & \phi_A(\mathbf{r_1})
+    \end{pmatrix}
+    =\sum_{p} (-1)^p \phi_{p(1)}(\mathbf{r_1}) \ldots \phi_{p(A)}(\mathbf{r_A})
+\end{equation}
+Where the sum is performed over all possible permutations of the particles.
+\\Using the variational principle, we can determine the ground state by minimizing the energy functional
+\begin{equation}
+    E[\Psi] = \bra{\Psi} \hat{H} \ket{\Psi}
+\end{equation}
+With the constraint that the single particle states be orthogonal to each other.
+\begin{equation}
+    \delta E = \delta(\bra{\Psi} \hat{H} \ket{\Psi} - \sum_A \varepsilon_i\braket{\phi_i | \phi_i} ) = 0
+\end{equation}

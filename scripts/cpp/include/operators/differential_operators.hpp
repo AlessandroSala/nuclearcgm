@@ -1,12 +1,14 @@
+#pragma once
 #include <Eigen/Dense>
 #include <complex>
 #include "grid.hpp"
 
 namespace Operators {
-    std::complex<double> dvx(const Eigen::VectorXcd& psi, int i, int j, int k, int s, const Grid& grid);
-    std::complex<double> dvy(const Eigen::VectorXcd& psi, int i, int j, int k, int s, const Grid& grid);
-    std::complex<double> dvz(const Eigen::VectorXcd& psi, int i, int j, int k, int s, const Grid& grid);
-    std::complex<double> dv(std::complex<double> f2, std::complex<double> f1, std::complex<double> f_2, std::complex<double> f_1, std::complex<double> h);
-    std::complex<double> derivative_along_axis(const Eigen::VectorXcd& psi, int i, int j, int k, int s, const Grid& grid, char axis); 
+    Eigen::VectorXcd dv(const Eigen::VectorXcd& psi, const Grid& grid, char dir);
+    Eigen::VectorXcd dvNoSpin(const Eigen::VectorXcd& psi, const Grid& grid, char dir);
+    std::complex<double> derivative(const Eigen::VectorXcd& psi, int i, int j, int k, int s, const Grid& grid, char axis); 
+    std::complex<double> derivativeNoSpin(const Eigen::VectorXcd& psi, int i, int j, int k, const Grid& grid, char axis); 
+    double derivativeNoSpin(const Eigen::VectorXd& psi, int i, int j, int k, const Grid& grid, char axis); 
+    std::complex<double> derivative2(const Eigen::VectorXcd& psi, int i, int j, int k, int s, const Grid& grid, char axis); 
     double integral(const Eigen::VectorXd& psi, const Grid& grid);
 }

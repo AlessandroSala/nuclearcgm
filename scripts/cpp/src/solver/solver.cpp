@@ -461,6 +461,8 @@ void b_modified_gram_schmidt_complex_no_B(ComplexDenseMatrix& V) {
     }
 }
 
+
+
 /**
  * @brief Procedura di Rayleigh-Ritz Complessa per Ax = lambda Bx (A Hermitiana, B Reale SPD).
  *
@@ -667,7 +669,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
         {
             int threadId = omp_get_thread_num();
             // Risolvi A_shifted * w_k = (BXLambda)_k
-            W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(k), W.col(k)); // W è complesso
+            W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(k), X.col(k)); // W è complesso
             // Controllo errore solve opzionale
         }
         end = Clock::now();
@@ -706,11 +708,11 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
                 keep_cols.push_back(k);
             }
         }
-        if (keep_cols.size() < nev)
-        {
-            std::cerr << "Warning: Complex Basis V rank collapsed below nev (" << keep_cols.size() << ") at iteration " << iter << std::endl;
-            return {X, Lambda};
-        }
+        //if (keep_cols.size() < nev)
+        //{
+            //std::cerr << "Warning: Complex Basis V rank collapsed below nev (" << keep_cols.size() << ") at iteration " << iter << std::endl;
+            //return {X, Lambda};
+        //}
         ComplexDenseMatrix V_eff(n, keep_cols.size());
         for (size_t i = 0; i < keep_cols.size(); ++i)
         {

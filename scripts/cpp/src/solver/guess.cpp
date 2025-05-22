@@ -22,6 +22,66 @@ ComplexDenseMatrix gaussian_guess(const Grid& grid, int nev, double a) {
     }
     return guess;
 }
+
+ComplexDenseMatrix harmonic_oscillator_guess(const Grid& grid, int nev, double a) {
+
+    int n = grid.get_n();
+    int total_points = grid.get_total_points();
+
+    ComplexDenseMatrix guess(total_points, nev);
+
+    auto hermite = [](int n, double x) {
+        switch (n) {
+            case 0: return 1.0;
+            case 1: return 2.0 * x;
+            case 2: return 4.0 * x * x - 2.0;
+            case 3: return 8.0 * x * x * x - 12.0 * x;
+            case 4: return 16.0 * x * x * x * x - 48.0 * x * x + 12.0;
+            case 5: return 32.0 * x * x * x * x * x - 160.0 * x * x * x + 120.0 * x;
+            default: return 0.0; // Implementazione più generale per n maggiore se necessario
+        }
+    };
+
+    auto gaussian = [a](double x) {
+        return exp(-(x * x) / (2.0 * a * a)) / std::pow(M_PI * a * a, 0.25);
+    };
+
+    int state_index = 0;
+    for (int nx = 0; nx < n && state_index < nev; ++nx) {
+        for (int ny = 0; ny < n && state_index < nev; ++ny) {
+            for (int nz = 0; nz < n && state_index < nev; ++nz) {
+                for (int s = 0; s < 2; ++s) {
+                    if (state_index < nev) {
+                        for (int i = 0; i < n; ++i) {
+                            for (int j = 0; j < n; ++j) {
+                                for (int k = 0; k < n; ++k) {
+                                    double x = grid.get_xs()[i];
+                                    double y = grid.get_ys()[j];
+                                    double z = grid.get_zs()[k];
+
+                                    double psi_x = hermite(nx, x / a) * gaussian(x);
+                                    double psi_y = hermite(ny, y / a) * gaussian(y);
+                                    double psi_z = hermite(nz, z / a) * gaussian(z);
+
+                                    guess(grid.idx(i, j, k, s), state_index) = ComplexScalar(psi_x * psi_y * psi_z, 0.0);
+                                }
+                            }
+                        }
+                        guess.col(state_index).normalize();
+                        state_index++;
+                    } else {
+                        break;
+                    }
+                }
+                if (state_index >= nev) break;
+            }
+            if (state_index >= nev) break;
+        }
+        if (state_index >= nev) break;
+    }
+
+    return guess;
+}
 ComplexDenseMatrix anisotropic_gaussian_guess(const Grid& grid, int nev, double a_x, double a_y, double a_z) {
     int n = grid.get_n();  
     ComplexDenseMatrix guess(grid.get_total_points(), nev);

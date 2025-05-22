@@ -63,6 +63,7 @@ public:
      * @return The corresponding linear index [0, 2*n*n*n - 1].
      */
     inline size_t idx(size_t i, size_t j, size_t k, size_t s) const noexcept;
+    inline size_t idxNoSpin(size_t i, size_t j, size_t k) const noexcept;
     // NOTE: inline suggests the compiler insert the code directly
     //       at the call site, useful for small, frequently called functions.
     //       The implementation is placed here for this reason, but could be in the .cpp.
@@ -79,6 +80,9 @@ private:
     void initialize_coordinates();
 };
 
+inline size_t Grid::idxNoSpin(size_t i, size_t j, size_t k) const noexcept {
+    return i + n_points_ * (j + n_points_ * k);
+}
 inline size_t Grid::idx(size_t i, size_t j, size_t k, size_t s) const noexcept {
     return s + 2 * (i + n_points_ * (j + n_points_ * k));
 }
