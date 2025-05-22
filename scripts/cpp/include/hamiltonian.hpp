@@ -30,6 +30,7 @@ public:
      * @return ComplexSparseMatrix The constructed Hamiltonian matrix.
      */
     ComplexSparseMatrix build_matrix(); 
+    ComplexSparseMatrix buildMatrix(); 
     ComplexSparseMatrix build_matrix5p(); 
     
     inline double getzero() { return 0.0; }

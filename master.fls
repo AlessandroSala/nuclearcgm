@@ -738,8 +738,8 @@ INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm
-OUTPUT master.toc
 INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
+OUTPUT master.toc
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
 INPUT ./figures/1D_ho.png
@@ -775,11 +775,16 @@ INPUT ./chapters/finite_differences/shell_model/deformed_woods_saxon.tex
 INPUT chapters/finite_differences/shell_model/deformed_woods_saxon.tex
 INPUT ./chapters/finite_differences/shell_model/deformed_woods_saxon.tex
 INPUT chapters/finite_differences/shell_model/deformed_woods_saxon.tex
+INPUT ./chapters/hartree_fock/introduction/hartree_fock_introduction.tex
+INPUT chapters/hartree_fock/introduction/hartree_fock_introduction.tex
+INPUT ./chapters/hartree_fock/introduction/hartree_fock_introduction.tex
+INPUT chapters/hartree_fock/introduction/hartree_fock_introduction.tex
 INPUT master.aux
 INPUT ./master.out
 INPUT ./master.out
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb

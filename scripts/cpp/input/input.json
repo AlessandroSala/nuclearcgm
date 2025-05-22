@@ -1,0 +1,30 @@
+{
+    "calculation": "sp",
+    "box": {
+        "size": 12.0,
+        "n": 30
+    },
+    "gcg": {
+        "cycles": 30,
+        "nev": 4
+    },
+    "nucleus": {
+        "A": 24,
+        "Z": 12
+    },
+    "potentials": [
+        {
+            "type": "spin_orbit",
+            "V0": 49.6,
+            "r0": 1.347,
+            "R": 1.310
+        },
+        {
+            "type": "woods_saxon",
+            "V0": 49.6,
+            "R": 1.310,
+            "alpha": 0.7
+        }
+    ]
+    
+}

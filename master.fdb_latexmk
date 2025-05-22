@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1746603861.62099 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1746603862.16205 0
-  "/home/ale/dev/nuclearcgm/master.tex" 1746602938.80883 17752 6ab165d37601743c3e7af6590bdd94c2 ""
+["pdflatex"] 1747812738.55292 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1747812739.97995 0
+  "/home/ale/dev/nuclearcgm/master.tex" 1747812088.87908 17812 012d10c8ddc1032667c4b4242e3fffdd ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -43,6 +43,7 @@
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt8.tfm" 1136768653 768 d7b9a2629a0c353102ad947dc9221d49 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb" 1248133631 34811 78b52f49e893bcba91bd7581cdc144c0 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb" 1248133631 32080 340ef9bf63678554ee606688e7b5339d ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb" 1248133631 32007 e8fa0078355f39467039935974716569 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb" 1248133631 30251 6afa5cb1d0204815a708a080681d4674 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1248133631 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb" 1248133631 37912 77d683123f92148345f3fc36a38d9ab1 ""
@@ -133,12 +134,13 @@
   "chapters/finite_differences/shell_model/deformed_woods_saxon.tex" 1746603861.45486 2019 ab35b05b9ade86f7fb9358773384f125 ""
   "chapters/finite_differences/shell_model/shell_model.tex" 1746007926.13796 3296 1d5a0391473728117fdc497646b3fd07 ""
   "chapters/finite_differences/spin/spin_treatment.tex" 1744896232.89807 3589 967e04f8b8a661cc6f8bf85fa7ee8b80 ""
+  "chapters/hartree_fock/introduction/hartree_fock_introduction.tex" 1747812738.22232 1613 4297178e458b2060e4f74c9dc97a2386 ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
   "figures/ws_gs.png" 1743275533.18922 33682 d6c21bd3faa2eea0ee0238eeb333a900 ""
-  "master.aux" 1746603862.05686 7259 1d9c9547c263565d6b2288fbe670932f "pdflatex"
-  "master.out" 1746603862.05786 5526 2f3f7957a85997eb61ff1213bad83627 "pdflatex"
-  "master.tex" 1746602938.80883 17752 6ab165d37601743c3e7af6590bdd94c2 ""
-  "master.toc" 1746603862.05786 3020 95c22ba45aa8e3c11ff8142307993115 "pdflatex"
+  "master.aux" 1747812739.75844 7380 119b06028cf65146348654c2896b4150 "pdflatex"
+  "master.out" 1747812739.75944 5691 4407f7faa13f9e604877ff03ea8cd780 "pdflatex"
+  "master.tex" 1747812088.87908 17812 012d10c8ddc1032667c4b4242e3fffdd ""
+  "master.toc" 1747812739.76044 3100 ae1f18a9f560768b0883ee80deeed1bd "pdflatex"
   (generated)
   "master.aux"
   "master.log"
