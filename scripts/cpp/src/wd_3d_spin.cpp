@@ -52,8 +52,11 @@ int main(int argc, char **argv)
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(DeformedWoodsSaxonPotential(V0, Radius(0, r_0, A_val), 0.7)));
     Hamiltonian ham(make_shared<Grid>(grid), pots);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    eigenpair = gcgm_complex_no_B(ham.build_matrix5p(), harmonic_oscillator_guess(grid, calc.nev, grid.get_a()), calc.nev, 35 + 0.01, calc.cycles, 1.0e-3, 20, 1.0e-4 / (calc.nev), false, 1);
-    Mass m(Wavefunction::density(eigenpair.first, grid), make_shared<Grid>(grid), 0.0, 0.0);
+    //eigenpair = gcgm_complex_no_B(ham.build_matrix5p(), harmonic_oscillator_guess(grid, calc.nev, grid.get_a()), calc.nev, 35 + 0.01, calc.cycles, 1.0e-3, 20, 1.0e-4 / (calc.nev), false, 1);
+    Eigen::VectorXd idVec(grid.get_total_points());
+    idVec.setIdentity();
+
+    Mass m(Wavefunction::density(idVec, grid), make_shared<Grid>(grid), 0.0, 0.0);
     
     pots.push_back(make_shared<LocalKineticPotential>(make_shared<Mass>(m)));
     Hamiltonian hamNoKin(make_shared<Grid>(grid), pots);
