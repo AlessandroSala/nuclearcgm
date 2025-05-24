@@ -1,5 +1,18 @@
 #include "operators/differential_operators.hpp"
 
+Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd& psi, const Grid& grid, char dir) {
+    Eigen::VectorXd res(grid.get_total_spatial_points());
+    for(int i = 0; i < grid.get_n(); ++i) {
+        for(int j = 0; j < grid.get_n(); ++j) {
+            for(int k = 0; k < grid.get_n(); ++k) {
+                int idx = grid.idxNoSpin(i, j, k);
+                res(idx) = Operators::derivativeNoSpin(psi, i, j, k, grid, dir);
+            }
+        }
+    }
+    return res;
+
+}
 Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd& psi, const Grid& grid, char dir) {
     Eigen::VectorXcd res(grid.get_total_points());
     for(int i = 0; i < grid.get_n(); ++i) {
@@ -15,6 +28,39 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd& psi, const Grid& grid, ch
     return res;
 
 }
+Eigen::Matrix<double, Eigen::Dynamic, 3> Operators::gradNoSpin(const Eigen::VectorXd& vec, const Grid& grid) {
+    int n = grid.get_n();
+    Eigen::Matrix<double, Eigen::Dynamic, 3> res(vec.rows(), 3);
+    res.setZero();
+    auto dx = dvNoSpin(vec, grid, 'x');
+    auto dy = dvNoSpin(vec, grid, 'y');
+    auto dz = dvNoSpin(vec, grid, 'z');
+    res.col(0) = dx;
+    res.col(1) = dy;
+    res.col(2) = dz;
+    return res;
+}
+
+Eigen::VectorXcd Operators::divNoSpin(const Eigen::MatrixXcd& J, const Grid& grid) {
+    int n = grid.get_n();
+    Eigen::VectorXcd res(grid.get_total_spatial_points());
+    res.setZero();
+    for(int i = 0; i < n; ++i) {
+        for(int j = 0; j < n; ++j) {
+            for(int k = 0; k < n; ++k) {
+                Eigen::VectorXcd Jx = J.col(0);
+                Eigen::VectorXcd Jy = J.col(1);
+                Eigen::VectorXcd Jz = J.col(2);
+
+                res(grid.idxNoSpin(i, j, k)) += derivativeNoSpin(Jx, i, j, k, grid, 'x');
+                res(grid.idxNoSpin(i, j, k)) += derivativeNoSpin(Jy, i, j, k, grid, 'y');
+                res(grid.idxNoSpin(i, j, k)) += derivativeNoSpin(Jz, i, j, k, grid, 'z');
+            }
+        }
+    }
+    return res;
+}
+
 double Operators::derivativeNoSpin(const Eigen::VectorXd& psi, int i, int j, int k, const Grid& grid, char axis) {
     int n = grid.get_n();
     double h = grid.get_h();
