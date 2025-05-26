@@ -29,8 +29,7 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd& psi, const Grid& grid, ch
 
 }
 Eigen::Matrix<double, Eigen::Dynamic, 3> Operators::gradNoSpin(const Eigen::VectorXd& vec, const Grid& grid) {
-    int n = grid.get_n();
-    Eigen::Matrix<double, Eigen::Dynamic, 3> res(vec.rows(), 3);
+    Eigen::Matrix<double, -1, 3> res(vec.rows(), 3);
     res.setZero();
     auto dx = dvNoSpin(vec, grid, 'x');
     auto dy = dvNoSpin(vec, grid, 'y');

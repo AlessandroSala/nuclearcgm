@@ -14,7 +14,7 @@ public:
      * @param R Nuclear radius parameter (e.g., 1.27 * A^(1/3) fm).
      * @param diff Diffuseness parameter (e.g., 0.67 fm).
      */
-    DeformedWoodsSaxonPotential(double V0, Radius radius, double diff);
+    DeformedWoodsSaxonPotential(double V0, Radius radius, double diff, int A, int Z, double kappa);
 
     /**
      * @brief Calculates the Woods-Saxon contribution to H(n0, n1).
@@ -26,4 +26,6 @@ public:
     double V0;   // Potential depth
     Radius radius;    // Radius parameter
     double diff; // Diffuseness parameter
+    int A, Z; //Nucleues mass, charge
+    double kappa; // asymm parameter
 };
