@@ -1,27 +1,34 @@
 #pragma once
+#include "skyrme/skyrme_u.hpp"
 #include <Eigen/Dense>
 #include <memory>
 #include "grid.hpp"
+#include "input_parser.hpp"
+#include "util/iteration_data.hpp"
 /**
  * @brief Represents the mass term in the Skyrme interaction
  */
 class Mass {
 public:
     /**
-     * @brief Constructs a nuclear radius
+     * @brief Constructs a mass term, function of the nucleon density
      *
-     * @param A Mass number
+     * @param rho nucleon density
+     * @param grid_ptr pointer to the grid configuration
+     * @param t1 first term of the Skyrme interaction
+     * @param t2 second term of the Skyrme interaction
      */
-    Mass(Eigen::VectorXd rho, std::shared_ptr<Grid> grid_ptr, double t1, double t3);
-
-    // --- accessors ---
+    Mass(std::shared_ptr<Grid> grid, std::shared_ptr<IterationData> data, SkyrmeParameters p, NucleonType n_);
 
     double getMass(size_t i, size_t j, size_t k) const noexcept;
+    Eigen::VectorXd getMassVector() const noexcept;
     Eigen::Vector3d getGradient(size_t, size_t, size_t) const noexcept;
 
 public:
-    Eigen::VectorXd mVec;
-    std::shared_ptr<Grid> grid_ptr_; // Pointer to the grid configuration
 
+    std::shared_ptr<Grid> grid_ptr_; 
+    NucleonType n;
+    std::shared_ptr<IterationData> data;
+    SkyrmeParameters params;
 };
 

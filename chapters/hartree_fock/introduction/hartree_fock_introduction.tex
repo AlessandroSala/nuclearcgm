@@ -19,9 +19,16 @@ Since we are dealing with fermions, the correct state must be antisymmetric with
 Where the sum is performed over all possible permutations of the particles.
 \\Using the variational principle, we can determine the ground state by minimizing the energy functional
 \begin{equation}
+    \label{eq:energy_functional}
     E[\Psi] = \bra{\Psi} \hat{H} \ket{\Psi}
 \end{equation}
 With the constraint that the single particle states be orthogonal to each other.
 \begin{equation}
     \delta E = \delta(\bra{\Psi} \hat{H} \ket{\Psi} - \sum_A \varepsilon_i\braket{\phi_i | \phi_i} ) = 0
 \end{equation}
+This variation, along with the constraint, gives rise to a single particle Schrodinger-like equation:
+\begin{equation}
+-\frac{\hbar^2}{2m} \nabla_i^2 \phi_i(\mathbf{r}) + \sum_{j=1}^A \int d^3 r' \ \phi_j^*(\mathbf{r}') v(\mathbf{r}, \mathbf{r}') \phi_j(\mathbf{r}') \phi_i(\mathbf{r}) - \sum_{j=1}^A \int d^3 r' \, \phi_j^*(\mathbf{r}') v(\mathbf{r}, \mathbf{r}') \phi_j(\mathbf{r}) \phi_i(\mathbf{r}') = \varepsilon_i \phi_i(\mathbf{r}).
+\end{equation}
+One can choose a proper potential $v(\mathbf{r_1}, \mathbf{r_2})$, a trial set of wavefunctions, and solve for $(\phi_i, \varepsilon_i)$.
+\\Since the equation changes for the new solutions, one can use an iterative procedure to solve the self consistent problem.

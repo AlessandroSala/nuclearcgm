@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 data = np.genfromtxt('output/def.csv')
 
+density = np.genfromtxt('output/density.csv')
+n = 30
+xs = np.linspace(-12, 12, 30)
+print(xs)
+plt.plot(xs, density[::n*n])
+plt.show()
+exit()
 def print_shell(i, j):
     print("Energy: ", data[i, j], " | j: ", J2[i, j], " | m: ", ms[i, j], " | P: ", P[i, j], " | l: ", L2[i, j])
 

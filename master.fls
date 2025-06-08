@@ -779,6 +779,10 @@ INPUT ./chapters/hartree_fock/introduction/hartree_fock_introduction.tex
 INPUT chapters/hartree_fock/introduction/hartree_fock_introduction.tex
 INPUT ./chapters/hartree_fock/introduction/hartree_fock_introduction.tex
 INPUT chapters/hartree_fock/introduction/hartree_fock_introduction.tex
+INPUT ./chapters/hartree_fock/skyrme/skyrme.tex
+INPUT chapters/hartree_fock/skyrme/skyrme.tex
+INPUT ./chapters/hartree_fock/skyrme/skyrme.tex
+INPUT chapters/hartree_fock/skyrme/skyrme.tex
 INPUT master.aux
 INPUT ./master.out
 INPUT ./master.out

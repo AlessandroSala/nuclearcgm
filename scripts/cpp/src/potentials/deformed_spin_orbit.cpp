@@ -4,6 +4,8 @@
 
 DeformedSpinOrbitPotential::DeformedSpinOrbitPotential(double V0_, Radius radius_, double diff_)
     : V0(V0_), R(radius_), diff(diff_) {}
+DeformedSpinOrbitPotential::DeformedSpinOrbitPotential(Parameters::SpinOrbitParameters p, int A)
+    : V0(p.V0), R(Radius(p.beta, p.r0, A)), diff(p.diff) {}
 Eigen::VectorXd DeformedSpinOrbitPotential::getFactor(double x, double y, double z) const {
     Eigen::VectorXd gradr(3);
     Eigen::VectorXd res(3);

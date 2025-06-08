@@ -626,6 +626,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     for (int iter = 0; iter < max_iter; ++iter)
     {
 
+
         // 1. Genera W (approx. A_shifted * W = B * X * diag(Lambda))
         if (Lambda.size() == nev && Lambda(0) != 0)
         {
@@ -633,7 +634,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
             current_shift = (Lambda(nev - 1) - 100.0 * Lambda(0)) / 99.0;
             // Controlli shift
         }
-        std::cout << "Iter: " << iter + 1 << ", Current Shift: " << current_shift << std::endl;
+    
+        std::cout << "Iter: " << iter + 1 << ", Current Shift: " << current_shift << " ";
 
         // A_shifted è Complessa Hermitiana (potenzialmente indefinita)
         ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * Id;
@@ -749,12 +751,13 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
         double x_norm = X_new.norm();
         double relative_residual = (x_norm > 1e-12) ? (residual_norm / x_norm) : residual_norm;
 
-        std::cout << "Iter: " << iter + 1
-                  << ", Dim(V): " << current_dim
-                  << ", Rel. Res: " << relative_residual << std::endl;
+        std::cout << ", Dim(V): " << current_dim
+                  << ", Rel. Res: " << relative_residual << "\t\r" << std::flush;
+
 
         if (relative_residual < tolerance)
         {
+            std::cout << std::endl;
             std::cout << "Converged (Complex GCGM) in " << iter + 1 << " iterations." << std::endl;
             std::cout << "Eigenvalues: " << Lambda_new.transpose() << std::endl;
             return std::make_pair(X_new, Lambda_new);
@@ -770,7 +773,9 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
         // Eventuale ri-ortogonalizzazione di X
         // if (iter % 5 == 0) b_modified_gram_schmidt_complex(X, B);
 
+
     } // Fine ciclo iterazioni
+    std::cout << std::endl;
 
     std::cerr << "Warning: Complex GCGM did not converge within " << max_iter << " iterations." << std::endl;
     std::cout << "Eigenvalues: " << Lambda.transpose() << std::endl;

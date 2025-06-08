@@ -29,7 +29,7 @@ public:
      * @brief Builds and returns the sparse Hamiltonian matrix.
      * @return ComplexSparseMatrix The constructed Hamiltonian matrix.
      */
-    ComplexSparseMatrix build_matrix(); 
+    //ComplexSparseMatrix build_matrix(); 
     ComplexSparseMatrix buildMatrix(); 
     ComplexSparseMatrix build_matrix5p(); 
     

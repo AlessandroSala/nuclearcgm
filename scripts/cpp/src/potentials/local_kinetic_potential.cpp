@@ -3,7 +3,8 @@
 #include "constants.hpp"
 
 LocalKineticPotential::LocalKineticPotential(std::shared_ptr<Mass> m_)
-    : m(m_) {}
+    : m(m_)
+    {}
 double LocalKineticPotential::getValue(double x, double y, double z) const
 {
     return 1;
@@ -17,10 +18,9 @@ std::complex<double> LocalKineticPotential::getElement5p(int i, int j, int k, in
 {
     std::complex<double> val;
     double hh = grid.get_h() * grid.get_h();
-
+ 
     using nuclearConstants::h_bar;
-    double mass = m->getMass(i, j, k);
-    double C = -h_bar*h_bar/(2*mass);
+    double C = -m->getMass(i, j, k);
 
     if (i == i1 && j == j1 && k == k1 && s == s1)
     {

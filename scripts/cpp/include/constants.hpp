@@ -13,8 +13,10 @@ namespace nuclearConstants {
     constexpr double diff = 0.67;
     constexpr double c = 299792458;
     constexpr double lambda = 35;
+    constexpr double e2 = 1.439;
     constexpr std::complex<double> img = std::complex<double>(0, 1.0);
     
 
     std::vector<SpinMatrix, Eigen::aligned_allocator<SpinMatrix>> getPauli();
 }
+typedef enum e_NucleonType { N, P } NucleonType;
