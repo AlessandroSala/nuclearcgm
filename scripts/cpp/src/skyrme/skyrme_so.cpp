@@ -4,29 +4,35 @@
 #include <complex>
 #include <memory>
 
-SkyrmeSO::SkyrmeSO(std::shared_ptr<Eigen::Matrix<double, -1, 3>> W_) : W(W_) {}
-double SkyrmeSO::getValue(double x, double y, double z) const { return 0; }
-// TODO: Incomplete implementation
-std::complex<double> SkyrmeSO::getElement(int i, int j, int k, int s, int i1,
-                                          int j1, int k1, int s1,
-                                          const Grid &grid) const {
-  return 0;
+SkyrmeSO::SkyrmeSO(std::shared_ptr<IterationData> data, NucleonType n)
+    : data(data), n(n)
+{
 }
+double SkyrmeSO::getValue(double x, double y, double z) const { return 0.0; }
+
 std::complex<double> SkyrmeSO::getElement5p(int i, int j, int k, int s, int i1,
                                             int j1, int k1, int s1,
-                                            const Grid &grid) const {
+                                            const Grid &grid) const
+{
   if (i1 == i && j1 == j && k1 == k && s1 == s)
     return std::complex<double>(0.0, 0.0);
   SpinMatrix spin(2, 2);
   spin.setZero();
   auto pauli = nuclearConstants::getPauli();
+  int idx = grid.idxNoSpin(i, j, k);
 
   double h = grid.get_h();
+      //Matrix<double, -1, 3> WP = 0.5 * input.skyrme.W0 * (nablaRhoN + nablaRhoP + nablaRhoP);
+      //Matrix<double, -1, 3> WN = 0.5 * input.skyrme.W0 * (nablaRhoN + nablaRhoP + nablaRhoN);
+      //TODO: sistemare sta cosa
+  Eigen::Vector3d WP = 0.5 * params.W0 * (*data->nablaRhoN + *data->nablaRhoP + *data->nablaRhoP).row(idx);
+  Eigen::Vector3d WN = 0.5 * params.W0 * (*data->nablaRhoN + *data->nablaRhoP + *data->nablaRhoN).row(idx);
 
-  int idxNoSpin = grid.idxNoSpin(i, j, k);
-  double Wx = (*W)(idxNoSpin, 0);
-  double Wy = (*W)(idxNoSpin, 1);
-  double Wz = (*W)(idxNoSpin, 2);
+  auto W = n == NucleonType::N ? WN : WP;
+
+  double Wx = W(0);
+  double Wy = W(1);
+  double Wz = W(2);
 
   if (std::abs(i - i1) == 1 && j == j1 && k == k1)
     spin += (2.0 / 3.0) * (i1 - i) * (pauli[1] * Wx - pauli[2] * Wy);
@@ -48,7 +54,7 @@ std::complex<double> SkyrmeSO::getElement5p(int i, int j, int k, int s, int i1,
   else
     return std::complex<double>(0.0, 0.0);
   using namespace nuclearConstants;
-  spin = -img * spin;
+  spin = -img * spin / h;
 
   return spin(s, s1);
 }

@@ -1,6 +1,7 @@
 
 #pragma once
-
+#include "woods_saxon/deformed_woods_saxon.hpp"
+#include "spin_orbit/deformed_spin_orbit.hpp"
 #include "potential.hpp"
 #include "types.hpp"
 #include "json/json.hpp"
@@ -15,6 +16,11 @@ typedef struct {
   double t1;
   double t2;
   double t3;
+  double x0;
+  double x1;
+  double x2;
+  double x3;
+  double sigma;
 } SkyrmeParameters;
 typedef struct {
   int nev;
@@ -38,8 +44,11 @@ public:
   Grid get_grid();
   int getA();
   int getZ();
+  double getKappa();
   Calculation getCalculation();
+
   SkyrmeParameters skyrme;
+
 
 private:
   nlohmann::json data;

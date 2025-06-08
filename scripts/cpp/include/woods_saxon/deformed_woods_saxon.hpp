@@ -2,6 +2,15 @@
 #pragma once
 #include "local_potential.hpp"
 #include "radius.hpp"
+namespace Parameters {
+    typedef struct {
+        double V0;
+        double beta;
+        double r0;
+        double diff;
+        double kappa;
+    } WoodsSaxonParameters;
+}
 /**
  * @brief Implements a deformed Woods-Saxon potential.
  * V(r) = -V0 / (1 + exp((r(x,y,z) - R) / diff))
@@ -15,6 +24,7 @@ public:
      * @param diff Diffuseness parameter (e.g., 0.67 fm).
      */
     DeformedWoodsSaxonPotential(double V0, Radius radius, double diff, int A, int Z, double kappa);
+    DeformedWoodsSaxonPotential(Parameters::WoodsSaxonParameters params, int A, int Z);
 
     /**
      * @brief Calculates the Woods-Saxon contribution to H(n0, n1).
@@ -29,3 +39,4 @@ public:
     int A, Z; //Nucleues mass, charge
     double kappa; // asymm parameter
 };
+

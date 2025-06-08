@@ -6,7 +6,9 @@ InputParser::InputParser(std::string inputFile) {
   data = nlohmann::json::parse(file);
   skyrme = SkyrmeParameters{data["skyrme"]["W0"], data["skyrme"]["t0"],
                             data["skyrme"]["t1"], data["skyrme"]["t2"],
-                            data["skyrme"]["t3"]}; 
+                            data["skyrme"]["t3"], data["skyrme"]["x0"],
+                            data["skyrme"]["x1"], data["skyrme"]["x2"],
+                            data["skyrme"]["x3"], data["skyrme"]["sigma"]};
   file.close();
 }
 
@@ -19,6 +21,8 @@ Grid InputParser::get_grid() {
 int InputParser::getA() { return data["nucleus"]["A"]; }
 
 int InputParser::getZ() { return data["nucleus"]["Z"]; }
+
+double InputParser::getKappa() { return data["kappa"]; }
 
 Calculation InputParser::getCalculation() {
   return Calculation{data["gcg"]["nev"], data["gcg"]["cycles"],

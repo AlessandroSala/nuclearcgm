@@ -6,7 +6,7 @@ CXXFLAGS = -std=c++11 -fopenmp -O3 -march=native -DNDEBUG -I /usr/include/eigen3
 SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build
-BIN = wd.o
+BIN = out.o
 
 # Trova tutti i file .cpp nel progetto (ricorsivamente)
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')

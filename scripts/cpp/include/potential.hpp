@@ -18,7 +18,6 @@ public:
      * @return double, The contribution of this term to the matrix element.
      */
     virtual double getValue(double x, double y, double z) const = 0;
-    virtual std::complex<double> getElement(int i, int j, int k, int s, int i1, int j1, int k1, int s1, const Grid& grid) const = 0;
     virtual std::complex<double> getElement5p(int i, int j, int k, int s, int i1, int j1, int k1, int s1, const Grid& grid) const = 0;
 
     /**

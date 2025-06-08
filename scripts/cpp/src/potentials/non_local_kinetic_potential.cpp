@@ -19,14 +19,10 @@ std::complex<double> NonLocalKineticPotential::getElement5p(int i, int j, int k,
     if(i==i1 && j==j1 && k==k1 && s==s1) {
         return std::complex<double>(0.0, 0.0);
     }
-    std::complex<double> val;
+    std::complex<double> val(0.0, 0.0);
     double h = grid.get_h();
 
-    using nuclearConstants::h_bar;
-    double locMass = m->getMass(i, j, k);
-    Eigen::Vector3d massGrad = m->getGradient(i, j, k);
-    Eigen::Vector3d massInvGrad = -massGrad/(locMass*locMass);
-    auto C = -massInvGrad *h_bar*h_bar/2;
+    Eigen::Vector3d C = -m->getGradient(i, j, k);
 
     if (s == s1 && ((i == i1 && j == j1 && std::abs(k1 - k) == 1)))
     {
@@ -53,5 +49,5 @@ std::complex<double> NonLocalKineticPotential::getElement5p(int i, int j, int k,
         val = -(i1-i)*C(0)/2.0;
     }
     
-    return val / (12.0 * h);
+    return val / (12.0 * h );
 }
