@@ -25,6 +25,6 @@ int InputParser::getZ() { return data["nucleus"]["Z"]; }
 double InputParser::getKappa() { return data["kappa"]; }
 
 Calculation InputParser::getCalculation() {
-  return Calculation{data["gcg"]["nev"], data["gcg"]["cycles"],
-                     data["hf"]["cycles"]};
+  HartreeFock hf = {data["hf"]["gcgMaxIter"], data["hf"]["cycles"]};
+  return Calculation{data["gcg"]["nev"], data["gcg"]["cycles"], data["gcg"]["tol"], hf};
 }
