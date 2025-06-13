@@ -52,20 +52,20 @@ std::complex<double> SkyrmeU::getElement5p(int i, int j, int k, int s,
 
     double res = 0.0;
     //Chabanat
-    res += 0.5 * t0 * ((2 + x0) * rho - (1 + 2 * x0) * rho_q);
-    res += (1.0 / 24.0) * t3 * ((2 + x3) * (2.0 + sigma) * pow(rho, sigma + 1.0) - (2 * x3 + 1) * (2 * pow(rho, sigma) * rho_q + sigma * pow(rho, sigma - 1.0) * (rho_n * rho_n + rho_p * rho_p)));
-    res += (1.0 / 8.0) * (t1 * (2 + x1) + t2 * (2 + x2)) * tau;
+    //res += 0.5 * t0 * ((2 + x0) * rho - (1 + 2 * x0) * rho_q);
+    //res += (1.0 / 24.0) * t3 * ((2 + x3) * (2.0 + sigma) * pow(rho, sigma + 1.0) - (2 * x3 + 1) * (2 * pow(rho, sigma) * rho_q + sigma * pow(rho, sigma - 1.0) * (rho_n * rho_n + rho_p * rho_p)));
+    //res += (1.0 / 8.0) * (t1 * (2 + x1) + t2 * (2 + x2)) * tau;
     //res += (1.0 / 8.0) * (t2 * (2 * x2 + 1) - t1 * (2 * x1 + 1)) * tau_q;
     //res += (1.0 / 16.0) * (t2 * (2 + x2) - 3 * t1 * (2 + x1)) * ((*data->nabla2RhoP)(idx) + (*data->nabla2RhoN)(idx));
     //res += (1.0 / 16.0) * (3 * t1 * (2 * x1 + 1) + t2 * (2 * x2 + 1)) * nabla2rho_q;
 
-    // Engels
-    //res += 0.5 * t0 * ((2 + x0) * rho - (1 + 2 * x0) * rho_q);
-    //res += (1.0 / 8.0) * (t2 - 3*t1)*nabla2rho;
-    //res += (1.0/16.0)*(3*t1 + t2)*nabla2rho_q;
-    //res += (1.0 / 4.0) * (t1 + t2) * tau;
-    //res += (1.0 / 8.0) * (t2 - t1) * tau_q;
-    //res += (1.0 / 4.0) * t3 *(rho*rho - rho_q*rho_q);
+    // Engel
+    res += 0.5 * t0 * ((2 + x0) * rho - (1 + 2 * x0) * rho_q);
+    res += (1.0 / 8.0) * (t2 - 3*t1)*nabla2rho;
+    res += (1.0/16.0)*(3*t1 + t2)*nabla2rho_q;
+    res += (1.0 / 4.0) * (t1 + t2) * tau;
+    res += (1.0 / 8.0) * (t2 - t1) * tau_q;
+    res += (1.0 / 4.0) * t3 *(rho*rho - rho_q*rho_q);
 
 
     // auto complexPart = (1.0/8.0)*(t1-t2)*curr - (1.0/8.0)*(t1*x1+t2*x2)*(data->JN->row(idx).norm() + data->JP->row(idx).norm());

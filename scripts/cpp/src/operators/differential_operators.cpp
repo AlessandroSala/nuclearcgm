@@ -40,6 +40,19 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd& psi, const Grid& grid, ch
 
 // gradNoSpin benefits from dvNoSpin being parallelized.
 // No direct OpenMP pragmas are typically needed here if the called functions are parallel.
+Eigen::MatrixX3cd Operators::grad(const Eigen::VectorXcd& vec, const Grid& grid) {
+    Eigen::MatrixX3cd res(vec.rows(), 3);
+    res.setZero();
+    auto dx = dv(vec, grid, 'x'); // This call is internally parallelized
+    auto dy = dv(vec, grid, 'y'); // This call is internally parallelized
+    auto dz = dv(vec, grid, 'z'); // This call is internally parallelized
+    res.col(0) = dx;
+    res.col(1) = dy;
+    res.col(2) = dz;
+    return res;
+}
+// gradNoSpin benefits from dvNoSpin being parallelized.
+// No direct OpenMP pragmas are typically needed here if the called functions are parallel.
 Eigen::Matrix<double, Eigen::Dynamic, 3> Operators::gradNoSpin(const Eigen::VectorXd& vec, const Grid& grid) {
     Eigen::Matrix<double, -1, 3> res(vec.rows(), 3);
     res.setZero();

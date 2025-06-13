@@ -18,7 +18,7 @@ public:
         if(i != i1 || j != j1 || k != k1 || s != s1) {
             return std::complex<double>(0.0, 0.0);
         }
-        return getValue(grid.get_xs()[i], grid.get_ys()[j], grid.get_zs()[k]);
+        return std::complex<double>(getValue(grid.get_xs()[i], grid.get_ys()[j], grid.get_zs()[k]), 0.0);
     };
 
 public:

@@ -10,6 +10,11 @@
 #include <vector>
 class Grid;
 
+typedef struct HartreeFock {
+  int gcgMaxIter;
+  int cycles;
+} HartreeFock;
+
 typedef struct {
   double W0;
   double t0;
@@ -25,10 +30,8 @@ typedef struct {
 typedef struct {
   int nev;
   int cycles;
-  int hfCycles; // eigenpair = gcgm_complex_no_B(ham.build_matrix5p(),
-                // harmonic_oscillator_guess(grid, calc.nev, grid.get_a()),
-                // calc.nev, 35 + 0.01, calc.cycles, 1.0e-3, 20, 1.0e-4 /
-                // (calc.nev), false, 1);
+  double tol;
+  HartreeFock hf;
 } Calculation;
 
 /**

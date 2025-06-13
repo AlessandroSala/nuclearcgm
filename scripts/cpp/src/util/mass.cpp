@@ -22,9 +22,9 @@ double Mass::getMass(size_t i, size_t j, size_t k) const noexcept {
     //res += (1.0/8.0)*(t1*(2+x1)+t2*(2+x2))*((*data->rhoP)(idx) + (*data->rhoN)(idx));
     //res += -(1.0/8.0)*(+t1*(1+2*x1)+t2*(1+2*x2))*rho_q;
 
-    //Engels
-    res += (1.0/4.0)*(t1+t2)*rho;
-    res += (1.0/8.0)*(t2-t1)*rho_q;
+    //Engel
+    //res += (1.0/4.0)*(t1+t2)*rho;
+    //res += (1.0/8.0)*(t2-t1)*rho_q;
     return res;
 }
 Eigen::VectorXd Mass::getMassVector() const noexcept {
@@ -41,7 +41,7 @@ Eigen::VectorXd Mass::getMassVector() const noexcept {
     //res += (1.0/8.0)*(t1*(2+x1)+t2*(2+x2))*((*data->rhoP)(idx) + (*data->rhoN)(idx));
     //res += -(1.0/8.0)*(+t1*(1+2*x1)+t2*(1+2*x2))*rho_q;
 
-    //Engels
+    //Engel
     res += (1.0/4.0)*(t1+t2)*rho;
     res += (1.0/8.0)*(t2-t1)*rho_q;
     return res;
@@ -60,9 +60,9 @@ Eigen::Vector3d Mass::getGradient(size_t i, size_t j, size_t k) const noexcept {
     //grad += (1.0/8.0)*(t1*(2+x1)+t2*(2+x2))*(data->nablaRhoN->row(idx) + data->nablaRhoP->row(idx));
     //grad += -(1.0/8.0)*(t1*(1+2*x1)+t2*(1+2*x2))*nablaRho_q;
 
-    //Engels
-    grad += (1.0/4.0)*(t1+t2)*nablaRho_q;
-    grad += (1.0/8.0)*(t2-t1)*nablaRho;
+    //Engel
+    grad += (1.0/4.0)*(t1+t2)*nablaRho;
+    grad += (1.0/8.0)*(t2-t1)*nablaRho_q;
 
     //Bertulani
     //grad = (1.0/16.0)*(3*t1 + 5*t2)*nablaRho;
