@@ -1,8 +1,7 @@
 {
-  "outputName": "output",
     "calculation": "sp",
     "box": {
-        "size": 10.0,
+        "size": 9.0,
         "n": 30
     },
     "skyrme": {
@@ -19,21 +18,17 @@
 
     },
     "hf": {
-      "cycles": 60,
-      "gcg": {
-        "maxIter": 40,
-        "nev": 0,
-        "tol": 0.0003
-      }
+      "cycles": 20,
+      "gcgMaxIter": 40
     },
     "gcg": {
         "cycles": 50,
-        "nev": 8,
-        "tol": 0.001 
+        "nev": 40,
+        "tol": 0.08 
     },
     "nucleus": {
-        "A": 16,
-        "Z": 8
+        "A": 40,
+        "Z": 20
     },
     "potentials": [
         {
