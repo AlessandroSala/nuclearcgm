@@ -36,5 +36,6 @@
 \contentsline {subsection}{\numberline {5.1}Skyrme interaction}{17}{subsection.5.1}%
 \contentsline {subsubsection}{\numberline {5.1.1}Three body interaction}{18}{subsubsection.5.1.1}%
 \contentsline {subsubsection}{\numberline {5.1.2}Energy functional}{18}{subsubsection.5.1.2}%
-\contentsline {subsubsection}{\numberline {5.1.3}Kinetic term}{19}{subsubsection.5.1.3}%
-\contentsline {subsubsection}{\numberline {5.1.4}Coulomb interaction}{19}{subsubsection.5.1.4}%
+\contentsline {subsection}{\numberline {5.2}Density matrix and associated quantities}{18}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Kinetic term}{19}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Coulomb interaction}{20}{subsubsection.5.2.2}%

@@ -30,14 +30,36 @@ Evaluating the energy functional \ref{eq:energy_functional}, we get
     \bra{\Psi} H \ket{\Psi} = \int H(\mathbf{r}) d^3 r 
     \\\mathcal H(\mathbf{r}) = \mathcal{K} + \mathcal{H}_0 + \mathcal{H}_3 + \mathcal{H}_\text{eff}+\mathcal{H}_\text{fin}+\mathcal{H}_\text{so} + \mathcal{H}_\text{sg} + \mathcal{H}_\text{coul}
 \end{align}
-$\mathcal H$ depends on $\mathbf r$ through
-\[\rho_q(\mathbf r) = \sum_{i} \abs{\phi^q_{i,s}(\mathbf r)}^2\]
-\[\tau_q(\mathbf r) = \sum_{i} \abs{\nabla\phi^q_{i,s}(\mathbf r)}^2\]
-\[J(\mathbf r) = \ldots\]
-Where $i$ goes through all single particle states.
+\subsection{Density matrix and associated quantities}
+$\mathcal H$ depends on $\mathbf r$ through a series of known and physically relevant quantities.
+\\Starting from the density matrix, defined as
+\begin{equation}
+    \rho_q (\mathbf r \sigma, \mathbf r \sigma') = \sum_{\alpha} \phi_{\alpha, \sigma} (\mathbf r )\phi_{\alpha, \sigma'}^*(\mathbf r')
+\end{equation}
+The index $\alpha$ goes through all single particle states of the particles of type $q$ (Protons, Neutrons), while the index $\sigma$ refers to the spin coordinate (Up, Down). 
+\begin{equation}
+    \rho_q(\mathbf r, \mathbf r') = \sum_{\sigma}\rho(\mathbf r\sigma, \mathbf r'\sigma) =\sum_{\alpha} \phi_{\uparrow}(\mathbf r)\phi_{\uparrow}^*(\mathbf r')+\phi_{\downarrow}(\mathbf r)\phi_{\downarrow}^*(\mathbf r')
+\end{equation}
+\begin{equation}
+\rho_q(\mathbf r) = \rho_q(\mathbf r, \mathbf r')\bigg|_{\mathbf r'=\mathbf r} =\sum_{\alpha} |\phi_{\uparrow}(\mathbf r)|^2+|\phi_{\downarrow}(\mathbf r)|^2
+\end{equation}
+\begin{align}
+    \tau_q(\mathbf r) &= \sum_{\alpha} \nabla'\cdot\nabla\rho_q(\mathbf r, \mathbf r')\bigg|_{\mathbf r'=\mathbf r} 
+    \\&= \sum_{\sigma, \alpha} \nabla \phi_\sigma (\mathbf r)\cdot \nabla \phi_\sigma^*(\mathbf r')\bigg|_{\mathbf r = \mathbf r'} = \sum_{\sigma, \alpha} |\nabla \phi_\sigma(\mathbf r)|^2 
+    \\&= \sum_{\alpha}|\nabla \phi_\uparrow(\mathbf r)|^2 + |\nabla \phi_\downarrow(\mathbf r)|^2
+\end{align}
+\begin{equation}
+    s_q(\mathbf r, \mathbf r') =\sum_{\sigma \sigma', i} \rho_q(\mathbf r \sigma, \mathbf r' \sigma')\bra{\sigma'} \hat {\boldsymbol{\sigma}} \ket{\sigma} = \sum_{\alpha} \begin{bmatrix} \phi_{\uparrow}^*(\mathbf r') \ \phi_{\downarrow}^*(\mathbf r') \end{bmatrix}\hat{\boldsymbol{\sigma}} \begin{bmatrix} \phi_{\uparrow}(\mathbf r) \\ \phi_{\downarrow}(\mathbf r) \end{bmatrix}
+\end{equation}
+\begin{align}
+    J_{q, \mu\nu} &= \frac 1 {2i}(\partial_\mu - \partial_\mu') s_{q, \nu}(\mathbf r, \mathbf r')\bigg|_{\mathbf r'=\mathbf r}\\
+    &= \frac 1 {2i}\bigg(\begin{bmatrix}\phi_{\uparrow}^*(\boldsymbol r')\ \phi_{\downarrow}^*(\boldsymbol r')\end{bmatrix} \partial_\mu\hat{\sigma}_\nu\begin{bmatrix} \phi_{\uparrow}(\mathbf r) \\ \phi_{\downarrow}(\mathbf r) \end{bmatrix} - \begin{bmatrix}\phi_{\uparrow}(\boldsymbol{r})\ \phi_{\downarrow}(\boldsymbol{r})\end{bmatrix} \partial_\mu'\hat{\sigma}_\nu\begin{bmatrix} \phi_{\uparrow}^*(\mathbf r') \\ \phi_{\downarrow}^*(\mathbf r') \end{bmatrix}\bigg)_{\mathbf r'=\mathbf r}
+     \\&= \sum_\alpha\Im\bigg\{\begin{bmatrix}\phi_{\uparrow}^*(\boldsymbol r)\ \phi_{\downarrow}^*(\boldsymbol r) \end{bmatrix}\partial_\mu \hat{\sigma}_\nu\begin{bmatrix} \phi_{\uparrow}(\mathbf r) \\ \phi_{\downarrow}(\mathbf r) \end{bmatrix}\bigg\}
+\end{align}
+Where $\alpha$ goes through all single particle states, the index is omitted on $\phi$ for brevity.
 \\Taking the variation of $E[\Psi]$ with respect to $\phi_i^*$ we get a single particle equation
 \begin{equation}
-   \bigg(-\nabla \frac{\hbar^2}{2m^*(\mathbf r)} \nabla + U_q(\mathbf r)+\delta_{q, \text{proton}}V_c(\mathbf r)+\ldots\bigg)\phi_i = \varepsilon_i\phi_i 
+   \bigg(-\nabla \frac{\hbar^2}{2m^*(\mathbf r)} \nabla + U_q(\mathbf r)+\delta_{q, \text{proton}}V_c(\mathbf r)+\ldots\bigg)\phi_\alpha = \varepsilon_\alpha\phi_\alpha 
 \end{equation}
 We will now see how to properly treat each term of the equation.
 \subsubsection{Kinetic term}

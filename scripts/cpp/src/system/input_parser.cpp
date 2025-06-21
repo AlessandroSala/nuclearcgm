@@ -12,6 +12,10 @@ InputParser::InputParser(std::string inputFile) {
   file.close();
 }
 
+nlohmann::json InputParser::getWoodsSaxon() { return data["potentials"][1]; }
+
+std::string InputParser::getOutputName() { return data["outputName"]; }
+
 nlohmann::json InputParser::get_json() { return data; }
 
 Grid InputParser::get_grid() {
@@ -25,6 +29,10 @@ int InputParser::getZ() { return data["nucleus"]["Z"]; }
 double InputParser::getKappa() { return data["kappa"]; }
 
 Calculation InputParser::getCalculation() {
-  HartreeFock hf = {data["hf"]["gcgMaxIter"], data["hf"]["cycles"]};
-  return Calculation{data["gcg"]["nev"], data["gcg"]["cycles"], data["gcg"]["tol"], hf};
+  HartreeFock hf = {data["hf"]["cycles"],
+                    GCGParameters{data["hf"]["gcg"]["nev"],
+                                  data["hf"]["gcg"]["tol"],
+                                  data["hf"]["gcg"]["maxIter"]}};
+  return Calculation{data["gcg"]["nev"], data["gcg"]["cycles"],
+                     data["gcg"]["tol"], hf};
 }

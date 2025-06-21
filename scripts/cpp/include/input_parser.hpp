@@ -1,20 +1,20 @@
 
 #pragma once
-#include "woods_saxon/deformed_woods_saxon.hpp"
-#include "spin_orbit/deformed_spin_orbit.hpp"
 #include "potential.hpp"
+#include "spin_orbit/deformed_spin_orbit.hpp"
 #include "types.hpp"
+#include "woods_saxon/deformed_woods_saxon.hpp"
 #include "json/json.hpp"
 #include <memory> // For std::shared_ptr
 #include <string>
 #include <vector>
 class Grid;
 
-typedef struct HartreeFock {
-  int gcgMaxIter;
-  int cycles;
-} HartreeFock;
-
+typedef struct GCGParameters {
+  int nev;
+  double tol;
+  int maxIter;
+} CGCParameters;
 typedef struct {
   double W0;
   double t0;
@@ -27,6 +27,10 @@ typedef struct {
   double x3;
   double sigma;
 } SkyrmeParameters;
+typedef struct HartreeFock {
+  int cycles;
+  GCGParameters gcg;
+} HartreeFock;
 typedef struct {
   int nev;
   int cycles;
@@ -49,9 +53,10 @@ public:
   int getZ();
   double getKappa();
   Calculation getCalculation();
+  std::string getOutputName();
+  nlohmann::json getWoodsSaxon();
 
   SkyrmeParameters skyrme;
-
 
 private:
   nlohmann::json data;
