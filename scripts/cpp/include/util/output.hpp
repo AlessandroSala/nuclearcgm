@@ -14,5 +14,6 @@ public:
                     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
                     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
                     std::shared_ptr<IterationData> iterationData,
-                    InputParser input, const Grid &grid);
+                    InputParser input, int iterations,
+                    std::vector<double> energies, const Grid &grid);
 };

@@ -41,7 +41,7 @@ void Output::shellsToFile(
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
     std::shared_ptr<IterationData> iterationData, InputParser input,
-    const Grid &grid) {
+    int iterations, std::vector<double> energies, const Grid &grid) {
 
   std::ofstream file(folder + "/" + input.getOutputName() + ".txt");
   file << "=== BOX ===" << std::endl;
@@ -66,23 +66,44 @@ void Output::shellsToFile(
   file << "=== Skyrme ===" << std::endl;
   file << "t0: " << input.skyrme.t0 << std::endl;
   file << "t3: " << input.skyrme.t3 << std::endl;
+  file << "alpha: " << input.skyrme.sigma << std::endl;
   file << std::endl;
 
   file << "=== Nuclear data ===" << std::endl;
   std::cout << "computing data" << std::endl;
-  file << "<x^2>: " << std::sqrt(x2(iterationData, grid, 'x')) << std::endl;
-  file << "<y^2>: " << std::sqrt(x2(iterationData, grid, 'y')) << std::endl;
-  file << "<z^2>: " << std::sqrt(x2(iterationData, grid, 'z')) << std::endl;
+  double x2Sqrt = std::sqrt(x2(iterationData, grid, 'x'));
+  double y2Sqrt = std::sqrt(x2(iterationData, grid, 'y'));
+  double z2Sqrt = std::sqrt(x2(iterationData, grid, 'z'));
+  double r2Sqrt =
+      std::sqrt(x2Sqrt * x2Sqrt + y2Sqrt * y2Sqrt + z2Sqrt * z2Sqrt);
+  file << "sqrt<x^2>: " << x2Sqrt << " fm" << std::endl;
+  file << "sqrt<y^2>: " << y2Sqrt << " fm" << std::endl;
+  file << "sqrt<z^2>: " << z2Sqrt << " fm" << std::endl;
+  file << "sqrt<r^2>: " << r2Sqrt << " fm" << std::endl;
   file << std::endl;
 
-  file << "=== Calculation ===" << std::endl;
-  file << "Iterations: " << input.getCalculation().hf.cycles << std::endl;
+  file << "=== Convergence ===" << std::endl;
+  file << "Iterations: " << iterations << std::endl;
+  file << "Energy tolerance: " << input.getCalculation().hf.energyTol << " MeV"
+       << std::endl;
+  file << "E (t0, t3): " << iterationData->totalEnergy(input.skyrme, grid)
+       << " MeV" << std::endl;
+  file << "E (kin): " << iterationData->kineticEnergy(input.skyrme, grid)
+       << " MeV" << std::endl;
+
   file << std::endl;
   file << "=== Neutrons ===" << std::endl;
   Wavefunction::printShellsToFile(neutronShells, grid, file);
   file << std::endl;
   file << "=== Protons ===" << std::endl;
   Wavefunction::printShellsToFile(protonShells, grid, file);
+  file << std::endl;
+
+  file << "=== Energies ===" << std::endl;
+  for (int i = 0; i < energies.size(); ++i) {
+    double e = energies[i];
+    file << i << ":  " << e << std::endl;
+  }
 
   file.close();
 }

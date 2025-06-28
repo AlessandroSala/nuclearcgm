@@ -17,6 +17,7 @@
 #include "util/iteration_data.hpp"
 #include "util/mass.hpp"
 #include "util/output.hpp"
+#include "util/shell.hpp"
 #include "util/wavefunction.hpp"
 #include "woods_saxon.hpp"
 #include "woods_saxon/deformed_woods_saxon.hpp"
@@ -32,6 +33,8 @@ int main(int argc, char **argv) {
   using namespace std;
   using namespace Eigen;
   using namespace nuclearConstants;
+  cout << "Using mass " << m << endl;
+  cout << "Using C " << C << endl;
   // Eigen::initParallel();
   InputParser input("input/input.json");
   ComplexDenseMatrix guess;
@@ -39,7 +42,8 @@ int main(int argc, char **argv) {
 
   Grid grid = input.get_grid();
   Calculation calc = input.getCalculation();
-
+  calc.tol = grid.get_total_spatial_points() * 5e-9 * calc.tol;
+  cout << "GCG tolerance: " << calc.tol << endl;
   std::vector<double> betas;
   int A = input.getA();
   int Z = input.getZ();
@@ -58,200 +62,76 @@ int main(int argc, char **argv) {
   //     make_shared<WoodsSaxonPotential>(V0, r_0 * pow(A, 1.0 / 3.0), 0.67));
   pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
       V0, Radius(0.000, r_0, A), 0.67, A, input.getZ(), input.getKappa()));
-  // pots.push_back(make_shared<DeformedSpinOrbitPotential>(
-  //     V0, Radius(0.000, r_0_so, A), 0.67));
+  pots.push_back(make_shared<DeformedSpinOrbitPotential>(
+      V0, Radius(0.000, r_0_so, A), 0.67));
 
-  std::chrono::steady_clock::time_point begin =
-      std::chrono::steady_clock::now();
-
-  Hamiltonian hamNoKin(make_shared<Grid>(grid), pots);
+  Hamiltonian hamDef = Hamiltonian(make_shared<Grid>(grid), pots);
   // cout << ham.buildMatrix() << endl;
-  pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B(
-      hamNoKin.build_matrix5p(),
-      harmonic_oscillator_guess(grid, N + 4, grid.get_a()), N + 4, 35 + 0.01,
-      calc.cycles, calc.tol, 40, 1.0e-5 / (calc.nev * 2), false, 1);
+  pair<MatrixXcd, VectorXd> defNeutronsEigenpair = gcgm_complex_no_B(
+      hamDef.build_matrix5p(),
+      harmonic_oscillator_guess(grid, calc.nev, grid.get_a()), calc.nev,
+      35 + 0.01, calc.cycles, calc.tol * N, 40, 5.0e-8, false, 1);
 
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  // pots.push_back(make_shared<SphericalCoulombPotential>(
-  //     SphericalCoulombPotential(Z, r_0 * pow(A, 1.0 / 3.0))));
-  // hamNoKin = Hamiltonian(make_shared<Grid>(grid), pots);
 
-  // pair<MatrixXcd, VectorXd> protonsEigenpair = gcgm_complex_no_B(
-  //     hamNoKin.build_matrix5p(),
-  //     harmonic_oscillator_guess(grid, Z + 4, grid.get_a()), Z + 4, 35 +
-  //     0.01, calc.cycles, calc.tol, 20, 1.0e-4 / (calc.nev), false, 1);
-  pair<MatrixXcd, VectorXd> protonsEigenpair = neutronsEigenpair;
-  // gcgm_complex_no_B(
-  //   hamNoKin.build_matrix5p(), neutronsEigenpair.first, Z + 4, 35 + 0.01,
-  //   calc.cycles, calc.tol, 40, 1.0e-5 / (calc.nev), false, 1);
-  // std::chrono::steady_clock::time_point end =
-  Wavefunction::normalize(neutronsEigenpair.first, grid);
-  Wavefunction::normalize(protonsEigenpair.first, grid);
-  constexpr double alpha = 1;
-  IterationData data;
-
-  data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
-                        grid);
-  for (int i = 0; i < calc.hf.cycles; ++i) {
-    vector<shared_ptr<Potential>> pots;
-    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
-                          grid);
-
-    Mass hfMassN(make_shared<Grid>(grid), make_shared<IterationData>(data),
-                 input.skyrme, NucleonType::N);
-
-    pots.push_back(
-        make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassN)));
-    pots.push_back(
-        make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassN)));
-    pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::N,
-                                        make_shared<IterationData>(data)));
-    // pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-    //                                     NucleonType::N));
-
-    Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
-    auto newNeutronsEigenpair =
-        gcgm_complex_no_B(skyrmeHam.buildMatrix(), neutronsEigenpair.first, N,
-                          35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
-                          1.0e-4 / (calc.nev), false, 1);
-
-    Mass hfMassP(make_shared<Grid>(grid), make_shared<IterationData>(data),
-                 input.skyrme, NucleonType::P);
-    pots.clear();
-    pots.push_back(
-        make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassP)));
-    pots.push_back(
-        make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassP)));
-    pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
-                                        make_shared<IterationData>(data)));
-    // pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-    //                                      NucleonType::P));
-
-    // pots.push_back(make_shared<LocalCoulombPotential>(data.rhoP));
-    // pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
-    skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
-    auto newProtonsEigenpair =
-        gcgm_complex_no_B(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
-                          35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
-                          1.0e-4 / (calc.nev), false, 1);
-
-    // cout << "Residual: " << (newNeutronsEigenpair.first -
-    // neutronsEigenpair.first).norm() << endl; cout << "Residual: " <<
-    // (newProtonsEigenpair.first - protonsEigenpair.first).norm() << endl;
-
-    Wavefunction::normalize(newNeutronsEigenpair.first, grid);
-    Wavefunction::normalize(newProtonsEigenpair.first, grid);
-    neutronsEigenpair.first = neutronsEigenpair.first * (1 - alpha) +
-                              newNeutronsEigenpair.first * alpha;
-    protonsEigenpair.first = protonsEigenpair.first * (1 - alpha) +
-                             newProtonsEigenpair.first * alpha;
-    Wavefunction::normalize(neutronsEigenpair.first, grid);
-    Wavefunction::normalize(protonsEigenpair.first, grid);
-    neutronsEigenpair.second = newNeutronsEigenpair.second;
-    protonsEigenpair.second = newProtonsEigenpair.second;
-  }
-  cout << "Neutrons " << endl;
-  Wavefunction::printShells(neutronsEigenpair, grid);
-  cout << "Protons " << endl;
-  Wavefunction::printShells(protonsEigenpair, grid);
-
-  out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
-                   make_shared<IterationData>(data), input, grid);
-  return 0;
-  Wavefunction::printShells(eigenpair, grid);
-  auto ham_time_no_B_5p =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)
-          .count();
-
-  cout << "Time elapsed 5 points: " << ham_time_no_B_5p << "[ms]" << endl;
-
-  return 0;
   pots.clear();
-  guess = eigenpair.first(all, seq(0, calc.nev - 1));
 
-  // for(int i = 0; i < guess.cols(); ++i) {
-  // cout << "m: " << Operators::Jz(guess(all, i), grid).norm()/h_bar<<
-  // endl;
-  ////cout << "m: " << Operators::JzExp(guess(all, i), grid)/h_bar<< endl;
-
-  //}
-  // return 0;
-
-  int n_betas = 11;
+  int n_betas = 3;
   DenseMatrix energies(calc.nev, n_betas);
   DenseMatrix ms(calc.nev, n_betas);
   DenseMatrix J2s(calc.nev, n_betas);
   DenseMatrix L2s(calc.nev, n_betas);
   DenseMatrix Ps(calc.nev, n_betas);
+
+  for (int j = 0; j < calc.nev; ++j) {
+    Shell shell(make_shared<Grid>(grid),
+                make_shared<Eigen::VectorXcd>(eigenpair.first.col(j)),
+                eigenpair.second(j));
+    ms(j, (n_betas - 1) / 2) = shell.mj();
+    L2s(j, (n_betas - 1) / 2) = shell.l();
+    J2s(j, (n_betas - 1) / 2) = shell.j();
+    Ps(j, (n_betas - 1) / 2) = shell.P();
+  }
   int i = 0;
-  for (double Beta = -0.5; Beta < 0.55; Beta += 0.1) {
+  for (double Beta = -0.1 * (n_betas - 1) / 2;
+       Beta < (0.1 * (n_betas - 1) / 2 + 0.01); Beta += 0.1) {
+    if (i == (n_betas - 1) / 2)
+      continue;
     cout << "Beta: " << Beta << endl;
     betas.push_back(Beta);
     vector<shared_ptr<Potential>> pots;
-    // pots.push_back(make_shared<SpinOrbitPotential>(SpinOrbitPotential(V0,
-    // r_0, R)));
     Radius radius(Beta, r_0, A);
     pots.push_back(make_shared<DeformedSpinOrbitPotential>(
-        DeformedSpinOrbitPotential(V0, Radius(Beta, r_0_so, A), 0.7)));
-    pots.push_back(
-        make_shared<DeformedWoodsSaxonPotential>(DeformedWoodsSaxonPotential(
-            V0, Radius(Beta, r_0, A), 0.7, A, input.getZ(), input.getKappa())));
-    // pots.push_back(make_shared<WoodsSaxonPotential>(WoodsSaxonPotential(V0,
-    // R, 0.67))); double omega = 41*pow(A_val, -1.0/3.0)/h_bar; omega =
-    // omega; double omega_y = omega * 4; double omega_z = omega * 7.8; cout
-    // << "r HO: " << pow((h_bar)/(m*omega), 0.5) << endl; double epsilon =
-    // 0.1;
-    // pots.push_back(make_shared<HarmonicOscillatorPotential>(HarmonicOscillatorPotential(omega,
-    // omega_y, omega_z)));
+        DeformedSpinOrbitPotential(V0, Radius(Beta, r_0_so, A), 0.67)));
+    pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
+        DeformedWoodsSaxonPotential(V0, Radius(Beta, r_0, A), 0.67, A,
+                                    input.getZ(), input.getKappa())));
 
     Hamiltonian ham(make_shared<Grid>(grid), pots);
-    string path = "output/wd_3d/";
-
-    guess = eigenpair.first(all, seq(0, calc.nev - 1));
-
-    // guess = anisotropic_gaussian_guess(grid, k, a/4, a/2, a);
-    // guess = random_orthonormal_matrix(grid.get_total_points(), k);
+    string path = "output/def/";
 
     ComplexSparseMatrix ham_mat_5p = ham.build_matrix5p();
-    cout << "5 point matrix generated" << endl;
-    // cout << ham_mat << endl;
-    // SelfAdjointEigenSolver<ComplexSparseMatrix> eigensolver(ham_mat);
-    // cout << "Exact eigenvalues: " <<
-    // eigensolver.eigenvalues().transpose() << endl;
-
-    std::chrono::steady_clock::time_point begin =
-        std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point end =
-        std::chrono::steady_clock::now();
-
-    begin = std::chrono::steady_clock::now();
-
-    eigenpair = gcgm_complex_no_B(ham_mat_5p, guess, calc.nev, 35 + 0.01, 10,
-                                  1.0e-3, 40, 1.0e-4 / (calc.nev), false, 1);
-    end = std::chrono::steady_clock::now();
-    // if(i==2) return 0;
-
-    // double gs = h_bar * 0.5 * (omega + omega_y + omega_z);
-    // cout << h_bar*omega << " " << h_bar*omega_y << " " << h_bar*omega_z
-    // << endl; cout << gs << endl; cout << gs + h_bar*omega << endl; cout
-    // << gs + h_bar*omega*2 << endl; cout << gs + h_bar*omega_y << endl;
-    // cout << gs + h_bar*omega_z << endl; cout << gs + h_bar*omega +
-    // h_bar*omega_y << endl;
-
+    eigenpair = gcgm_complex_no_B(ham_mat_5p, defNeutronsEigenpair.first,
+                                  calc.nev, 35 + 0.01, 10, calc.tol, 40,
+                                  1.0e-4 / (calc.nev), false, 1);
     energies.col(i) = eigenpair.second;
+    for (int j = 0; j < calc.nev; ++j) {
+      Shell shell(make_shared<Grid>(grid),
+                  make_shared<Eigen::VectorXcd>(eigenpair.first.col(j)),
+                  eigenpair.second(j));
+      ms(j, i) = shell.mj();
+      L2s(j, i) = shell.l();
+      J2s(j, i) = shell.j();
+      Ps(j, i) = shell.P();
+    }
     ++i;
   }
 
+  cout << "Shells computed, outputting" << endl;
   cout << energies << endl;
-  for (auto &b : betas) {
-    cout << b << " ";
-  }
-  cout << endl;
-
-  // return 0;
-
+  cout << ms << endl;
   std::string path = "output/";
-  ofstream file(path + "def.csv");
+  ofstream file(path + "def_energies.csv");
   file << energies << endl;
   // return 0;
   ofstream fileM(path + "m.csv");
@@ -266,15 +146,110 @@ int main(int argc, char **argv) {
   ofstream fileP(path + "P.csv");
   fileP << Ps << endl;
 
-  // file.close();
-  //}
+  return 0;
+  pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
+      V0, Radius(0.000, r_0, A), 0.55, A, input.getZ(), input.getKappa()));
 
-  // ofstream file2(path + "x.txt");
-  // for(const auto &e : xs) {
-  // file2 << e << endl;
-  //}
-  // file2.close();
-  // cout << MatrixXd(mat) << endl;
+  std::chrono::steady_clock::time_point begin =
+      std::chrono::steady_clock::now();
+
+  Hamiltonian hamNoKin(make_shared<Grid>(grid), pots);
+  // cout << ham.buildMatrix() << endl;
+  pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B(
+      hamNoKin.build_matrix5p(),
+      harmonic_oscillator_guess(grid, N, grid.get_a()), N, 35 + 0.01,
+      calc.cycles, calc.tol * N, 40, 5.0e-8, false, 1);
+
+  pair<MatrixXcd, VectorXd> protonsEigenpair = neutronsEigenpair;
+
+  Wavefunction::normalize(neutronsEigenpair.first, grid);
+  Wavefunction::normalize(protonsEigenpair.first, grid);
+  constexpr double alpha = 1.0;
+  IterationData data(input.skyrme);
+
+  std::vector<double> hfEnergies;
+
+  double totalEnergy = 0.0;
+  data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
+                        grid);
+  int hfIter = 0;
+  for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
+    vector<shared_ptr<Potential>> pots;
+
+    Mass hfMassN(make_shared<Grid>(grid), make_shared<IterationData>(data),
+                 input.skyrme, NucleonType::N);
+
+    // pots.push_back(
+    //     make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassN)));
+    // pots.push_back(
+    //     make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassN)));
+    pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::N,
+                                        make_shared<IterationData>(data)));
+    //  pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+    //                                      NucleonType::N));
+
+    Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
+    auto newNeutronsEigenpair =
+        gcgm_complex_no_B(skyrmeHam.build_matrix5p(), neutronsEigenpair.first,
+                          N, 35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol,
+                          40, 1.0e-4 / (calc.nev), false, 1);
+
+    Mass hfMassP(make_shared<Grid>(grid), make_shared<IterationData>(data),
+                 input.skyrme, NucleonType::P);
+    pots.clear();
+    // pots.push_back(
+    //     make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassP)));
+    // pots.push_back(
+    //     make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassP)));
+    pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
+                                        make_shared<IterationData>(data)));
+    // pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+    //                                      NucleonType::P));
+
+    // pots.push_back(make_shared<LocalCoulombPotential>(data.rhoP));
+    // pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
+    skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
+    auto newProtonsEigenpair =
+        gcgm_complex_no_B(skyrmeHam.build_matrix5p(), protonsEigenpair.first, Z,
+                          35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
+                          1.0e-4 / (calc.nev), false, 1);
+
+    // cout << "Residual: " << (newNeutronsEigenpair.first -
+    // neutronsEigenpair.first).norm() << endl; cout << "Residual: " <<
+    // (newProtonsEigenpair.first - protonsEigenpair.first).norm() << endl;
+    neutronsEigenpair = newNeutronsEigenpair;
+    protonsEigenpair = newProtonsEigenpair;
+
+    Wavefunction::normalize(neutronsEigenpair.first, grid);
+    Wavefunction::normalize(protonsEigenpair.first, grid);
+
+    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
+                          grid);
+    double newEnergy = data.totalEnergy(input.skyrme, grid) +
+                       data.kineticEnergy(input.skyrme, grid);
+    hfEnergies.push_back(newEnergy);
+    cout << "Total energy: " << newEnergy << endl;
+    if (std::abs(newEnergy - totalEnergy) <
+        input.getCalculation().hf.energyTol) {
+      break;
+    }
+    totalEnergy = newEnergy;
+  }
+  cout << "Neutrons " << endl;
+  Wavefunction::printShells(neutronsEigenpair, grid);
+  cout << "Protons " << endl;
+  Wavefunction::printShells(protonsEigenpair, grid);
+
+  out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
+                   make_shared<IterationData>(data), input, hfIter, hfEnergies,
+                   grid);
+  return 0;
+  Wavefunction::printShells(eigenpair, grid);
+  auto ham_time_no_B_5p =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)
+          .count();
+
+  cout << "Time elapsed 5 points: " << ham_time_no_B_5p << "[ms]" << endl;
 
   return 0;
 }

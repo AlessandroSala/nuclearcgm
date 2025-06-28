@@ -2,11 +2,11 @@
   "outputName": "output",
     "calculation": "sp",
     "box": {
-        "size": 10.0,
+        "size": 12.0,
         "n": 30
     },
     "skyrme": {
-        "t0": -1089.91,
+        "t0": -1089.00,
         "t1": 0.0,
         "t2": 0.0,
         "t3": 17270.0,
@@ -19,17 +19,18 @@
 
     },
     "hf": {
-      "cycles": 60,
+      "cycles": 70,
+      "energyTol": 0.0001,
       "gcg": {
-        "maxIter": 40,
+        "maxIter": 10,
         "nev": 0,
         "tol": 0.0003
       }
     },
     "gcg": {
         "cycles": 50,
-        "nev": 8,
-        "tol": 0.001 
+        "nev": 24,
+        "tol": 1 
     },
     "nucleus": {
         "A": 16,
@@ -44,10 +45,10 @@
         },
         {
             "type": "woods_saxon",
-            "V0": 49.6,
+            "V0": 55.5,
             "R": 1.310,
-            "r0": 1.27,
-            "alpha": 0.7
+            "r0": 1.21,
+            "alpha": 0.55
         }
     ],
     "kappa": 0.86
