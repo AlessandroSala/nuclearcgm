@@ -1,5 +1,7 @@
 #include "skyrme/skyrme_u.hpp"
 #include "constants.hpp"
+#include "types.hpp"
+#include <cmath>
 #include <iostream>
 
 SkyrmeU::SkyrmeU(SkyrmeParameters p, NucleonType n_,
@@ -19,14 +21,28 @@ std::complex<double> SkyrmeU::getElement5p(int i, int j, int k, int s, int i1,
   if (i != i1 || j != j1 || k != k1 || s != s1) {
     return std::complex<double>(0.0, 0.0);
   }
-
   int idx = grid.idxNoSpin(i, j, k);
+  double field = n == NucleonType::N ? (*data->UN)(idx) : (*data->UP)(idx);
+  return std::complex<double>(field, 0.0);
 
   // Parametri Skyrme
   double t0 = params.t0, t1 = params.t1, t2 = params.t2;
   double t3 = params.t3, x0 = params.x0, x1 = params.x1;
   double x2 = params.x2, x3 = params.x3, sigma = params.sigma;
   double W0 = params.W0;
+  std::complex<double> spinPart = std::complex<double>(0.0, 0.0);
+  Eigen::Vector3cd spin =
+      n == NucleonType::N ? data->spinN->row(idx) : data->spinP->row(idx);
+  auto pauli = nuclearConstants::getPauli();
+
+  for (int i = 0; i < 3; ++i) {
+    SpinMatrix res = (-0.5 * t0 * pauli[i] * spin(i));
+    spinPart += res(s, s1);
+  }
+  // spinPart = std::complex<double>(0.0, 0.0);
+  if (i != i1 || j != j1 || k != k1 || s != s1) {
+    return spinPart;
+  }
 
   // Densità e derivate
   double rho_p = (*data->rhoP)(idx);
@@ -61,7 +77,7 @@ std::complex<double> SkyrmeU::getElement5p(int i, int j, int k, int s, int i1,
   // (1.0 / 16.0) * (3 * t1 * (2 * x1 + 1) + t2 * (2 * x2 + 1)) * nabla2rho_q;
 
   // Engel
-  res += 0.5 * t0 * ((2 + x0) * rho - (1 + 2 * x0) * rho_q);
+  res += t0 * rho - t0 * 0.5 * rho_q;
   // res += (1.0 / 8.0) * (t2 - 3 * t1) * nabla2rho;
   // res += (1.0 / 16.0) * (3 * t1 + t2) * nabla2rho_q;
   // res += (1.0 / 4.0) * (t1 + t2) * tau;
@@ -76,5 +92,5 @@ std::complex<double> SkyrmeU::getElement5p(int i, int j, int k, int s, int i1,
   // data->JP->row(idx).norm()); res += (1.0/8.0)*(t1-t2)*
 
   // res += -0.75 * W0 * ((*data->rhoP)(idx) - (*data->rhoN)(idx));
-  return std::complex<double>(res, 0.0);
+  return std::complex<double>(res, 0.0) + spinPart;
 }

@@ -42,8 +42,8 @@ Eigen::VectorXd Mass::getMassVector() const noexcept {
   // (*data->rhoN)(idx)); res += -(1.0/8.0)*(+t1*(1+2*x1)+t2*(1+2*x2))*rho_q;
 
   // Engel
-  res += (1.0 / 4.0) * (t1 + t2) * rho;
-  res += (1.0 / 8.0) * (t2 - t1) * rho_q;
+  // res += (1.0 / 4.0) * (t1 + t2) * rho;
+  // res += (1.0 / 8.0) * (t2 - t1) * rho_q;
   return res;
 }
 Eigen::Vector3d Mass::getGradient(size_t i, size_t j, size_t k) const noexcept {
@@ -64,8 +64,8 @@ Eigen::Vector3d Mass::getGradient(size_t i, size_t j, size_t k) const noexcept {
   // -(1.0/8.0)*(t1*(1+2*x1)+t2*(1+2*x2))*nablaRho_q;
 
   // Engel
-  grad += (1.0 / 4.0) * (t1 + t2) * nablaRho;
-  grad += (1.0 / 8.0) * (t2 - t1) * nablaRho_q;
+  // grad += (1.0 / 4.0) * (t1 + t2) * nablaRho;
+  // grad += (1.0 / 8.0) * (t2 - t1) * nablaRho_q;
 
   // Bertulani
   // grad = (1.0/16.0)*(3*t1 + 5*t2)*nablaRho;

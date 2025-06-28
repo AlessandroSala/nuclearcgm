@@ -1,8 +1,10 @@
 #include "VariadicTable.h"
 #include "constants.hpp" // Assuming this is where nuclearConstants are
+#include "input_parser.hpp"
 #include "operators/differential_operators.hpp" // Assuming this is where Operators::derivative is
 #include "types.hpp"
 #include "util/shell.hpp"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -17,30 +19,14 @@ namespace Wavefunction {
 
 Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
   int n = grid.get_n();
-  // using std::complex; // Already included via Eigen headers or <complex>
   Eigen::VectorXd rho(grid.get_total_spatial_points());
-  // rho.setZero(); // Eigen vectors/matrices are default-initialized (often to
-  // zero for numeric types, but explicit is safer) However, since we assign
-  // directly `rho(rho_idx) = point_density;`, setZero is not strictly needed if
-  // all points are covered. For safety, especially if some points might not be
-  // touched by the loop (not the case here), setZero is good.
   rho.setZero();
 
-// Parallelize the loops over spatial grid points (i, j, k)
-// The collapse(3) clause treats the three nested loops as a single larger loop
-// for parallelization. This can be beneficial if 'n' is not excessively large,
-// providing more chunks of work. If 'n' is very large, #pragma omp parallel for
-// on the 'i' loop alone might be sufficient.
 #pragma omp parallel for collapse(3)
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
       for (int k = 0; k < n; ++k) {
         int rho_idx = grid.idxNoSpin(i, j, k);
-        // Assuming grid.idx(i, j, k, 0) gives the index for spin component 0
-        // and grid.idx(i, j, k, 1) gives the index for spin component 1.
-        // The original code used idx and idx+1, which implies grid.idx(i,j,k,1)
-        // = grid.idx(i,j,k,0) + 1. Using explicit calls to grid.idx for each
-        // spin is safer if this assumption isn't guaranteed.
         int psi_idx_s0 = grid.idx(i, j, k, 0);
         int psi_idx_s1 = grid.idx(i, j, k, 1);
 
@@ -56,6 +42,22 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
     }
   }
   return rho;
+}
+
+Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
+                      const Grid &grid, SkyrmeParameters params) {
+  double t0 = params.t0, t3 = params.t3;
+  double sigma = params.sigma;
+  Eigen::VectorXd field(grid.get_total_spatial_points());
+  field.setZero();
+  field += t0 * rho - t0 * 0.5 * rhoQ;
+  field += ((t3 / 12.0) * pow(rho.array(), sigma - 1) *
+            ((sigma + 2) * pow(rho.array(), sigma + 1) -
+             0.5 * ((sigma * rho.array().pow(sigma - 1) * rhoQ.array() *
+                     rhoQ.array()) +
+                    2 * pow(rho.array(), sigma) * rhoQ.array())))
+               .matrix();
+  return field;
 }
 
 // Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid)
@@ -92,13 +94,37 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
 //}
 // return tau;
 //}
+Eigen::Matrix3Xd spinDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
+  Eigen::Matrix3Xd res =
+      Eigen::Matrix3Xd::Zero(3, grid.get_total_spatial_points());
+  auto pauli = nuclearConstants::getPauli();
+  for (int col = 0; col < psi.cols(); ++col) {
+    for (int i = 0; i < grid.get_n(); ++i) {
+      for (int j = 0; j < grid.get_n(); ++j) {
+        for (int k = 0; k < grid.get_n(); ++k) {
+          int idx = grid.idx(i, j, k, 0);
+          int idxNoSpin = grid.idxNoSpin(i, j, k);
+          Eigen::Vector2cd chi = psi(Eigen::seq(idx, idx + 1), col);
+          res(idxNoSpin, 0) += chi.dot(pauli[0] * chi).real();
+          res(idxNoSpin, 1) += chi.dot(pauli[1] * chi).real();
+          res(idxNoSpin, 2) += chi.dot(pauli[2] * chi).real();
+        }
+      }
+    }
+  }
+
+  return res;
+}
 
 Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
   // using std::complex;
   Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   for (int i = 0; i < psi.cols(); ++i) {
-    auto grad = Operators::grad(psi.col(i), grid);
-    res += (grad * grad.adjoint()).diagonal().real();
+    Eigen::MatrixX3cd grad = Operators::grad(psi.col(i), grid);
+    auto mult = (grad * grad.adjoint()).diagonal().real();
+    for (int l = 0; l < grid.get_total_spatial_points(); ++l) {
+      res(l) += mult(2 * l) + mult(2 * l + 1);
+    }
   }
 
   return res;
@@ -107,7 +133,7 @@ Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
 void normalize(Eigen::MatrixXcd &psi, const Grid &grid) {
 
   for (int c = 0; c < psi.cols(); ++c) {
-    auto density = Wavefunction::density(psi.col(c), grid);
+    Eigen::VectorXd density = Wavefunction::density(psi.col(c), grid);
     psi.col(c) /= sqrt(density.sum() * pow(grid.get_h(), 3));
   }
 }

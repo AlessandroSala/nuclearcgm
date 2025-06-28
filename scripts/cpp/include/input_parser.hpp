@@ -29,6 +29,7 @@ typedef struct {
 } SkyrmeParameters;
 typedef struct HartreeFock {
   int cycles;
+  double energyTol;
   GCGParameters gcg;
 } HartreeFock;
 typedef struct {

@@ -29,7 +29,7 @@ int InputParser::getZ() { return data["nucleus"]["Z"]; }
 double InputParser::getKappa() { return data["kappa"]; }
 
 Calculation InputParser::getCalculation() {
-  HartreeFock hf = {data["hf"]["cycles"],
+  HartreeFock hf = {data["hf"]["cycles"], data["hf"]["energyTol"],
                     GCGParameters{data["hf"]["gcg"]["nev"],
                                   data["hf"]["gcg"]["tol"],
                                   data["hf"]["gcg"]["maxIter"]}};
