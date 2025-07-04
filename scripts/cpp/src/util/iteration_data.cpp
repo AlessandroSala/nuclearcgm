@@ -40,6 +40,13 @@ double IterationData::totalEnergy(SkyrmeParameters params, const Grid &grid) {
   return integral(energyDensity, grid);
 }
 
+double IterationData::densityUVPIntegral(const Grid &grid) {
+  Eigen::VectorXd vecN = rhoN->array() * UN->array();
+  Eigen::VectorXd vecP = rhoP->array() * UP->array();
+  Eigen::VectorXd vec = vecN + vecP;
+  return Operators::integral(vec, grid);
+}
+
 double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid) {
   double t0 = params.t0;
   double t3 = params.t3;
@@ -53,6 +60,7 @@ double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid) {
 
   return kineticEnergy;
 }
+
 void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
                                      const Eigen::MatrixXcd &protonsShells,
                                      int A, int Z, const Grid &grid) {

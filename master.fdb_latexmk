@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1750242692.54691 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1750242693.09231 0
-  "/home/ale/dev/nuclearcgm/master.tex" 1749470975.41616 17869 3ef567bfdbef091a0bca8c4fe315bc28 ""
+["pdflatex"] 1751118628.63819 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1751118630.0999 0
+  "/home/ale/dev/nuclearcgm/master.tex" 1751118628.30618 18353 e48ede136a709d7748761925fe78842e ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -138,10 +138,10 @@
   "chapters/hartree_fock/skyrme/skyrme.tex" 1750242691.84172 7489 e3402fba0e4b26caa9422672b9ee8f4b ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
   "figures/ws_gs.png" 1743275533.18922 33682 d6c21bd3faa2eea0ee0238eeb333a900 ""
-  "master.aux" 1750242692.99473 8282 e87e46a69d5d9823fdd5faebf11428f2 "pdflatex"
-  "master.out" 1750242692.99573 6749 33530d2f64bfa41e15c11aa8769ea524 "pdflatex"
-  "master.tex" 1749470975.41616 17869 3ef567bfdbef091a0bca8c4fe315bc28 ""
-  "master.toc" 1750242692.99673 3672 038a664a43ada139d2e09cb8d85d9705 "pdflatex"
+  "master.aux" 1751118629.88818 8282 e87e46a69d5d9823fdd5faebf11428f2 "pdflatex"
+  "master.out" 1751118629.89018 6749 33530d2f64bfa41e15c11aa8769ea524 "pdflatex"
+  "master.tex" 1751118628.30618 18353 e48ede136a709d7748761925fe78842e ""
+  "master.toc" 1751118629.89118 3672 038a664a43ada139d2e09cb8d85d9705 "pdflatex"
   (generated)
   "master.aux"
   "master.log"

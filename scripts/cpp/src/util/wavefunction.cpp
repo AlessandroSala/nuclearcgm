@@ -51,12 +51,14 @@ Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
   Eigen::VectorXd field(grid.get_total_spatial_points());
   field.setZero();
   field += t0 * rho - t0 * 0.5 * rhoQ;
-  field += ((t3 / 12.0) * pow(rho.array(), sigma - 1) *
-            ((sigma + 2) * pow(rho.array(), sigma + 1) -
-             0.5 * ((sigma * rho.array().pow(sigma - 1) * rhoQ.array() *
-                     rhoQ.array()) +
-                    2 * pow(rho.array(), sigma) * rhoQ.array())))
-               .matrix();
+
+  field += (t3 / 4.0) * (pow(rho.array(), 2) - pow(rhoQ.array(), 2)).matrix();
+  //  field += ((t3 / 12.0) * pow(rho.array(), sigma - 1.0) *
+  //            ((sigma + 2) * pow(rho.array(), sigma + 1.0) -
+  //             0.5 * ((sigma * rho.array().pow(sigma - 1.0) * rhoQ.array() *
+  //                     rhoQ.array()) +
+  //                    2 * pow(rho.array(), sigma) * rhoQ.array())))
+  //               .matrix();
   return field;
 }
 

@@ -41,7 +41,8 @@ void Output::shellsToFile(
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
     std::shared_ptr<IterationData> iterationData, InputParser input,
-    int iterations, std::vector<double> energies, const Grid &grid) {
+    int iterations, std::vector<double> energies, double cpuTime,
+    const Grid &grid) {
 
   std::ofstream file(folder + "/" + input.getOutputName() + ".txt");
   file << "=== BOX ===" << std::endl;
@@ -55,13 +56,13 @@ void Output::shellsToFile(
   file << "Z = " << input.getZ() << ", A = " << input.getA() << std::endl;
   file << std::endl;
 
-  nlohmann::json ws = input.getWoodsSaxon();
-  file << "=== Woods-Saxon ===" << std::endl;
-  file << "V0: " << ws["V0"] << " MeV" << std::endl;
-  file << "r0: " << ws["r0"] << " fm" << std::endl;
-  file << "diff: " << ws["alpha"] << std::endl;
-  file << "Beta: " << "0.0" << std::endl;
-  file << std::endl;
+  //  nlohmann::json ws = input.getWoodsSaxon();
+  //  file << "=== Woods-Saxon ===" << std::endl;
+  //  file << "V0: " << ws["V0"] << " MeV" << std::endl;
+  //  file << "r0: " << ws["r0"] << " fm" << std::endl;
+  //  file << "diff: " << ws["alpha"] << std::endl;
+  //  file << "Beta: " << "0.0" << std::endl;
+  //  file << std::endl;
 
   file << "=== Skyrme ===" << std::endl;
   file << "t0: " << input.skyrme.t0 << std::endl;
@@ -76,22 +77,36 @@ void Output::shellsToFile(
   double z2Sqrt = std::sqrt(x2(iterationData, grid, 'z'));
   double r2Sqrt =
       std::sqrt(x2Sqrt * x2Sqrt + y2Sqrt * y2Sqrt + z2Sqrt * z2Sqrt);
-  file << "sqrt<x^2>: " << x2Sqrt << " fm" << std::endl;
-  file << "sqrt<y^2>: " << y2Sqrt << " fm" << std::endl;
-  file << "sqrt<z^2>: " << z2Sqrt << " fm" << std::endl;
+  file << "sqrt<x^2>: " << x2Sqrt << " fm";
+  file << ", sqrt<y^2>: " << y2Sqrt << " fm";
+  file << ", sqrt<z^2>: " << z2Sqrt << " fm" << std::endl;
   file << "sqrt<r^2>: " << r2Sqrt << " fm" << std::endl;
   file << std::endl;
+
+  double eKin = iterationData->kineticEnergy(input.skyrme, grid);
+  double skyrmeEnergy = iterationData->totalEnergy(input.skyrme, grid);
 
   file << "=== Convergence ===" << std::endl;
   file << "Iterations: " << iterations << std::endl;
   file << "Energy tolerance: " << input.getCalculation().hf.energyTol << " MeV"
        << std::endl;
-  file << "E (t0, t3): " << iterationData->totalEnergy(input.skyrme, grid)
-       << " MeV" << std::endl;
-  file << "E (kin): " << iterationData->kineticEnergy(input.skyrme, grid)
-       << " MeV" << std::endl;
+  file << "CPU time: " << cpuTime << " s" << std::endl;
+  file << "E (t0, t3): " << skyrmeEnergy << " MeV" << std::endl;
+  file << "E (kin): " << eKin << " MeV" << std::endl;
+  file << "E: " << eKin + skyrmeEnergy << " MeV" << std::endl;
 
+  double SPE = 0.5 * (neutronShells.second.sum() + protonShells.second.sum());
   file << std::endl;
+  file << "=== HF Energy + E_rea ===" << std::endl;
+  file << "E (SPE): " << SPE << " MeV" << std::endl;
+  file << "E (Kin): " << eKin * 0.5 << " MeV" << std::endl;
+
+  double eRea = skyrmeEnergy - 0.5 * iterationData->densityUVPIntegral(grid);
+  double E = eRea + eKin * 0.5 + SPE;
+  file << "E (REA): " << eRea << " MeV" << std::endl;
+  file << "E: " << E << " MeV" << std::endl;
+  file << std::endl;
+
   file << "=== Neutrons ===" << std::endl;
   Wavefunction::printShellsToFile(neutronShells, grid, file);
   file << std::endl;
@@ -104,6 +119,8 @@ void Output::shellsToFile(
     double e = energies[i];
     file << i << ":  " << e << std::endl;
   }
+
+  matrixToFile("density.csv", *(iterationData->rhoN));
 
   file.close();
 }
