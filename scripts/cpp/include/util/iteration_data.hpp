@@ -31,6 +31,6 @@ public:
                         const Grid &grid);
   double totalEnergy(SkyrmeParameters params, const Grid &grid);
   double kineticEnergy(SkyrmeParameters params, const Grid &grid);
-
+  double densityUVPIntegral(const Grid &grid);
   IterationData(SkyrmeParameters params);
 };
