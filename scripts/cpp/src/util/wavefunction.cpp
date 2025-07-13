@@ -44,24 +44,70 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
   return rho;
 }
 
+/**
+ * @brief Calculates the Mean field
+ * @param rho Isoscalar density.
+ * @param rhoQ nucleon density.
+ * @param tau Isoscalar kinetic density.
+ * @param tauQ nucleon kinetic density.
+ * @param nabla2rho Laplacian of the isoscalar density.
+ * @param nabla2rhoQ Laplacian of the nucleon density.
+ * @param nablaJJQ Divergence of the spin-orbit density current.
+ * @param grid The spatial grid.
+ * @param params Parameters of the Skyrme interaction.
+ * @return Eigen::VectorXd The calculated field.
+ */
 Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
-                      const Grid &grid, SkyrmeParameters params) {
-  double t0 = params.t0, t3 = params.t3;
-  double sigma = params.sigma;
+                      Eigen::VectorXd &tau, Eigen::VectorXd &tauQ,
+                      Eigen::VectorXd &nabla2rho, Eigen::VectorXd &nabla2rhoQ,
+                      Eigen::VectorXd &nablaJJQ, const Grid &grid,
+                      SkyrmeParameters params) {
+  double t0 = params.t0, t1 = params.t1, t2 = params.t2, t3 = params.t3;
+  double x0 = params.x0, x1 = params.x1, x2 = params.x2, x3 = params.x3;
+  double W0 = params.W0;
+  double sigma = params.sigma; // Corresponds to 'alpha' in the formula
+
   Eigen::VectorXd field(grid.get_total_spatial_points());
   field.setZero();
-  field += t0 * rho - t0 * 0.5 * rhoQ;
 
-  field += (t3 / 4.0) * (pow(rho.array(), 2) - pow(rhoQ.array(), 2)).matrix();
-  //  field += ((t3 / 12.0) * pow(rho.array(), sigma - 1.0) *
-  //            ((sigma + 2) * pow(rho.array(), sigma + 1.0) -
-  //             0.5 * ((sigma * rho.array().pow(sigma - 1.0) * rhoQ.array() *
-  //                     rhoQ.array()) +
-  //                    2 * pow(rho.array(), sigma) * rhoQ.array())))
-  //               .matrix();
+  // t0 * [(1 + x0/2) * rho - (x0 + 1/2) * rhoQ]
+  field += t0 * ((1.0 + 0.5 * x0) * rho - (x0 + 0.5) * rhoQ);
+
+  // Chabant
+  field += 0.125 * (t1 * (2 + x1) + t2 * (2 + x2)) * tau;
+
+  field += 0.125 * (t2 * (2 * x2 + 1) - t1 * (2 * x1 + 1)) * tauQ;
+
+  // Chabant
+  // + 1/8 * (t2 - 3*t1 - (3*t1*x1 + t2*x2)/2) * nabla^2 rho
+  // //TODO: WTF IS HAPPENING HERE?
+  field += (1.0 / 16.0) * (t2 * (2 + x2) - 3 * t1 * (2 + x1)) * nabla2rho;
+
+  // + 1/16 * (t2 + 3*t1 + 6*t1*x1 + 2*t2*x2) * nabla^2 rhoQ
+  // //Uguale C e S?
+  field +=
+      (1.0 / 16.0) * (3 * t1 * (2 * x1 + 1) + t2 * (2 * x2 + 1)) * nabla2rhoQ;
+
+  // field += (1.0 / 8.0) * (t2 - t1 + t2 * x2 - t1 * x1) * tauQ;
+
+  // field += (1.0 / 16.0) * (t2 + 3.0 * t1 + 6.0 * t1 * x1 + 2.0 * t2 * x2) *
+  //          nabla2rhoQ;
+
+  // - W0/2 * nabla . (J + JQ)
+  field -= 0.5 * W0 * nablaJJQ;
+
+  // Spin density = 0
+  //  + t3/12 * rho^(alpha-1) * [...]
+  field +=
+      ((t3 / 12.0) * pow(rho.array(), sigma - 1.0) *
+       ((1.0 + 0.5 * x3) * (sigma + 2.0) * pow(rho.array(), 2.0) -
+        (x3 + 0.5) *
+            (sigma * (rhoQ.array().square() + (rho - rhoQ).array().square()) +
+             2.0 * rho.array() * rhoQ.array())))
+          .matrix();
+
   return field;
 }
-
 // Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid)
 //{
 //// using std::complex;

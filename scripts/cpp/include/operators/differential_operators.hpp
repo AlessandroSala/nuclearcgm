@@ -9,7 +9,8 @@ Eigen::VectorXcd dvNoSpin(const Eigen::VectorXcd &psi, const Grid &grid,
                           char dir);
 Eigen::VectorXd dvNoSpin(const Eigen::VectorXd &psi, const Grid &grid,
                          char dir);
-Eigen::VectorXcd divNoSpin(const Eigen::MatrixXcd &psi, const Grid &grid);
+Eigen::VectorXcd divNoSpin(const Eigen::MatrixX3cd &psi, const Grid &grid);
+Eigen::VectorXd divNoSpin(const Eigen::MatrixX3d &psi, const Grid &grid);
 Eigen::Matrix<double, Eigen::Dynamic, 3> gradNoSpin(const Eigen::VectorXd &psi,
                                                     const Grid &grid);
 Eigen::MatrixX3cd grad(const Eigen::VectorXcd &psi, const Grid &grid);
@@ -19,7 +20,7 @@ std::complex<double> derivativeNoSpin(const Eigen::VectorXcd &psi, int i, int j,
                                       int k, const Grid &grid, char axis);
 double derivativeNoSpin(const Eigen::VectorXd &psi, int i, int j, int k,
                         const Grid &grid, char axis);
-std::complex<double> derivative2(const Eigen::VectorXcd &psi, int i, int j,
-                                 int k, int s, const Grid &grid, char axis);
+// std::complex<double> derivative2(const Eigen::VectorXcd &psi, int i, int j,
+//                                  int k, int s, const Grid &grid, char axis);
 
 } // namespace Operators

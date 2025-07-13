@@ -1,0 +1,23 @@
+\subsection{Functional}
+For $\boldsymbol{s} = 0$ (even-even nuclei), the functional reduces to the following terms, assuming only $t_0, t_3$ different from zero
+\subsubsection{t0}
+The $t_0$ part of the functional is given by
+\[\mathcal H_0 = \frac 1 2 t_0 [(1+\frac {x_0} 2)\rho^2 - (x_0 + \frac 1 2 )(\rho_p^2 + \rho_n^2)]\]
+Taking the variation with respect to $\rho_q$, we get
+\begin{align}
+    \fdv{H_0}{\rho_q} &= \frac 1 2 t_0 [(2 + x_0)\rho - (2x_0 + 1)\rho_q]
+\end{align}
+Which in the case where $\rho_n = \rho_p = \rho_q$, $x_0 = 0$ gives
+\[\fdv{H_0}{\rho_q} =\frac 1 2  t_0 (2 \rho - \rho_q ) \]
+\subsubsection{t3}
+The $t_3$ part of the functional is given by
+\[\mathcal H _3 = \frac 1 {24} t_3 \rho^\sigma [(2+x_3)\rho^2 -(2x_3+1)(\rho_p^2 + \rho_n^2)]\]
+Taking the variation with respect to $\rho_q$, we get
+\begin{align}
+    \fdv{H_3}{\rho_q} &= \frac 1 {24} t_3  [(2+x_3)(\sigma + 2)\rho^{\sigma+1} - (2x_3+1)(\sigma \rho^{\sigma-1}(\rho_n^2+\rho_p^2) +2\rho^\sigma \rho_q)]
+    \\&= \frac 1 {24} t_3 \rho^\sigma [(2+x_3)(\sigma + 2)\rho - (2x_3+1)(\sigma \rho^{-1}(\rho_n^2+\rho_p^2) +2\rho_q)]
+    \\&= \frac 1 {12} t_3 \rho^\sigma [(1+\frac{x_3}{2})(\sigma + 2)\rho - (x_3+\frac 1 2 )(\sigma \rho^{-1}(\rho_n^2+\rho_p^2) +2\rho_q)]
+\end{align}
+In the case where $\rho_n = \rho_p = \rho_q$, $x_3 = 0,\ \sigma = 1$, we get
+\[\fdv{H_3}{\rho_q} = \frac 1 {24} t_3 \rho [6\rho - 3\rho_q] = \frac{t_3}{4}(\rho^2 - \rho_q^2)\] 
+

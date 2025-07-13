@@ -4,11 +4,17 @@
 InputParser::InputParser(std::string inputFile) {
   std::ifstream file(inputFile);
   data = nlohmann::json::parse(file);
-  skyrme = SkyrmeParameters{data["skyrme"]["W0"], data["skyrme"]["t0"],
-                            data["skyrme"]["t1"], data["skyrme"]["t2"],
-                            data["skyrme"]["t3"], data["skyrme"]["x0"],
-                            data["skyrme"]["x1"], data["skyrme"]["x2"],
-                            data["skyrme"]["x3"], data["skyrme"]["sigma"]};
+  useCoulomb = data["coulomb"];
+  std::string interaction = data["interaction"];
+
+  nlohmann::json interactionData = nlohmann::json::parse(
+      std::ifstream("interactions/" + interaction + ".json"));
+
+  skyrme = SkyrmeParameters{interactionData["W0"], interactionData["t0"],
+                            interactionData["t1"], interactionData["t2"],
+                            interactionData["t3"], interactionData["x0"],
+                            interactionData["x1"], interactionData["x2"],
+                            interactionData["x3"], interactionData["sigma"]};
   file.close();
 }
 

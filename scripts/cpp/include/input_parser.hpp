@@ -52,6 +52,7 @@ public:
   Grid get_grid();
   int getA();
   int getZ();
+  bool useCoulomb;
   double getKappa();
   Calculation getCalculation();
   std::string getOutputName();

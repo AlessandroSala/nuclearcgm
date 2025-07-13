@@ -2,35 +2,23 @@
   "outputName": "output",
     "calculation": "sp",
     "box": {
-        "size": 11.0,
-        "n": 100
+        "size": 12.0,
+        "n": 30
     },
-    "skyrme": {
-        "t0": -1089.00,
-        "t1": 0.0,
-        "t2": 0.0,
-        "t3": 17270.0,
-        "W0": 0.0,
-        "x0": 0.0,
-        "x1": 0.0,
-        "x2": 0.0,
-        "x3": 0.0,
-        "sigma": 1.0
-
-    },
+    "interaction": "SLy5",
     "hf": {
       "cycles": 70,
-      "energyTol": 0.00001,
+      "energyTol": 0.0001,
       "gcg": {
-        "maxIter": 6,
+        "maxIter": 8,
         "nev": 0,
-        "tol": 0.006
+        "tol": 0.0006
       }
     },
     "gcg": {
         "cycles": 40,
-        "nev": 24,
-        "tol": 0.0001 
+        "nev": 8,
+        "tol": 0.001 
     },
     "nucleus": {
         "A": 16,
@@ -51,6 +39,8 @@
             "alpha": 0.55
         }
     ],
-    "kappa": 0.86
+    "kappa": 0.86,
+  "coulomb": false
+
     
 }
