@@ -65,8 +65,15 @@ void Output::shellsToFile(
   //  file << std::endl;
 
   file << "=== Skyrme ===" << std::endl;
-  file << "t0: " << input.skyrme.t0 << std::endl;
-  file << "t3: " << input.skyrme.t3 << std::endl;
+  file << "t0: " << input.skyrme.t0 << ", ";
+  file << "t1: " << input.skyrme.t1 << ", ";
+  file << "t2: " << input.skyrme.t2 << ", ";
+  file << "t3: " << input.skyrme.t3 << ", ";
+  file << "W0: " << input.skyrme.W0 << ", ";
+  file << "x0: " << input.skyrme.x0 << ", ";
+  file << "x1: " << input.skyrme.x1 << ", ";
+  file << "x2: " << input.skyrme.x2 << ", ";
+  file << "x3: " << input.skyrme.x3 << ", ";
   file << "alpha: " << input.skyrme.sigma << std::endl;
   file << std::endl;
 
@@ -84,14 +91,30 @@ void Output::shellsToFile(
   file << std::endl;
 
   double eKin = iterationData->kineticEnergy(input.skyrme, grid);
-  double skyrmeEnergy = iterationData->totalEnergy(input.skyrme, grid);
+  double skyrmeEnergy = iterationData->totalEnergyIntegral(input.skyrme, grid);
 
   file << "=== Convergence ===" << std::endl;
   file << "Iterations: " << iterations << std::endl;
   file << "Energy tolerance: " << input.getCalculation().hf.energyTol << " MeV"
        << std::endl;
   file << "CPU time: " << cpuTime << " s" << std::endl;
-  file << "E (t0, t3): " << skyrmeEnergy << " MeV" << std::endl;
+  file << std::endl;
+
+  file << "=== Density functional ===" << std::endl;
+  file << "C0 Rho0: " << iterationData->C0RhoEnergy(input.skyrme, grid)
+       << " MeV" << std::endl;
+  file << "C1 Rho1: " << iterationData->C1RhoEnergy(input.skyrme, grid)
+       << " MeV" << std::endl;
+  file << "C0 nabla2Rho0: "
+       << iterationData->C0nabla2RhoEnergy(input.skyrme, grid) << " MeV"
+       << std::endl;
+  file << "C1 nabla2Rho1: "
+       << iterationData->C1nabla2RhoEnergy(input.skyrme, grid) << " MeV"
+       << std::endl;
+  file << "C0 tau0: " << iterationData->C0TauEnergy(input.skyrme, grid)
+       << " MeV" << std::endl;
+  file << "C1 tau1: " << iterationData->C1TauEnergy(input.skyrme, grid)
+       << " MeV" << std::endl;
   file << "E (kin): " << eKin << " MeV" << std::endl;
   file << "E: " << eKin + skyrmeEnergy << " MeV" << std::endl;
 

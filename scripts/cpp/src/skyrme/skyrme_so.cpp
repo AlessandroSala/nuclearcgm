@@ -5,15 +5,12 @@
 #include <memory>
 
 SkyrmeSO::SkyrmeSO(std::shared_ptr<IterationData> data, NucleonType n)
-    : data(data), n(n)
-{
-}
+    : data(data), n(n) {}
 double SkyrmeSO::getValue(double x, double y, double z) const { return 0.0; }
 
 std::complex<double> SkyrmeSO::getElement5p(int i, int j, int k, int s, int i1,
                                             int j1, int k1, int s1,
-                                            const Grid &grid) const
-{
+                                            const Grid &grid) const {
   if (i1 == i && j1 == j && k1 == k && s1 == s)
     return std::complex<double>(0.0, 0.0);
   SpinMatrix spin(2, 2);
@@ -22,20 +19,18 @@ std::complex<double> SkyrmeSO::getElement5p(int i, int j, int k, int s, int i1,
   int idx = grid.idxNoSpin(i, j, k);
 
   double h = grid.get_h();
-      //Matrix<double, -1, 3> WP = 0.5 * input.skyrme.W0 * (nablaRhoN + nablaRhoP + nablaRhoP);
-      //Matrix<double, -1, 3> WN = 0.5 * input.skyrme.W0 * (nablaRhoN + nablaRhoP + nablaRhoN);
-      //TODO: sistemare sta cosa
-  Eigen::Vector3d WP = 0.5 * params.W0 * (*data->nablaRhoN + *data->nablaRhoP + *data->nablaRhoP).row(idx);
-  Eigen::Vector3d WN = 0.5 * params.W0 * (*data->nablaRhoN + *data->nablaRhoP + *data->nablaRhoN).row(idx);
 
-  auto W = n == NucleonType::N ? WN : WP;
+  Eigen::Vector3d BP = (*data->BP).row(idx);
+  Eigen::Vector3d BN = (*data->BN).row(idx);
 
-  double Wx = W(0);
-  double Wy = W(1);
-  double Wz = W(2);
+  auto B = n == NucleonType::N ? BN : BP;
+
+  double Wx = B(0);
+  double Wy = B(1);
+  double Wz = B(2);
 
   if (std::abs(i - i1) == 1 && j == j1 && k == k1)
-    spin += (2.0 / 3.0) * (i1 - i) * (pauli[1] * Wx - pauli[2] * Wy);
+    spin += (2.0 / 3.0) * (i1 - i) * (pauli[1] * Wz - pauli[2] * Wy);
   else if (std::abs(i - i1) == 2 && j == j1 && k == k1)
     spin += -(i1 - i) * (1.0 / 24.0) *
             (pauli[1] * Wz - pauli[2] * Wy); // i1-i carries factor 2

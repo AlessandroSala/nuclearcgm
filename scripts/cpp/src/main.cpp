@@ -27,6 +27,7 @@
 #include <chrono>
 #include <cmath>
 #include <fstream>
+#include <memory>
 #include <skyrme/skyrme_so.hpp>
 #include <skyrme/skyrme_u.hpp>
 #include <vector>
@@ -65,23 +66,30 @@ int main(int argc, char **argv) {
 
   pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
       V0, Radius(0.000, r_0, A), 0.55, A, input.getZ(), input.getKappa()));
+  if (input.skyrme.W0 != 0.0) {
+    pots.push_back(make_shared<DeformedSpinOrbitPotential>(
+        V0, Radius(0.000, r_0, A), 0.55));
+  }
 
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
 
   Hamiltonian hamNoKin(make_shared<Grid>(grid), pots);
   // cout << ham.buildMatrix() << endl;
+  //
 
+  double h_omega = 41.0 / (pow(A, 0.33333));
   pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B(
       hamNoKin.build_matrix5p(),
       harmonic_oscillator_guess(grid, N, grid.get_a()), N, 35 + 0.01,
       calc.cycles, 0.0001, grid.get_n() * 1.2, 1.0e-7 / grid.get_n(), false, 1);
   // calc.tol * N
+
   pair<MatrixXcd, VectorXd> protonsEigenpair = neutronsEigenpair;
 
   Wavefunction::normalize(neutronsEigenpair.first, grid);
   Wavefunction::normalize(protonsEigenpair.first, grid);
-  constexpr double alpha = 1.0;
+
   IterationData data(input.skyrme);
 
   std::vector<double> hfEnergies;
@@ -89,6 +97,7 @@ int main(int argc, char **argv) {
   double totalEnergy = 0.0;
   data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
                         grid);
+
   int hfIter = 0;
   for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
     vector<shared_ptr<Potential>> pots;
@@ -96,44 +105,47 @@ int main(int argc, char **argv) {
     Mass hfMassN(make_shared<Grid>(grid), make_shared<IterationData>(data),
                  input.skyrme, NucleonType::N);
 
-    // pots.push_back(
-    //     make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassN)));
-    // pots.push_back(
-    //     make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassN)));
+    pots.push_back(
+        make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassN)));
+    pots.push_back(
+        make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassN)));
     pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::N,
                                         make_shared<IterationData>(data)));
-    //  pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+    // pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
     //                                      NucleonType::N));
 
     Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
     auto newNeutronsEigenpair =
-        gcgm_complex_no_B(skyrmeHam.build_matrix7p(), neutronsEigenpair.first,
-                          N, 35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol,
-                          40, 1.0e-4 / (calc.nev), false, 1);
+        gcgm_complex_no_B(skyrmeHam.buildMatrix(), neutronsEigenpair.first, N,
+                          35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
+                          1.0e-4 / (calc.nev), false, 1);
 
     Mass hfMassP(make_shared<Grid>(grid), make_shared<IterationData>(data),
                  input.skyrme, NucleonType::P);
     pots.clear();
-    // pots.push_back(
-    //     make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassP)));
-    // pots.push_back(
-    //     make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassP)));
+    pots.push_back(
+        make_shared<LocalKineticPotential>(make_shared<Mass>(hfMassP)));
+    pots.push_back(
+        make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassP)));
     pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
                                         make_shared<IterationData>(data)));
-    // pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-    //                                      NucleonType::P));
+    pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+                                         NucleonType::P));
 
-    // pots.push_back(make_shared<LocalCoulombPotential>(data.rhoP));
-    // pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
-    skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
-    auto newProtonsEigenpair = newNeutronsEigenpair;
-    // gcgm_complex_no_B(skyrmeHam.build_matrix5p(), protonsEigenpair.first, Z,
-    //                   35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
-    //                   1.0e-4 / (calc.nev), false, 1);
+    pair<MatrixXcd, VectorXd> newProtonsEigenpair;
+    if (input.useCoulomb) {
+      pots.push_back(make_shared<LocalCoulombPotential>(data.rhoP));
+      pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
+      skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
 
-    // cout << "Residual: " << (newNeutronsEigenpair.first -
-    // neutronsEigenpair.first).norm() << endl; cout << "Residual: " <<
-    // (newProtonsEigenpair.first - protonsEigenpair.first).norm() << endl;
+      newProtonsEigenpair =
+          gcgm_complex_no_B(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
+                            35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
+                            1.0e-4 / (calc.nev), false, 1);
+    } else {
+      newProtonsEigenpair = newNeutronsEigenpair;
+    }
+
     neutronsEigenpair = newNeutronsEigenpair;
     protonsEigenpair = newProtonsEigenpair;
 
@@ -142,11 +154,11 @@ int main(int argc, char **argv) {
 
     data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
                           grid);
-    double newEnergy = data.totalEnergy(input.skyrme, grid) +
+    double newEnergy = data.totalEnergyIntegral(input.skyrme, grid) +
                        data.kineticEnergy(input.skyrme, grid);
 
     double kinEn = data.kineticEnergy(input.skyrme, grid);
-    double Erea = data.totalEnergy(input.skyrme, grid) -
+    double Erea = data.totalEnergyIntegral(input.skyrme, grid) -
                   0.5 * data.densityUVPIntegral(grid);
     double Ekin = kinEn * 0.5;
     double SPE =
@@ -155,7 +167,7 @@ int main(int argc, char **argv) {
     cout << "E (SPE): " << SPE << endl;
     cout << "E kin: " << Ekin << endl;
     double totalHFEnergy =
-        data.totalEnergy(input.skyrme, grid) -
+        data.totalEnergyIntegral(input.skyrme, grid) -
         0.5 * data.densityUVPIntegral(grid) + kinEn * 0.5 +
         0.5 * (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
 

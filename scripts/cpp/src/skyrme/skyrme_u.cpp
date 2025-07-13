@@ -24,6 +24,7 @@ std::complex<double> SkyrmeU::getElement5p(int i, int j, int k, int s, int i1,
   int idx = grid.idxNoSpin(i, j, k);
   double field = n == NucleonType::N ? (*data->UN)(idx) : (*data->UP)(idx);
   return std::complex<double>(field, 0.0);
+  // TODO: pulire sotto
 
   // Parametri Skyrme
   double t0 = params.t0, t1 = params.t1, t2 = params.t2;
