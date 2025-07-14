@@ -129,19 +129,20 @@ int main(int argc, char **argv) {
         make_shared<NonLocalKineticPotential>(make_shared<Mass>(hfMassP)));
     pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
                                         make_shared<IterationData>(data)));
-    pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-                                         NucleonType::P));
+    // pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+    //                                      NucleonType::P));
 
     pair<MatrixXcd, VectorXd> newProtonsEigenpair;
     if (input.useCoulomb) {
-      pots.push_back(make_shared<LocalCoulombPotential>(data.rhoP));
-      pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
-      skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
-
+      std::cout << "Protons " << std::endl;
       newProtonsEigenpair =
           gcgm_complex_no_B(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
                             35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
                             1.0e-4 / (calc.nev), false, 1);
+      pots.push_back(make_shared<LocalCoulombPotential>(data.rhoP));
+      pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
+      skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
+
     } else {
       newProtonsEigenpair = newNeutronsEigenpair;
     }
@@ -166,10 +167,9 @@ int main(int argc, char **argv) {
     cout << "E (REA): " << Erea << endl;
     cout << "E (SPE): " << SPE << endl;
     cout << "E kin: " << Ekin << endl;
-    double totalHFEnergy =
-        data.totalEnergyIntegral(input.skyrme, grid) -
-        0.5 * data.densityUVPIntegral(grid) + kinEn * 0.5 +
-        0.5 * (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
+    double totalHFEnergy = data.totalEnergyIntegral(input.skyrme, grid) -
+                           0.5 * data.densityUVPIntegral(grid) + kinEn * 0.5 +
+                           SPE;
 
     hfEnergies.push_back(newEnergy);
     cout << "Total energy as integral: " << newEnergy << endl;

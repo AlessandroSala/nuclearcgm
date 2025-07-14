@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2025.1.3)  4 JUL 2025 15:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2025.1.3)  13 JUL 2025 17:27
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -438,51 +438,50 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 143.
 
 [5{/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}] [6] [7]
-<figures/1D_ho.png, id=307, 462.528pt x 346.896pt>
+<figures/1D_ho.png, id=297, 462.528pt x 346.896pt>
 File: figures/1D_ho.png Graphic file (type png)
 <use figures/1D_ho.png>
 Package pdftex.def Info: figures/1D_ho.png  used on input line 253.
 (pdftex.def)             Requested size: 344.005pt x 258.01701pt.
- [8 <./figures/1D_ho.png>] (./chapters/finite_differences/boundary_conditions/boundary_conditions.tex [9])
-<figures/ws_gs.png, id=333, 462.528pt x 346.896pt>
-File: figures/ws_gs.png Graphic file (type png)
-<use figures/ws_gs.png>
-Package pdftex.def Info: figures/ws_gs.png  used on input line 323.
-(pdftex.def)             Requested size: 344.005pt x 258.01701pt.
- (./chapters/finite_differences/spin/spin_treatment.tex [10] [11 <./figures/ws_gs.png>] [12]) (./chapters/finite_differences/shell_model/shell_model.tex
+ [8 <./figures/1D_ho.png>] (./chapters/finite_differences/spin/spin_treatment.tex [9] [10]) (./chapters/finite_differences/shell_model/shell_model.tex
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-) (./chapters/conjugate_gradient/gcg.tex [13]
+) (./chapters/conjugate_gradient/gcg.tex [11]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 9.
- [14]) (./chapters/finite_differences/shell_model/deformed_woods_saxon.tex [15]) [16] (./chapters/hartree_fock/introduction/hartree_fock_introduction.tex) (./chapters/hartree_fock/skyrme/skyrme.tex [17] [18] [19]
+ [12]) (./chapters/finite_differences/shell_model/deformed_woods_saxon.tex [13]) [14] (./chapters/hartree_fock/introduction/hartree_fock_introduction.tex) (./chapters/hartree_fock/skyrme/skyrme.tex [15] [16] [17]
 \openout2 = `chapters/hartree_fock/skyrme/functional.aux'.
 
- (./chapters/hartree_fock/skyrme/functional.tex) [20
+ (./chapters/hartree_fock/skyrme/functional.tex
+Underfull \hbox (badness 10000) in paragraph at lines 28--30
 
-]) [21
+ []
+
+[18
+
+]) [19]) [20
 
 
-] [22] (./master.aux (./chapters/hartree_fock/skyrme/functional.aux))
+] [21] (./master.aux (./chapters/hartree_fock/skyrme/functional.aux))
 Package rerunfilecheck Info: File `master.out' has not changed.
-(rerunfilecheck)             Checksum: 387C98EF121E12C004590D3A4E313DC9;7013.
+(rerunfilecheck)             Checksum: F3F5349E34025A5031AA212B047881A3;7075.
  ) 
 Here is how much of TeX's memory you used:
- 13054 strings out of 476034
- 207625 string characters out of 5792865
- 1869388 words of memory out of 6000000
- 33121 multiletter control sequences out of 15000+600000
+ 13040 strings out of 476034
+ 207061 string characters out of 5792865
+ 1868388 words of memory out of 6000000
+ 33110 multiletter control sequences out of 15000+600000
  525900 words of font info for 83 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
  75i,18n,77p,576b,490s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on master.pdf (22 pages, 343486 bytes).
+Output written on master.pdf (21 pages, 317594 bytes).
 PDF statistics:
- 578 PDF objects out of 1000 (max. 8388607)
- 504 compressed objects within 6 object streams
- 169 named destinations out of 1000 (max. 500000)
- 363 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 565 PDF objects out of 1000 (max. 8388607)
+ 495 compressed objects within 5 object streams
+ 171 named destinations out of 1000 (max. 500000)
+ 342 words of extra memory for PDF output out of 10000 (max. 10000000)
 

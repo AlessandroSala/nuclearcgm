@@ -80,7 +80,6 @@ Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
 
   // Chabant
   // + 1/8 * (t2 - 3*t1 - (3*t1*x1 + t2*x2)/2) * nabla^2 rho
-  // //TODO: WTF IS HAPPENING HERE?
   field += (1.0 / 16.0) * (t2 * (2 + x2) - 3 * t1 * (2 + x1)) * nabla2rho;
 
   // + 1/16 * (t2 + 3*t1 + 6*t1*x1 + 2*t2*x2) * nabla^2 rhoQ
@@ -94,7 +93,7 @@ Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
   //          nabla2rhoQ;
 
   // - W0/2 * nabla . (J + JQ)
-  field -= 0.5 * W0 * nablaJJQ;
+  // field -= 0.5 * W0 * nablaJJQ;
 
   // Spin density = 0
   //  + t3/12 * rho^(alpha-1) * [...]

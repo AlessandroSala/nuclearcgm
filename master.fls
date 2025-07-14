@@ -750,15 +750,6 @@ INPUT ./figures/1D_ho.png
 INPUT figures/1D_ho.png
 INPUT ./figures/1D_ho.png
 INPUT ./figures/1D_ho.png
-INPUT ./chapters/finite_differences/boundary_conditions/boundary_conditions.tex
-INPUT chapters/finite_differences/boundary_conditions/boundary_conditions.tex
-INPUT ./chapters/finite_differences/boundary_conditions/boundary_conditions.tex
-INPUT chapters/finite_differences/boundary_conditions/boundary_conditions.tex
-INPUT ./figures/ws_gs.png
-INPUT ./figures/ws_gs.png
-INPUT figures/ws_gs.png
-INPUT ./figures/ws_gs.png
-INPUT ./figures/ws_gs.png
 INPUT ./chapters/finite_differences/spin/spin_treatment.tex
 INPUT chapters/finite_differences/spin/spin_treatment.tex
 INPUT ./chapters/finite_differences/spin/spin_treatment.tex

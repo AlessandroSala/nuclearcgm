@@ -1,4 +1,5 @@
 #include "operators/differential_operators.hpp"
+#include "Eigen/src/Core/Matrix.h"
 #include <omp.h> // Include OpenMP header
 
 Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
@@ -31,6 +32,21 @@ Eigen::VectorXcd Operators::dvNoSpin(const Eigen::VectorXcd &psi,
       for (int k = 0; k < grid.get_n(); ++k) {
         int idx = grid.idxNoSpin(i, j, k);
         res(idx) = Operators::derivativeNoSpin(psi, i, j, k, grid, dir);
+      }
+    }
+  }
+  return res;
+}
+
+Eigen::VectorXd Operators::dv2NoSpin(const Eigen::VectorXd &psi,
+                                     const Grid &grid, char dir) {
+  Eigen::VectorXd res(grid.get_total_points());
+#pragma omp parallel for collapse(3)
+  for (int i = 0; i < grid.get_n(); ++i) {
+    for (int j = 0; j < grid.get_n(); ++j) {
+      for (int k = 0; k < grid.get_n(); ++k) {
+        int idx = grid.idxNoSpin(i, j, k);
+        res(idx) = Operators::derivative2NoSpin(psi, i, j, k, grid, dir);
       }
     }
   }
@@ -86,6 +102,16 @@ Operators::gradNoSpin(const Eigen::VectorXd &vec, const Grid &grid) {
   res.col(0) = dx;
   res.col(1) = dy;
   res.col(2) = dz;
+  return res;
+}
+
+Eigen::VectorXd Operators::lapNoSpin(const Eigen::VectorXd &vec,
+                                     const Grid &grid) {
+  Eigen::VectorXd res(vec.rows());
+  res.setZero();
+  res += dv2NoSpin(vec, grid, 'x');
+  res += dv2NoSpin(vec, grid, 'y');
+  res += dv2NoSpin(vec, grid, 'z');
   return res;
 }
 
@@ -185,13 +211,23 @@ std::complex<double> Operators::derivativeNoSpin(const Eigen::VectorXcd &psi,
     std::complex<double> f0 = psi(idx(pos, pos, pos));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
     return (f0 - f_1) / h;
-  } else {
+  } else if (pos == 2 || pos == n - 3) {
     // Derivata centrata a 5 punti (ordine 4)
     std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 8.0 * f1 - 8.0 * f_1 + f_2) / (12.0 * h);
+  } else {
+    std::complex<double> f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    std::complex<double> f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    return (-f_3 + 9.0 * f_2 - 45.0 * f_1 + 45.0 * f1 - 9.0 * f2 + f3) /
+           (60.0 * h);
   }
 }
 
@@ -224,66 +260,75 @@ std::complex<double> Operators::derivative(const Eigen::VectorXcd &psi, int i,
     std::complex<double> f0 = psi(idx(pos, pos, pos));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
     return (f0 - f_1) / h;
-  } else {
+  } else if (pos == 2 || pos == n - 3) {
     // Derivata centrata a 5 punti (ordine 4)
     std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 8.0 * f1 - 8.0 * f_1 + f_2) / (12.0 * h);
+  } else {
+    std::complex<double> f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    std::complex<double> f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    return (-f_3 + 9.0 * f_2 - 45.0 * f_1 + 45.0 * f1 - 9.0 * f2 + f3) /
+           (60.0 * h);
   }
 }
 
-// std::complex<double> Operators::derivative2(const Eigen::VectorXcd &psi, int
-// i,
-//                                             int j, int k, int s,
-//                                             const Grid &grid, char axis) {
-//
-//   int n = grid.get_n();
-//   double h = grid.get_h();
-//
-//   auto idx = [&](int ii, int jj, int kk) {
-//     return axis == 'x'   ? grid.idx(ii, j, k, s)
-//            : axis == 'y' ? grid.idx(i, jj, k, s)
-//                          : grid.idx(i, j, kk, s);
-//   };
-//
-//   int pos = axis == 'x' ? i : axis == 'y' ? j : k;
-//
-//   // Estremi: schema a 2 punti (ordine 1)
-//   if (pos == 0) {
-//     // Note: Original code has (f1-f0)/h for 2nd derivative approx at
-//     boundary,
-//     // which is unusual. A typical 2nd derivative forward stencil is (f2 -
-//     2*f1
-//     // + f0) / (h*h). Replicating original logic:
-//     std::complex<double> f0 = psi(idx(pos, pos, pos));
-//     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
-//     // This looks like a first derivative stencil. If it's meant for a second
-//     // derivative, it might be a simplified or specific boundary condition.
-//     For
-//     // example, (psi(idx(pos+2,...)) - 2.0 * psi(idx(pos+1,...)) +
-//     // psi(idx(pos,...))) / (h*h) For now, keeping it as it was:
-//     return (f1 - f0) / (h); // Prima approssimazione grezza
-//   } else if (pos == 1 || pos == n - 2) {
-//     // Centrata a 3 punti (ordine 2)
-//     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
-//     std::complex<double> f0 = psi(idx(pos, pos, pos));
-//     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
-//     return (f_1 - 2.0 * f0 + f1) / (h * h);
-//   } else if (pos == n - 1) {
-//     // Note: Similar to pos == 0, this looks like a first derivative backward
-//     // stencil. Replicating original logic:
-//     std::complex<double> f0 = psi(idx(pos, pos, pos));
-//     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
-//     return (f0 - f_1) / (h); // Stessa approssimazione rozza in coda
-//   } else {
-//     // Centrata a 5 punti (ordine 4)
-//     std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
-//     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
-//     std::complex<double> f0 = psi(idx(pos, pos, pos));
-//     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
-//     std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
-//     return (-f2 + 16.0 * f1 - 30.0 * f0 + 16.0 * f_1 - f_2) / (12.0 * h * h);
-//   }
-// }
+double Operators::derivative2NoSpin(const Eigen::VectorXd &psi, int i, int j,
+                                    int k, const Grid &grid, char axis) {
+
+  int n = grid.get_n();
+  double h = grid.get_h();
+
+  auto idx = [&](int ii, int jj, int kk) {
+    return axis == 'x'   ? grid.idxNoSpin(ii, j, k)
+           : axis == 'y' ? grid.idxNoSpin(i, jj, k)
+                         : grid.idxNoSpin(i, j, kk);
+  };
+
+  int pos = axis == 'x' ? i : axis == 'y' ? j : k;
+
+  // Estremi: schema a 2 punti (ordine 1)
+  if (pos == 0) {
+    double f0 = psi(idx(pos, pos, pos));
+    double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    return (f1 - f0) / (h);
+  } else if (pos == 1 || pos == n - 2) {
+    // Centrata a 3 punti (ordine 2)
+    double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    double f0 = psi(idx(pos, pos, pos));
+    double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    return (f_1 - 2.0 * f0 + f1) / (h * h);
+  } else if (pos == n - 1) {
+    // Note: Similar to pos == 0, this looks like a first derivative backward
+    // stencil. Replicating original logic:
+    double f0 = psi(idx(pos, pos, pos));
+    double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    return (f0 - f_1) / (h); // Stessa approssimazione rozza in coda
+  } else if (pos == 2 || pos == n - 3) {
+    // Centrata a 5 punti (ordine 4)
+    double f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    double f0 = psi(idx(pos, pos, pos));
+    double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    double f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    return (-f2 + 16.0 * f1 - 30.0 * f0 + 16.0 * f_1 - f_2) / (12.0 * h * h);
+  } else {
+    double f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    double f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    double f0 = psi(idx(pos, pos, pos));
+    double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    double f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    double f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    return (2.0 * f3 - 27.0 * f2 + 270.0 * f1 + -490.0 * f0 + 270.0 * f_1 -
+            27.0 * f_2 + 2.0 * f_3) /
+           (180.0 * h * h);
+  }
+}

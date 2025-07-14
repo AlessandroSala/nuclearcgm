@@ -31,6 +31,7 @@ double Mass::getMass(size_t i, size_t j, size_t k) const noexcept {
   // Chabanat
   // res += (1.0 / 8.0) * (t1 * (2 + x1) + t2 * (2 + x2)) * rho;
   // res -= (1.0 / 8.0) * (t1 * (1 + 2 * x1) + t2 * (1 + 2 * x2)) * rho_q;
+  //
 
   return res;
 }
