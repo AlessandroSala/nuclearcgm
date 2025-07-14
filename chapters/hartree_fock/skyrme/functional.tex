@@ -1,6 +1,6 @@
 \subsection{Functional}
-For $\boldsymbol{s} = 0$ (even-even nuclei), the functional reduces to the following terms, assuming only $t_0, t_3$ different from zero
-\subsubsection{t0}
+For $\boldsymbol{s} = 0$ (even-even nuclei), the functional reduces to the following terms
+\subsubsection{t0 t3 Interaction}
 The $t_0$ part of the functional is given by
 \[\mathcal H_0 = \frac 1 2 t_0 [(1+\frac {x_0} 2)\rho^2 - (x_0 + \frac 1 2 )(\rho_p^2 + \rho_n^2)]\]
 Taking the variation with respect to $\rho_q$, we get
@@ -9,7 +9,6 @@ Taking the variation with respect to $\rho_q$, we get
 \end{align}
 Which in the case where $\rho_n = \rho_p = \rho_q$, $x_0 = 0$ gives
 \[\fdv{H_0}{\rho_q} =\frac 1 2  t_0 (2 \rho - \rho_q ) \]
-\subsubsection{t3}
 The $t_3$ part of the functional is given by
 \[\mathcal H _3 = \frac 1 {24} t_3 \rho^\sigma [(2+x_3)\rho^2 -(2x_3+1)(\rho_p^2 + \rho_n^2)]\]
 Taking the variation with respect to $\rho_q$, we get
@@ -20,4 +19,33 @@ Taking the variation with respect to $\rho_q$, we get
 \end{align}
 In the case where $\rho_n = \rho_p = \rho_q$, $x_3 = 0,\ \sigma = 1$, we get
 \[\fdv{H_3}{\rho_q} = \frac 1 {24} t_3 \rho [6\rho - 3\rho_q] = \frac{t_3}{4}(\rho^2 - \rho_q^2)\] 
+Assuming only $t_0$ and $t_3$ to be non zero parameters, we get the following single particle equation
+\begin{equation}
+    \bigg(-\frac{\hbar^2}{2m} \nabla^2 + \fdv{\mathcal H_0}{\rho_q} + \fdv{\mathcal H_3}{\rho_q}\bigg)\phi_\alpha = \varepsilon_\alpha\phi_\alpha
+\end{equation}
+
+\subsection{Full interaction, neglecting Coulomb, S.O. and S.G. terms}
+We can add further terms, which will also depend on $\tau_q, \nabla\rho_q$.
+\\
+\begin{align}
+    \mathcal H_\text{eff} = &+\frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\rho\tau  \\&+ \frac 1 8 [t_2(1+2x_2)-t_1(1+2x_1)]\rho_q\tau_q
+    \\\fdv{\mathcal H_\text{eff}}{\rho_q} =&+ \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\tau \\& + \frac 1 8 [t_2(1+2x_2)-t_1(1+2x_1)]\tau_q
+    \\\fdv{\mathcal H_\text{eff}}{\tau_q} =&+ \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\rho\\ &+ \frac 1 8 [t_2(1+2x_2)-t_1(1+2x_1)]\rho_q
+\end{align}
+\begin{align}
+    \mathcal H_\text{fin} = &+\frac 1 {32} [3t_1(2+x_1)-t_2(2+x_2)] | \nabla\rho|^2 \\&- \frac 1 {32} [3t_1(2x_1+1)+t_2(2x_2+1)] ( |\nabla\rho_p| ^2 + |\nabla\rho_n|^2) 
+\end{align}
+Having in mind the relation 
+\[\mathcal F [\rho] = |\nabla\rho|^2 \implies \fdv {\mathcal F} {\rho} = -2\nabla^2 \rho\]
+We get
+\begin{align}
+    \fdv{\mathcal H_\text{fin}}{\rho_q} = &+ \frac 1 {16} [t_2(2+x_2)-3t_1(2+x_1)] \nabla^2 \rho \\&+ \frac 1 {16} [3t_1(2x_1+1)+t_2(2x_2+1)] ( \nabla^2 \rho_q )
+\end{align}
+The final single particle equation will now have effective mass terms and further ones in the mean field
+\begin{align}
+    \bigg(-\nabla \frac {\hbar^2}{2m^*(\mathbf r)} \nabla + \fdv{(\mathcal{H}_0 + \mathcal{H}_3 + \mathcal{H}_\text{eff} + \mathcal{H}_\text{fin})}{\rho_q} \bigg)\phi_\alpha = \varepsilon_\alpha\phi_\alpha
+\end{align}
+Where 
+\[\frac{\hbar^2}{2m^*(\mathbf r)} = \frac{\hbar^2}{2m} + \fdv{\mathcal{H}_\text{eff}}{\tau_q}\]
+
 

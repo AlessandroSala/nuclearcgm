@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 density = np.genfromtxt("output/density.csv")
-n = 40
-a = 13
+n = 30
+a = 12
 
 def den(i, j):
     idx = i*n + j + n//2

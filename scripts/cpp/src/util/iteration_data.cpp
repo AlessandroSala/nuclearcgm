@@ -88,10 +88,16 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
             << " ms" << std::endl;
   start = std::chrono::steady_clock::now();
 
+  // nabla2RhoN =
+  //     std::make_shared<Eigen::VectorXd>(Operators::divNoSpin(*nablaRhoN,
+  //     grid));
+  // nabla2RhoP =
+  //     std::make_shared<Eigen::VectorXd>(Operators::divNoSpin(*nablaRhoP,
+  //     grid));
   nabla2RhoN =
-      std::make_shared<Eigen::VectorXd>(Operators::divNoSpin(*nablaRhoN, grid));
+      std::make_shared<Eigen::VectorXd>(Operators::lapNoSpin(*rhoN, grid));
   nabla2RhoP =
-      std::make_shared<Eigen::VectorXd>(Operators::divNoSpin(*nablaRhoP, grid));
+      std::make_shared<Eigen::VectorXd>(Operators::lapNoSpin(*rhoP, grid));
 
   end = std::chrono::steady_clock::now();
   std::cout << "Time elapsed nabla 2 rho "
