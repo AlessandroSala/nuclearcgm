@@ -409,7 +409,7 @@ ComplexSparseMatrix Hamiltonian::buildMatrix() {
                     }
                   }
 
-                  if (val != ComplexScalar(0, 0)) {
+                  if (val != ComplexScalar(0.0, 0.0)) {
                     const size_t n0 = grid_ptr_->idx(i, j, k, s);
                     const size_t n1 = grid_ptr_->idx(i1, j1, k1, s1);
                     localTriplets.emplace_back(n0, n1, val);

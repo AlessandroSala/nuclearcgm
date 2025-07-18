@@ -311,7 +311,19 @@ And the problem will be reduced to
 \input{chapters/hartree_fock/introduction/hartree_fock_introduction.tex}
 \input{chapters/hartree_fock/skyrme/skyrme.tex}
 
+\newpage
 \section{Appendix}
+
+\begin{align}
+    \mathcal H &= \mathcal K + \mathcal V 
+    \\&= \mathcal K + \mathcal H_0 + \mathcal H_3 + \mathcal H_\text{eff}+\mathcal H_\text{fin}+\mathcal H_\text{so} + \mathcal H_\text{sg} + \mathcal H_\text{coul}
+    \\T &= \int \mathcal K d^3r= \int \frac{\hbar^2}{2m}\tau(\mathbf r) d^3r
+    \\E_\text{int} &= \int \mathcal{V} d^3r
+    \\E_1 &= T + E_\text{int}
+    \\E_2 &= \frac 1 2 (T + \sum_\alpha \varepsilon_\alpha ) + E_\text{int} - \frac 1 2 \sum_q \int U_q  \rho_q d^3r
+\end{align}
+
+
 
 \begin{equation}
     -\frac{\hbar ^ 2}{2m}\nabla ^ 2 \psi + V(\mathbf r) \psi = E \psi

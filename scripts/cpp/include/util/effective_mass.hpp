@@ -20,7 +20,7 @@ public:
 
   EffectiveMass(const Grid &grid, Eigen::VectorXd &rho, Eigen::VectorXd &rho_q,
                 Eigen::MatrixX3d &nablaRho, Eigen::MatrixX3d &nabla_rho_q,
-                SkyrmeParameters p);
+                double m, SkyrmeParameters p);
 
   Eigen::VectorXd vector;
   Eigen::MatrixX3d gradient;

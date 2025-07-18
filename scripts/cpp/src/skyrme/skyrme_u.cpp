@@ -2,7 +2,6 @@
 #include "constants.hpp"
 #include "types.hpp"
 #include <cmath>
-#include <iostream>
 
 SkyrmeU::SkyrmeU(SkyrmeParameters p, NucleonType n_,
                  std::shared_ptr<IterationData> data_)

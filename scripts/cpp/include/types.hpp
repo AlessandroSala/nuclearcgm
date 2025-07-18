@@ -11,7 +11,7 @@ typedef Eigen::Matrix<ComplexScalar, Eigen::Dynamic, Eigen::Dynamic>
 typedef Eigen::Matrix<ComplexScalar, Eigen::Dynamic, 1> ComplexDenseVector;
 typedef Eigen::SparseMatrix<ComplexScalar> ComplexSparseMatrix;
 typedef Eigen::Matrix<ComplexScalar, 2, 2> SpinMatrix;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 9> RealDoubleTensor;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 9> Real2Tensor;
 
 // Real data types
 typedef Eigen::MatrixXd DenseMatrix;

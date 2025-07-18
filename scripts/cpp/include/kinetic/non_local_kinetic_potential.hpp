@@ -1,25 +1,32 @@
 
 #pragma once
 #include "potential.hpp"
-#include <Eigen/Dense>
+#include "util/iteration_data.hpp"
 #include "util/mass.hpp"
+#include <Eigen/Dense>
 #include <memory>
 /**
- * @brief Implements a non local kinetic energy term, related to the Skyrme interaction.
+ * @brief Implements a non local kinetic energy term, related to the Skyrme
+ * interaction.
  */
 class NonLocalKineticPotential : public Potential {
 public:
-    /**
-     * @brief Implements a non local kinetic energy term, related to the Skyrme interaction.
-     * @param m Mass instance
-     */
-    NonLocalKineticPotential(std::shared_ptr<Mass> m_);
+  /**
+   * @brief Implements a non local kinetic energy term, related to the Skyrme
+   * interaction.
+   * @param m Mass instance
+   */
+  NonLocalKineticPotential(std::shared_ptr<IterationData> d, NucleonType n);
 
-    double getValue(double x, double y, double z) const override;
-    Eigen::VectorXd getFactor(double x, double y, double z) const;
-    std::complex<double> getElement(int i, int j, int k, int s, int i1, int j1, int k1, int s1, const Grid& grid) const ;
-    std::complex<double> getElement5p(int i, int j, int k, int s, int i1, int j1, int k1, int s1, const Grid& grid) const override;
+  double getValue(double x, double y, double z) const override;
+  Eigen::VectorXd getFactor(double x, double y, double z) const;
+  std::complex<double> getElement(int i, int j, int k, int s, int i1, int j1,
+                                  int k1, int s1, const Grid &grid) const;
+  std::complex<double> getElement5p(int i, int j, int k, int s, int i1, int j1,
+                                    int k1, int s1,
+                                    const Grid &grid) const override;
 
 public:
-    std::shared_ptr<Mass> m;
+  std::shared_ptr<IterationData> data;
+  NucleonType nucleon;
 };
