@@ -127,7 +127,8 @@ void Output::shellsToFile(
   double eRea = skyrmeEnergy - 0.5 * iterationData->densityUVPIntegral(grid);
   double E = eRea + eKin * 0.5 + SPE;
   file << "E (REA): " << eRea << " MeV" << std::endl;
-  file << "E: " << E << " MeV" << std::endl;
+  file << "E: " << iterationData->HFEnergy(SPE * 2.0, grid) << " MeV"
+       << std::endl;
   file << std::endl;
 
   file << "=== Neutrons ===" << std::endl;
@@ -144,6 +145,14 @@ void Output::shellsToFile(
   }
 
   matrixToFile("density.csv", *(iterationData->rhoN));
+  matrixToFile("kindensity.csv", *(iterationData->tauN));
+  matrixToFile("nabla2dens.csv", *(iterationData->nabla2RhoN));
+  matrixToFile("mass.csv", iterationData->massN->vector);
+  Eigen::VectorXd gradMod = (iterationData->massN->gradient *
+                             iterationData->massN->gradient.adjoint())
+                                .diagonal()
+                                .real();
+  matrixToFile("gradMass.csv", gradMod);
 
   file.close();
 }

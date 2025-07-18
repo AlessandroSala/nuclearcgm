@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-density = np.genfromtxt("output/density.csv")
+density = np.genfromtxt("output/mass.csv")
 n = 30
 a = 12
 

@@ -20,22 +20,28 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> spinP;
   std::shared_ptr<Eigen::VectorXd> nabla2RhoN;
   std::shared_ptr<Eigen::VectorXd> nabla2RhoP;
-  std::shared_ptr<RealDoubleTensor> JN;
-  std::shared_ptr<RealDoubleTensor> JP;
+  std::shared_ptr<Real2Tensor> JN;
+  std::shared_ptr<Real2Tensor> JP;
+  std::shared_ptr<Eigen::MatrixX3d> JvecN;
+  std::shared_ptr<Eigen::MatrixX3d> JvecP;
   std::shared_ptr<Eigen::VectorXcd> divJN;
   std::shared_ptr<Eigen::VectorXcd> divJP;
   std::shared_ptr<Eigen::VectorXd> UN;
   std::shared_ptr<Eigen::VectorXd> UP;
   std::shared_ptr<Eigen::MatrixX3d> BN;
   std::shared_ptr<Eigen::MatrixX3d> BP;
+  std::shared_ptr<Eigen::VectorXd> UCoul;
 
   SkyrmeParameters params;
+  InputParser input;
+  double massCorr;
 
   void updateQuantities(const Eigen::MatrixXcd &neutrons,
                         const Eigen::MatrixXcd &protons, int A, int Z,
                         const Grid &grid);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
+  double HFEnergy(double SPE, const Grid &grid);
 
   double C0RhoEnergy(SkyrmeParameters params, const Grid &grid);
   double C1RhoEnergy(SkyrmeParameters params, const Grid &grid);
@@ -47,9 +53,13 @@ public:
   double C1nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);
 
   double kineticEnergy(SkyrmeParameters params, const Grid &grid);
+  double kineticEnergyEff(SkyrmeParameters params, const Grid &grid);
   double coulombEnergy(SkyrmeParameters params, const Grid &grid);
 
   double densityUVPIntegral(const Grid &grid);
 
-  IterationData(SkyrmeParameters params);
+  double CoulombDirectEnergy(const Grid &grid);
+  double SlaterCoulombEnergy(const Grid &grid);
+
+  IterationData(InputParser input);
 };

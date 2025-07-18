@@ -19,3 +19,19 @@ Eigen::VectorXcd Operators::P(const Eigen::VectorXcd &psi, const Grid &grid) {
   }
   return res;
 }
+
+Eigen::MatrixX3d Operators::leviCivita(Real2Tensor J) {
+
+  Eigen::MatrixX3d res(J.rows(), 3);
+
+  // J_x = J_yz - J_zy
+  res.col(0) = J.col(3 * 1 + 2) - J.col(2 * 3 + 1);
+
+  // J_y = J_zx - J_xz
+  res.col(1) = J.col(3 * 2 + 0) - J.col(3 * 0 + 2);
+
+  // J_z = J_xy - J_yx
+  res.col(2) = J.col(3 * 0 + 1) - J.col(3 * 1 + 0);
+
+  return res;
+}

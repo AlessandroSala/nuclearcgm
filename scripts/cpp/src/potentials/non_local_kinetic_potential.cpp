@@ -2,18 +2,20 @@
 #include "constants.hpp"
 #include <cmath>
 
-NonLocalKineticPotential::NonLocalKineticPotential(std::shared_ptr<Mass> m_)
-    : m(m_) {}
+NonLocalKineticPotential::NonLocalKineticPotential(
+    std::shared_ptr<IterationData> d, NucleonType n)
+    : data(d), nucleon(n) {}
 double NonLocalKineticPotential::getValue(double x, double y, double z) const {
   return 1;
 }
-// TODO: not really, implement 3p derivatives
+
 std::complex<double>
 NonLocalKineticPotential::getElement(int i, int j, int k, int s, int i1, int j1,
                                      int k1, int s1, const Grid &grid) const {
 
   return 0;
 }
+
 std::complex<double>
 NonLocalKineticPotential::getElement5p(int i, int j, int k, int s, int i1,
                                        int j1, int k1, int s1,
@@ -21,10 +23,18 @@ NonLocalKineticPotential::getElement5p(int i, int j, int k, int s, int i1,
   if (i == i1 && j == j1 && k == k1 && s == s1) {
     return std::complex<double>(0.0, 0.0);
   }
+
+  if (s != s1)
+    return std::complex<double>(0.0, 0.0);
+
   double val = 0.0;
   double h = grid.get_h();
 
-  Eigen::Vector3d C = -m->getGradient(i, j, k);
+  int idx = grid.idxNoSpin(i, j, k);
+
+  Eigen::Vector3d C = nucleon == NucleonType::N
+                          ? -data->massN->gradient.row(idx)
+                          : -data->massP->gradient.row(idx);
 
   if (s == s1 && ((i == i1 && j == j1 && std::abs(k1 - k) == 1))) {
     val += (k1 - k) * 8.0 * C(2);

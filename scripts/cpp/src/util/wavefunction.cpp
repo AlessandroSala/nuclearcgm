@@ -43,6 +43,38 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
   }
   return rho;
 }
+Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
+  Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
+  double h = grid.get_h();
+  int n = grid.get_n();
+
+#pragma omp parallel for collapse(3)
+  for (int ii = 0; ii < n; ++ii) {
+    for (int jj = 0; jj < n; ++jj) {
+      for (int kk = 0; kk < n; ++kk) {
+        int iNS = grid.idxNoSpin(ii, jj, kk);
+        double potential_sum = 0.0;
+
+        for (int i = 0; i < n; ++i) {
+          for (int j = 0; j < n; ++j) {
+            for (int k = 0; k < n; ++k) {
+              if (ii == i && jj == j && kk == k) {
+                continue;
+              }
+              int iNSP = grid.idxNoSpin(i, j, k);
+              potential_sum += h * h * h * rho(iNSP) /
+                               (sqrt((ii - i) * (ii - i) + (jj - j) * (jj - j) +
+                                     (kk - k) * (kk - k)));
+            }
+          }
+        }
+        res(iNS) = potential_sum + rho(iNS) * h * h * 1.939285;
+      }
+    }
+  }
+
+  return res * nuclearConstants::e2 / 2;
+}
 
 /**
  * @brief Calculates the Mean field
@@ -60,7 +92,7 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
 Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
                       Eigen::VectorXd &tau, Eigen::VectorXd &tauQ,
                       Eigen::VectorXd &nabla2rho, Eigen::VectorXd &nabla2rhoQ,
-                      Eigen::VectorXd &nablaJJQ, const Grid &grid,
+                      Eigen::VectorXd &divJJQ, const Grid &grid,
                       SkyrmeParameters params) {
   double t0 = params.t0, t1 = params.t1, t2 = params.t2, t3 = params.t3;
   double x0 = params.x0, x1 = params.x1, x2 = params.x2, x3 = params.x3;
@@ -87,16 +119,8 @@ Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
   field +=
       (1.0 / 16.0) * (3 * t1 * (2 * x1 + 1) + t2 * (2 * x2 + 1)) * nabla2rhoQ;
 
-  // field += (1.0 / 8.0) * (t2 - t1 + t2 * x2 - t1 * x1) * tauQ;
+  field += -0.5 * W0 * divJJQ;
 
-  // field += (1.0 / 16.0) * (t2 + 3.0 * t1 + 6.0 * t1 * x1 + 2.0 * t2 * x2) *
-  //          nabla2rhoQ;
-
-  // - W0/2 * nabla . (J + JQ)
-  // field -= 0.5 * W0 * nablaJJQ;
-
-  // Spin density = 0
-  //  + t3/12 * rho^(alpha-1) * [...]
   field +=
       ((t3 / 12.0) * pow(rho.array(), sigma - 1.0) *
        ((1.0 + 0.5 * x3) * (sigma + 2.0) * pow(rho.array(), 2.0) -
@@ -168,7 +192,7 @@ Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
   Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   for (int i = 0; i < psi.cols(); ++i) {
     Eigen::MatrixX3cd grad = Operators::grad(psi.col(i), grid);
-    auto mult = (grad * grad.adjoint()).diagonal().real();
+    Eigen::VectorXd mult = (grad * grad.adjoint()).diagonal().real();
     for (int l = 0; l < grid.get_total_spatial_points(); ++l) {
       res(l) += mult(2 * l) + mult(2 * l + 1);
     }

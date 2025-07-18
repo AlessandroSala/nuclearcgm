@@ -1,4 +1,5 @@
 {
+  "coulomb": false,
   "outputName": "output",
     "calculation": "sp",
     "box": {
@@ -10,7 +11,7 @@
       "cycles": 70,
       "energyTol": 0.0001,
       "gcg": {
-        "maxIter": 4,
+        "maxIter": 20,
         "nev": 0,
         "tol": 0.0006
       }
@@ -39,8 +40,7 @@
             "alpha": 0.55
         }
     ],
-    "kappa": 0.86,
-  "coulomb": false
+    "kappa": 0.86
 
     
 }

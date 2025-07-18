@@ -74,9 +74,6 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd &psi, const Grid &grid,
   return res;
 }
 
-// gradNoSpin benefits from dvNoSpin being parallelized.
-// No direct OpenMP pragmas are typically needed here if the called functions
-// are parallel.
 Eigen::MatrixX3cd Operators::grad(const Eigen::VectorXcd &vec,
                                   const Grid &grid) {
   Eigen::MatrixX3cd res(vec.rows(), 3);

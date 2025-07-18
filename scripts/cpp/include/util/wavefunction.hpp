@@ -6,6 +6,7 @@
 
 namespace Wavefunction {
 Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid);
+Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid);
 Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
                       Eigen::VectorXd &tau, Eigen::VectorXd &tauQ,
                       Eigen::VectorXd &nabla2rho, Eigen::VectorXd &nabla2rhoQ,

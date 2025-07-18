@@ -2,8 +2,9 @@
 #include "constants.hpp"
 #include <cmath>
 
-LocalKineticPotential::LocalKineticPotential(std::shared_ptr<Mass> m_)
-    : m(m_) {}
+LocalKineticPotential::LocalKineticPotential(std::shared_ptr<IterationData> d,
+                                             NucleonType n)
+    : data(d), nucleon(n) {}
 double LocalKineticPotential::getValue(double x, double y, double z) const {
   return 1;
 }
@@ -15,6 +16,7 @@ std::complex<double> LocalKineticPotential::getElement(int i, int j, int k,
 
   return 0;
 }
+
 std::complex<double>
 LocalKineticPotential::getElement5p(int i, int j, int k, int s, int i1, int j1,
                                     int k1, int s1, const Grid &grid) const {
@@ -22,7 +24,10 @@ LocalKineticPotential::getElement5p(int i, int j, int k, int s, int i1, int j1,
   double hh = grid.get_h() * grid.get_h();
 
   using nuclearConstants::h_bar;
-  double C = -m->getMass(i, j, k);
+  int idx = grid.idxNoSpin(i, j, k);
+
+  double C = nucleon == NucleonType::N ? -data->massN->vector(idx)
+                                       : -data->massP->vector(idx);
 
   if (i == i1 && j == j1 && k == k1 && s == s1) {
     val = -C * (90.0 / 12.0) / hh;

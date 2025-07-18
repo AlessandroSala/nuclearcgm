@@ -22,7 +22,8 @@ double Mass::getMass(size_t i, size_t j, size_t k) const noexcept {
   res += h_bar * h_bar / (2 * m);
 
   // Stev. I same  as Chab
-  res += 0.25 * (t1 + t2 + 0.5 * (t1 * x1 + t2 * x2)) * rho;
+  // res += 0.25 * (t1 + t2 + 0.5 * (t1 * x1 + t2 * x2)) * rho;
+  res += (1.0 / 8.0) * (t1 * (2 + x1) + t2 * (2 + x2)) * rho;
   // Original
   // res += (1.0 / 8.0) * (t2 * (1 + 2 * x2) - t1 * (1 + 2 * x1)) * rho_q;
   // Modified, should be correct
