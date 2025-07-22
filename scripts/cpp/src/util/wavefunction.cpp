@@ -43,6 +43,7 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
   }
   return rho;
 }
+
 Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
   Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   double h = grid.get_h();
@@ -62,18 +63,18 @@ Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
                 continue;
               }
               int iNSP = grid.idxNoSpin(i, j, k);
-              potential_sum += h * h * h * rho(iNSP) /
+              potential_sum += h * h * rho(iNSP) /
                                (sqrt((ii - i) * (ii - i) + (jj - j) * (jj - j) +
                                      (kk - k) * (kk - k)));
             }
           }
         }
-        res(iNS) = potential_sum + rho(iNS) * h * h * 1.939285;
+        res(iNS) = potential_sum + 0 * rho(iNS) * h * h * h * 1.939285;
       }
     }
   }
 
-  return res * nuclearConstants::e2 / 2;
+  return res * nuclearConstants::e2;
 }
 
 /**
@@ -223,6 +224,9 @@ Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
 
   for (int col = 0; col < psi.cols(); ++col) {
     auto grad = Operators::grad(psi.col(col), grid);
+    if (grad.array().isNaN().any()) {
+      std::cout << "grad is nan" << std::endl;
+    }
 #pragma omp parallel for collapse(3)
     for (int i = 0; i < grid.get_n(); ++i) {
       for (int j = 0; j < grid.get_n(); ++j) {

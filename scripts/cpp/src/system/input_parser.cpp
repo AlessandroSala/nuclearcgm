@@ -5,7 +5,11 @@ InputParser::InputParser(std::string inputFile) {
   std::ifstream file(inputFile);
   data = nlohmann::json::parse(file);
   useCoulomb = data["coulomb"];
+  useJ = data["Jterms"];
   std::string interaction = data["interaction"];
+  additional = data["additional"];
+  pairing = data["pairing"];
+  spinOrbit = data["spinOrbit"];
 
   nlohmann::json interactionData = nlohmann::json::parse(
       std::ifstream("interactions/" + interaction + ".json"));

@@ -32,16 +32,49 @@
 #include <skyrme/skyrme_u.hpp>
 #include <vector>
 
+const double TOL = 1e-6;
+const int MAX_ITER = 1000;
+
+// Funzione per risolvere lambda imponendo N = 2 * sum v_i^2
+double find_lambda(const Eigen::VectorXd &epsilon, const double Delta,
+                   const int N_particles) {
+  double lambda_low = epsilon(0) - 5;
+  double lambda_high = epsilon(epsilon.size() - 1) + 5;
+  double lambda = 0.0;
+
+  for (int iter = 0; iter < 100; ++iter) {
+    lambda = 0.5 * (lambda_low + lambda_high);
+    double N_calc = 0.0;
+
+    for (double e : epsilon) {
+      double E = sqrt((e - lambda) * (e - lambda) + Delta * Delta);
+      double v2 = 0.5 * (1.0 - (e - lambda) / E);
+      N_calc += 2.0 * v2;
+    }
+
+    if (abs(N_calc - N_particles) < TOL)
+      break;
+
+    if (N_calc > N_particles)
+      lambda_high = lambda;
+    else
+      lambda_low = lambda;
+  }
+
+  return lambda;
+}
 int main(int argc, char **argv) {
   using namespace std;
   using namespace Eigen;
   using namespace nuclearConstants;
   cout << "Using mass " << m << endl;
   cout << "Using C " << C << endl;
-  // Eigen::initParallel();
+  Eigen::initParallel();
   InputParser input("input/input.json");
   ComplexDenseMatrix guess;
   Output out;
+
+  const double G = 0.4;
 
   std::chrono::steady_clock::time_point computationBegin =
       std::chrono::steady_clock::now();
@@ -66,7 +99,7 @@ int main(int argc, char **argv) {
 
   pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
       V0, Radius(0.000, r_0, A), 0.67, A, input.getZ(), input.getKappa()));
-  if (input.skyrme.W0 != 0.0) {
+  if (input.spinOrbit) {
     pots.push_back(make_shared<DeformedSpinOrbitPotential>(
         V0, Radius(0.000, r_0, A), 0.55));
   }
@@ -81,8 +114,9 @@ int main(int argc, char **argv) {
   double h_omega = 41.0 / (pow(A, 0.33333));
   pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B(
       hamNoKin.build_matrix5p(),
-      harmonic_oscillator_guess(grid, N, grid.get_a()), N, 35 + 0.01,
-      calc.cycles, 0.0001, grid.get_n() * 1.2, 1.0e-7 / grid.get_n(), false, 1);
+      harmonic_oscillator_guess(grid, N + input.additional, grid.get_a()),
+      N + input.additional, 35 + 0.01, calc.cycles, 0.0001, grid.get_n() * 1.2,
+      1.0e-7 / grid.get_n(), false, 1);
   // calc.tol * N
 
   pair<MatrixXcd, VectorXd> protonsEigenpair = neutronsEigenpair;
@@ -94,9 +128,18 @@ int main(int argc, char **argv) {
 
   std::vector<double> hfEnergies;
 
+  Eigen::VectorXd vksN = Eigen::VectorXd::Zero(neutronsEigenpair.first.cols());
+  Eigen::VectorXd vksP = Eigen::VectorXd::Zero(protonsEigenpair.first.cols());
+  for (int i = 0; i < N; ++i) {
+    vksN(i) = 1.0;
+  }
+  for (int i = 0; i < Z; ++i) {
+    vksP(i) = 1.0;
+  }
+
   double totalEnergy = 0.0;
-  data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
-                        grid);
+  data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, vksN,
+                        vksP, grid);
 
   int hfIter = 0;
   for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
@@ -108,15 +151,16 @@ int main(int argc, char **argv) {
         make_shared<IterationData>(data), NucleonType::N));
     pots.push_back(make_shared<LocalKineticPotential>(
         make_shared<IterationData>(data), NucleonType::N));
-    pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-                                         NucleonType::N));
+    if (input.spinOrbit)
+      pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+                                           NucleonType::N));
 
     Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
     auto newNeutronsEigenpair =
-        gcgm_complex_no_B(skyrmeHam.buildMatrix(), neutronsEigenpair.first, N,
-                          35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
-                          1.0e-4 / (calc.nev), false, 1);
+        gcgm_complex_no_B(skyrmeHam.buildMatrix(), neutronsEigenpair.first,
+                          N + input.additional, 35 + 0.01, calc.hf.gcg.maxIter,
+                          calc.hf.gcg.tol, 40, 1.0e-4 / (calc.nev), false, 1);
 
     pots.clear();
     pots.push_back(make_shared<LocalKineticPotential>(
@@ -125,8 +169,9 @@ int main(int argc, char **argv) {
         make_shared<IterationData>(data), NucleonType::P));
     pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
                                         make_shared<IterationData>(data)));
-    pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-                                         NucleonType::P));
+    if (input.spinOrbit)
+      pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+                                           NucleonType::P));
 
     pair<MatrixXcd, VectorXd> newProtonsEigenpair;
     if (input.useCoulomb) {
@@ -150,8 +195,8 @@ int main(int argc, char **argv) {
     Wavefunction::normalize(neutronsEigenpair.first, grid);
     Wavefunction::normalize(protonsEigenpair.first, grid);
 
-    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, A, Z,
-                          grid);
+    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, vksN,
+                          vksP, grid);
     double newEnergy = data.totalEnergyIntegral(input.skyrme, grid) +
                        data.kineticEnergy(input.skyrme, grid);
 
@@ -160,7 +205,8 @@ int main(int argc, char **argv) {
                   0.5 * data.densityUVPIntegral(grid);
     double Ekin = kinEn * 0.5;
     double SPE =
-        0.5 * (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
+        0.5 * ((neutronsEigenpair.second.array() * vksN.array()).sum() +
+               (protonsEigenpair.second.array() * vksP.array()).sum());
     cout << "E (REA): " << Erea << endl;
     cout << "E (SPE): " << SPE << endl;
     cout << "E kin: " << Ekin << endl;

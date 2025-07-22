@@ -1,4 +1,5 @@
 #include "constants.hpp"
+#include "operators/common_operators.hpp"
 #include "operators/differential_operators.hpp"
 #include "operators/integral_operators.hpp"
 #include "util/iteration_data.hpp"
@@ -41,9 +42,10 @@ double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid) {
   using Operators::integral;
   Eigen::VectorXd ones = Eigen::VectorXd::Ones(grid.get_total_spatial_points());
   energy1 +=
-      (-(1.0 / 4.0) * t0 * (0.5 + x0) * ones -
-       (1.0 / 24.0) * t3 * (0.5 + x3) * rho0.array().pow(sigma).matrix()) *
-      rho1.array().pow(2).matrix().transpose().diagonal();
+      ((-(1.0 / 4.0) * t0 * (0.5 + x0) * ones -
+        (1.0 / 24.0) * t3 * (0.5 + x3) * rho0.array().pow(sigma).matrix()) *
+       rho1.array().pow(2).matrix().transpose())
+          .diagonal();
   return integral(energy1, grid);
 }
 
@@ -144,33 +146,34 @@ double IterationData::CoulombDirectEnergy(const Grid &grid) {
   if (input.useCoulomb == false)
     return 0.0;
 
-#pragma omp parallel for collapse(6) reduction(+ : res)
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      for (int k = 0; k < n; ++k) {
-        for (int ii = 0; ii < n; ++ii) {
-          for (int jj = 0; jj < n; ++jj) {
-            for (int kk = 0; kk < n; ++kk) {
-              int iNS = grid.idxNoSpin(ii, jj, kk);
-              int iNSP = grid.idxNoSpin(i, j, k);
-              double val = (*rhoP)(iNS);
-              double valP = (*rhoP)(iNSP);
-              if (ii == i && jj == j && kk == k) {
-                res += valP * val * h * h * 1.939285;
-              } else {
-                res += valP * val /
-                       (sqrt((ii - i) * (ii - i) + (jj - j) * (jj - j) +
-                             (kk - k) * (kk - k)));
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  res *= h * h * 0.5 * e2;
+  using Eigen::VectorXd;
 
-  return res;
+  return 0.5 *
+         Operators::integral((VectorXd)(rhoP->array() * UCoul->array()), grid);
+  // #pragma omp parallel for collapse(6) reduction(+ : res)
+  //   for (int i = 0; i < n; ++i) {
+  //     for (int j = 0; j < n; ++j) {
+  //       for (int k = 0; k < n; ++k) {
+  //         for (int ii = 0; ii < n; ++ii) {
+  //           for (int jj = 0; jj < n; ++jj) {
+  //             for (int kk = 0; kk < n; ++kk) {
+  //               int iNS = grid.idxNoSpin(ii, jj, kk);
+  //               int iNSP = grid.idxNoSpin(i, j, k);
+  //               double val = (*rhoP)(iNS);
+  //               double valP = (*rhoP)(iNSP);
+  //               if (ii == i && jj == j && kk == k) {
+  //                 res += valP * val * h * h * 1.939285;
+  //               } else {
+  //                 res += valP * val /
+  //                        (sqrt((ii - i) * (ii - i) + (jj - j) * (jj - j) +
+  //                              (kk - k) * (kk - k)));
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
 }
 
 double IterationData::SlaterCoulombEnergy(const Grid &grid) {
@@ -187,4 +190,31 @@ double IterationData::SlaterCoulombEnergy(const Grid &grid) {
   func *= pow(3.0 / M_PI, 1.0 / 3.0);
 
   return integral(func, grid);
+}
+
+double IterationData::Hso(SkyrmeParameters params, const Grid &grid) {
+  double W0 = params.W0;
+  using Operators::dot;
+
+  Eigen::MatrixX3d nablaRho = (*nablaRhoN + *nablaRhoP);
+
+  Eigen::VectorXd func =
+      dot(*JvecN, nablaRho) + dot(*JvecP, *nablaRhoP) + dot(*JvecP, *nablaRhoN);
+  func *= 0.5 * W0;
+
+  return Operators::integral(func, grid);
+}
+
+double IterationData::Hsg(SkyrmeParameters params, const Grid &grid) {
+  double t0 = params.t0, t1 = params.t1, t2 = params.t2;
+  double x1 = params.x1, x2 = params.x2;
+
+  Eigen::MatrixX3d Jvec = (*JvecN + *JvecP);
+
+  using Operators::mod2;
+
+  Eigen::VectorXd func = -(1.0 / 16.0) * (t1 * x1 + t2 * x2) * mod2(Jvec);
+  func += (1.0 / 16.0) * (t1 - t2) * (mod2(*JvecP) + mod2(*JvecN));
+
+  return Operators::integral(func, grid);
 }
