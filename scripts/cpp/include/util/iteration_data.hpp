@@ -37,8 +37,8 @@ public:
   double massCorr;
 
   void updateQuantities(const Eigen::MatrixXcd &neutrons,
-                        const Eigen::MatrixXcd &protons, int A, int Z,
-                        const Grid &grid);
+                        const Eigen::MatrixXcd &protons, Eigen::VectorXd &vksN,
+                        Eigen::VectorXd &vksP, const Grid &grid);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double HFEnergy(double SPE, const Grid &grid);
@@ -48,6 +48,9 @@ public:
 
   double C0TauEnergy(SkyrmeParameters params, const Grid &grid);
   double C1TauEnergy(SkyrmeParameters params, const Grid &grid);
+
+  double Hso(SkyrmeParameters params, const Grid &grid);
+  double Hsg(SkyrmeParameters params, const Grid &grid);
 
   double C0nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);
   double C1nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);

@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-density = np.genfromtxt("output/mass.csv")
-n = 30
+density = np.genfromtxt("output/density.csv")
+n = 20
 a = 12
 
 def den(i, j):
-    idx = i*n + j + n//2
+    idx = i +n*n*j
     return  density[idx]
 
 x = np.linspace(-a, a, n)
@@ -17,7 +17,7 @@ mat = mat[:, :, 0]
 
 X, Y = np.meshgrid(x, y)
 
-contour = plt.contourf(X, Y, mat, cmap='viridis', levels = 100)
+contour = plt.contourf(X, Y, mat, cmap='viridis', levels = 8)
 plt.colorbar(contour)
 plt.title("Neutron particle density $^{16}$O")
 plt.xlabel("x [fm]")

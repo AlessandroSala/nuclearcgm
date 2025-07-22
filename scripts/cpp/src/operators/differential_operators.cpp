@@ -1,5 +1,6 @@
 #include "operators/differential_operators.hpp"
 #include "Eigen/src/Core/Matrix.h"
+#include <iostream>
 #include <omp.h> // Include OpenMP header
 
 Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
@@ -19,6 +20,13 @@ Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
       }
     }
   }
+
+  for (int i = 0; i < res.rows(); i++) {
+    if (std::isnan(res(i))) {
+      res(i) = 0.0;
+    }
+  }
+
   return res;
 }
 
@@ -35,6 +43,13 @@ Eigen::VectorXcd Operators::dvNoSpin(const Eigen::VectorXcd &psi,
       }
     }
   }
+
+  for (int i = 0; i < res.rows(); i++) {
+    if (std::isnan(res(i).real()) || std::isnan(res(i).imag())) {
+      res(i) = std::complex<double>(0.0, 0.0);
+    }
+  }
+
   return res;
 }
 
@@ -56,10 +71,10 @@ Eigen::VectorXd Operators::dv2NoSpin(const Eigen::VectorXd &psi,
 Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd &psi, const Grid &grid,
                                char dir) {
   Eigen::VectorXcd res(grid.get_total_points());
-// Parallelize the (i,j,k) loops. The innermost loop over 's' (spin) is small
-// (size 2) and is kept sequential within each parallel iteration for
-// efficiency. The 'res(idx)' write is safe as 'idx' is unique for each
-// (i,j,k,s).
+  // Parallelize the (i,j,k) loops. The innermost loop over 's' (spin) is small
+  // (size 2) and is kept sequential within each parallel iteration for
+  // efficiency. The 'res(idx)' write is safe as 'idx' is unique for each
+  // (i,j,k,s).
 #pragma omp parallel for collapse(3)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {
@@ -69,6 +84,12 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd &psi, const Grid &grid,
           res(idx) = Operators::derivative(psi, i, j, k, s, grid, dir);
         }
       }
+    }
+  }
+
+  for (int i = 0; i < res.rows(); i++) {
+    if (std::isnan(res(i).real()) || std::isnan(res(i).imag())) {
+      res(i) = std::complex<double>(0.0, 0.0);
     }
   }
   return res;

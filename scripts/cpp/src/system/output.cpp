@@ -79,15 +79,24 @@ void Output::shellsToFile(
 
   file << "=== Nuclear data ===" << std::endl;
   std::cout << "computing data" << std::endl;
-  double x2Sqrt = std::sqrt(x2(iterationData, grid, 'x'));
-  double y2Sqrt = std::sqrt(x2(iterationData, grid, 'y'));
-  double z2Sqrt = std::sqrt(x2(iterationData, grid, 'z'));
+  double x2int = x2(iterationData, grid, 'x');
+  double y2int = x2(iterationData, grid, 'y');
+  double z2int = x2(iterationData, grid, 'z');
+  double x2Sqrt = std::sqrt(x2int);
+  double y2Sqrt = std::sqrt(y2int);
+  double z2Sqrt = std::sqrt(z2int);
   double r2Sqrt =
       std::sqrt(x2Sqrt * x2Sqrt + y2Sqrt * y2Sqrt + z2Sqrt * z2Sqrt);
   file << "sqrt<x^2>: " << x2Sqrt << " fm";
   file << ", sqrt<y^2>: " << y2Sqrt << " fm";
   file << ", sqrt<z^2>: " << z2Sqrt << " fm" << std::endl;
   file << "sqrt<r^2>: " << r2Sqrt << " fm" << std::endl;
+
+  file << std::endl;
+  double Q0 = (3 * z2int - r2Sqrt * r2Sqrt);
+  file << "Q0: " << Q0 << " fm^-1" << std::endl;
+  file << "Beta: " << std::sqrt(M_PI / 5.0) * Q0 / (r2Sqrt * r2Sqrt)
+       << std::endl;
   file << std::endl;
 
   double eKin = iterationData->kineticEnergy(input.skyrme, grid);

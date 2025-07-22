@@ -53,10 +53,13 @@ public:
   int getA();
   int getZ();
   bool useCoulomb;
+  bool useJ;
   double getKappa();
   Calculation getCalculation();
   std::string getOutputName();
   nlohmann::json getWoodsSaxon();
+  int additional;
+  bool pairing, spinOrbit;
 
   SkyrmeParameters skyrme;
 

@@ -1,5 +1,9 @@
 {
+  "pairing": false,
   "coulomb": false,
+  "Jterms": false,
+  "spinOrbit": false,
+  "additional": 0,
   "outputName": "output",
     "calculation": "sp",
     "box": {
@@ -9,7 +13,7 @@
     "interaction": "SLy5",
     "hf": {
       "cycles": 70,
-      "energyTol": 0.0001,
+      "energyTol": 0.001,
       "gcg": {
         "maxIter": 20,
         "nev": 0,
@@ -22,8 +26,8 @@
         "tol": 0.001 
     },
     "nucleus": {
-        "A": 16,
-        "Z": 8
+        "A": 20,
+        "Z": 10
     },
     "potentials": [
         {
