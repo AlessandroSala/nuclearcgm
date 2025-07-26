@@ -1,8 +1,8 @@
 {
   "pairing": false,
-  "coulomb": false,
-  "Jterms": false,
-  "spinOrbit": false,
+  "coulomb": true,
+  "Jterms": true,
+  "spinOrbit": true,
   "additional": 0,
   "outputName": "output",
     "calculation": "sp",
@@ -13,17 +13,17 @@
     "interaction": "SLy5",
     "hf": {
       "cycles": 70,
-      "energyTol": 0.001,
+      "energyTol": 0.0001,
       "gcg": {
-        "maxIter": 20,
+        "maxIter": 10,
         "nev": 0,
-        "tol": 0.0006
+        "tol": 0.05
       }
     },
     "gcg": {
         "cycles": 40,
         "nev": 8,
-        "tol": 0.001 
+        "tol": 0.0001 
     },
     "nucleus": {
         "A": 20,

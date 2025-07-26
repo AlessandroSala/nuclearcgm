@@ -53,6 +53,23 @@ Eigen::VectorXcd Operators::dvNoSpin(const Eigen::VectorXcd &psi,
   return res;
 }
 
+Eigen::VectorXcd Operators::dv2(const Eigen::VectorXcd &psi, const Grid &grid,
+                                char dir) {
+  Eigen::VectorXcd res(grid.get_total_points());
+#pragma omp parallel for collapse(3)
+  for (int i = 0; i < grid.get_n(); ++i) {
+    for (int j = 0; j < grid.get_n(); ++j) {
+      for (int k = 0; k < grid.get_n(); ++k) {
+        for (int s = 0; s < 2; ++s) {
+          int idx = grid.idx(i, j, k, s);
+          res(idx) = Operators::derivative2(psi, i, j, k, s, grid, dir);
+        }
+      }
+    }
+  }
+  return res;
+}
+
 Eigen::VectorXd Operators::dv2NoSpin(const Eigen::VectorXd &psi,
                                      const Grid &grid, char dir) {
   Eigen::VectorXd res(grid.get_total_points());
@@ -130,6 +147,15 @@ Eigen::VectorXd Operators::lapNoSpin(const Eigen::VectorXd &vec,
   res += dv2NoSpin(vec, grid, 'x');
   res += dv2NoSpin(vec, grid, 'y');
   res += dv2NoSpin(vec, grid, 'z');
+  return res;
+}
+
+Eigen::VectorXcd Operators::lap(const Eigen::VectorXcd &vec, const Grid &grid) {
+  Eigen::VectorXcd res(vec.rows());
+  res.setZero();
+  res += dv2(vec, grid, 'x');
+  res += dv2(vec, grid, 'y');
+  res += dv2(vec, grid, 'z');
   return res;
 }
 
@@ -345,6 +371,60 @@ double Operators::derivative2NoSpin(const Eigen::VectorXd &psi, int i, int j,
     double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     double f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     double f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    return (2.0 * f3 - 27.0 * f2 + 270.0 * f1 + -490.0 * f0 + 270.0 * f_1 -
+            27.0 * f_2 + 2.0 * f_3) /
+           (180.0 * h * h);
+  }
+}
+
+std::complex<double> Operators::derivative2(const Eigen::VectorXcd &psi, int i,
+                                            int j, int k, int s,
+                                            const Grid &grid, char axis) {
+
+  int n = grid.get_n();
+  double h = grid.get_h();
+
+  auto idx = [&](int ii, int jj, int kk) {
+    return axis == 'x'   ? grid.idx(ii, j, k, s)
+           : axis == 'y' ? grid.idx(i, jj, k, s)
+                         : grid.idx(i, j, kk, s);
+  };
+
+  int pos = axis == 'x' ? i : axis == 'y' ? j : k;
+
+  // Estremi: schema a 2 punti (ordine 1)
+  if (pos == 0) {
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    return (f1 - f0) / (h);
+  } else if (pos == 1 || pos == n - 2) {
+    // Centrata a 3 punti (ordine 2)
+    std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    return (f_1 - 2.0 * f0 + f1) / (h * h);
+  } else if (pos == n - 1) {
+    // Note: Similar to pos == 0, this looks like a first derivative backward
+    // stencil. Replicating original logic:
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    return (f0 - f_1) / (h); // Stessa approssimazione rozza in coda
+  } else if (pos == 2 || pos == n - 3) {
+    // Centrata a 5 punti (ordine 4)
+    std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    return (-f2 + 16.0 * f1 - 30.0 * f0 + 16.0 * f_1 - f_2) / (12.0 * h * h);
+  } else {
+    std::complex<double> f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    std::complex<double> f0 = psi(idx(pos, pos, pos));
+    std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    std::complex<double> f3 = psi(idx(pos + 3, pos + 3, pos + 3));
     return (2.0 * f3 - 27.0 * f2 + 270.0 * f1 + -490.0 * f0 + 270.0 * f_1 -
             27.0 * f_2 + 2.0 * f_3) /
            (180.0 * h * h);

@@ -5,6 +5,7 @@
 #include "types.hpp"
 #include "util/shell.hpp"
 #include <cmath>
+#include <complex>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -43,6 +44,15 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
   }
   return rho;
 }
+Eigen::VectorXd exchangeCoulombField(Eigen::VectorXd &rhoP, const Grid &grid) {
+
+  Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
+  using namespace nuclearConstants;
+
+  res -= e2 * pow(3.0 / M_PI, 1.0 / 3.0) * rhoP.array().pow(1.0 / 3.0).matrix();
+
+  return res;
+}
 
 Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
   Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
@@ -69,7 +79,7 @@ Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
             }
           }
         }
-        res(iNS) = potential_sum + 0 * rho(iNS) * h * h * h * 1.939285;
+        res(iNS) = potential_sum + rho(iNS) * h * h * h * 1.939285;
       }
     }
   }
@@ -212,21 +222,19 @@ void normalize(Eigen::MatrixXcd &psi, const Grid &grid) {
 
 Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
                                                    const Grid &grid) {
-  using std::complex; // Explicitly using std::complex for clarity
+  using std::complex;
+
   Eigen::Matrix<complex<double>, Eigen::Dynamic, 9> J(
       grid.get_total_spatial_points(), 9);
   J.setZero();
 
-  // nuclearConstants::getPauli() should be thread-safe or pauli matrices copied
-  // if stateful. Assuming it returns const objects or is thread-safe.
   auto pauli =
       nuclearConstants::getPauli(); // Call once outside the parallel region
 
+  using nuclearConstants::img;
   for (int col = 0; col < psi.cols(); ++col) {
-    auto grad = Operators::grad(psi.col(col), grid);
-    if (grad.array().isNaN().any()) {
-      std::cout << "grad is nan" << std::endl;
-    }
+    Eigen::MatrixX3cd grad = Operators::grad(psi.col(col), grid);
+
 #pragma omp parallel for collapse(3)
     for (int i = 0; i < grid.get_n(); ++i) {
       for (int j = 0; j < grid.get_n(); ++j) {
@@ -235,22 +243,94 @@ Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
 
           for (int mu = 0; mu < 3; ++mu) {
             for (int nu = 0; nu < 3; nu++) {
-              ComplexDenseVector chi(2);
+              Eigen::Vector2cd chi(2), chiPsi(2);
               chi(0) = grad(idx, mu);
               chi(1) = grad(idx + 1, mu);
-              ComplexDenseVector chiNu = pauli[nu] * chi;
+              chiPsi(0) = psi(idx, col);
+              chiPsi(1) = psi(idx + 1, col);
+              auto prod = pauli[nu] * chi;
+              if (std::norm(chiPsi.dot(prod)) > 1e20) {
+                std::cout << "Anomaly " << std::endl;
+                std::cout << "Chi: " << chi << std::endl;
+                // std::cout << "Chi psi: " << chiPsi << std::endl;
+                //  std::cout << "Prod: " << prod << std::endl;
+              }
 
-              complex<double> prod = chi.dot(chiNu);
+              J(grid.idxNoSpin(i, j, k), mu * 3 + nu) +=
+                  chiPsi(0).real() * prod(0).imag() -
+                  chiPsi(0).imag() * prod(0).real() +
+                  chiPsi(1).real() * prod(1).imag() -
+                  chiPsi(1).imag() * prod(1).real();
 
-              J(grid.idxNoSpin(i, j, k), mu + nu) += prod;
+              // auto prod = (pauli[nu] * chi).dot(chiPsi);
+              //  if (std::norm(prod) > 1e-1) {
+              //    prod = {0.0, 0.0};
+              //  }
+
+              // J(grid.idxNoSpin(i, j, k), mu * 3 + nu) += prod;
             }
           }
         }
       }
     }
   }
-  return J.imag();
+
+  return J.real();
 }
+
+Eigen::VectorXd divJ(const Eigen::MatrixXcd &psi, const Grid &grid) {
+  int N = grid.get_total_spatial_points();
+  Eigen::VectorXd W = Eigen::VectorXd::Zero(N);
+
+  auto pauli = nuclearConstants::getPauli();
+  using std::complex;
+
+  for (int col = 0; col < psi.cols(); ++col) {
+    Eigen::MatrixXcd grad = Operators::grad(psi.col(col), grid);
+
+    for (int i = 0; i < grid.get_n(); ++i)
+      for (int j = 0; j < grid.get_n(); ++j)
+        for (int k = 0; k < grid.get_n(); ++k) {
+          int idx_up = grid.idx(i, j, k, 0);
+          int idx_down = grid.idx(i, j, k, 1);
+          int idx_spatial = grid.idxNoSpin(i, j, k);
+
+          complex<double> sum = 0.0;
+
+          for (int mu = 0; mu < 3; ++mu)
+            for (int nu = 0; nu < 3; ++nu)
+              for (int lambda = 0; lambda < 3; ++lambda) {
+                // Levi-Civita symbol ε_{μνλ}
+                double eps = 0;
+                if ((mu == 0 && nu == 1 && lambda == 2) ||
+                    (mu == 1 && nu == 2 && lambda == 0) ||
+                    (mu == 2 && nu == 0 && lambda == 1))
+                  eps = +1.0;
+                else if ((mu == 2 && nu == 1 && lambda == 0) ||
+                         (mu == 0 && nu == 2 && lambda == 1) ||
+                         (mu == 1 && nu == 0 && lambda == 2))
+                  eps = -1.0;
+
+                if (eps == 0.0)
+                  continue;
+
+                Eigen::Vector2cd dmu, dnu;
+                dmu(0) = grad(idx_up, mu);
+                dmu(1) = grad(idx_down, mu);
+                dnu(0) = grad(idx_up, nu);
+                dnu(1) = grad(idx_down, nu);
+
+                complex<double> term = dnu.adjoint() * pauli[lambda] * dmu;
+                sum += eps * term;
+              }
+
+          W(idx_spatial) += sum.imag();
+        }
+  }
+
+  return -W;
+}
+
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::MatrixXcd>
 hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid) {
   using std::complex;
@@ -277,8 +357,8 @@ hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid) {
         complex<double> Jz_point(0.0, 0.0);
         for (int col = 0; col < psi.cols(); ++col) {
           Eigen::Matrix<complex<double>, 2, 3>
-              chiGrad; // Stores nabla_x chi, nabla_y chi, nabla_z chi for spin
-                       // up/down
+              chiGrad; // Stores nabla_x chi, nabla_y chi, nabla_z chi for
+                       // spin up/down
           Eigen::Vector2cd chi; // Spinor for current point and orbital
           point_density += std::norm(
               psi(psi_idx_s0, col)); // std::norm(complex) = |complex|^2

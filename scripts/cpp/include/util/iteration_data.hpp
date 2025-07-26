@@ -41,7 +41,9 @@ public:
                         Eigen::VectorXd &vksP, const Grid &grid);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
+  double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
   double HFEnergy(double SPE, const Grid &grid);
+  double Erear(const Grid &grid);
 
   double C0RhoEnergy(SkyrmeParameters params, const Grid &grid);
   double C1RhoEnergy(SkyrmeParameters params, const Grid &grid);
