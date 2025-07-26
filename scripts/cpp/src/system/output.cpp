@@ -125,7 +125,8 @@ void Output::shellsToFile(
   file << "C1 tau1: " << iterationData->C1TauEnergy(input.skyrme, grid)
        << " MeV" << std::endl;
   file << "E (kin): " << eKin << " MeV" << std::endl;
-  file << "E: " << eKin + skyrmeEnergy << " MeV" << std::endl;
+  double totEnInt = eKin + skyrmeEnergy;
+  file << "E: " << totEnInt << " MeV" << std::endl;
 
   double SPE = 0.5 * (neutronShells.second.sum() + protonShells.second.sum());
   file << std::endl;

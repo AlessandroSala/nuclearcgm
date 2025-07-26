@@ -186,7 +186,7 @@ double IterationData::SlaterCoulombEnergy(const Grid &grid) {
 
   VectorXd func = rhoP->array().pow(4.0 / 3.0).matrix();
 
-  func *= -e2 / 2;
+  func *= -e2 / 2.0;
   func *= pow(3.0 / M_PI, 1.0 / 3.0);
 
   return integral(func, grid);
@@ -197,15 +197,18 @@ double IterationData::Hso(SkyrmeParameters params, const Grid &grid) {
   using Operators::dot;
 
   Eigen::MatrixX3d nablaRho = (*nablaRhoN + *nablaRhoP);
+  Eigen::MatrixX3d Jvec = (*JvecN + *JvecP);
 
   Eigen::VectorXd func =
-      dot(*JvecN, nablaRho) + dot(*JvecP, *nablaRhoP) + dot(*JvecP, *nablaRhoN);
-  func *= 0.5 * W0;
+      0.5 * W0 *
+      (dot(Jvec, nablaRho) + dot(*JvecP, *nablaRhoP) + dot(*JvecN, *nablaRhoN));
 
   return Operators::integral(func, grid);
 }
 
 double IterationData::Hsg(SkyrmeParameters params, const Grid &grid) {
+  if (!input.useJ)
+    return 0.0;
   double t0 = params.t0, t1 = params.t1, t2 = params.t2;
   double x1 = params.x1, x2 = params.x2;
 

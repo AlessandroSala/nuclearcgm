@@ -24,6 +24,7 @@
 #include "woods_saxon.hpp"
 #include "woods_saxon/deformed_woods_saxon.hpp"
 #include "json/json.hpp"
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <fstream>
@@ -144,6 +145,12 @@ int main(int argc, char **argv) {
   int hfIter = 0;
   for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
     vector<shared_ptr<Potential>> pots;
+    int maxIterGCGHF = calc.hf.gcg.maxIter;
+    if (hfIter == 0) {
+      maxIterGCGHF = 30;
+    } else {
+      maxIterGCGHF = 14 - (calc.hf.gcg.maxIter % 5);
+    }
 
     pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::N,
                                         make_shared<IterationData>(data)));
@@ -159,7 +166,7 @@ int main(int argc, char **argv) {
 
     auto newNeutronsEigenpair =
         gcgm_complex_no_B(skyrmeHam.buildMatrix(), neutronsEigenpair.first,
-                          N + input.additional, 35 + 0.01, calc.hf.gcg.maxIter,
+                          N + input.additional, 35 + 0.01, maxIterGCGHF,
                           calc.hf.gcg.tol, 40, 1.0e-4 / (calc.nev), false, 1);
 
     pots.clear();
@@ -177,12 +184,11 @@ int main(int argc, char **argv) {
     if (input.useCoulomb) {
       std::cout << "Protons " << std::endl;
       pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
-      pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
+      // pots.push_back(make_shared<ExchangeCoulombPotential>(data.rhoP));
       Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
-      newProtonsEigenpair =
-          gcgm_complex_no_B(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
-                            35 + 0.01, calc.hf.gcg.maxIter, calc.hf.gcg.tol, 40,
-                            1.0e-4 / (calc.nev), false, 1);
+      newProtonsEigenpair = gcgm_complex_no_B(
+          skyrmeHam.buildMatrix(), protonsEigenpair.first, Z, 35 + 0.01,
+          maxIterGCGHF, calc.hf.gcg.tol, 40, 1.0e-4 / (calc.nev), false, 1);
       skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
 
     } else {
@@ -207,12 +213,13 @@ int main(int argc, char **argv) {
     double SPE =
         0.5 * ((neutronsEigenpair.second.array() * vksN.array()).sum() +
                (protonsEigenpair.second.array() * vksP.array()).sum());
+    cout << "SPE calc: " << SPE << endl;
+    cout << "Esg: " << data.Hsg(input.skyrme, grid) << endl;
+    cout << "Eso: " << data.Hso(input.skyrme, grid) << endl;
+
     cout << "E (REA): " << Erea << endl;
     cout << "E (SPE): " << SPE << endl;
     cout << "E kin: " << Ekin << endl;
-    double directCoulombEnergy = data.CoulombDirectEnergy(grid);
-    cout << "Direct Coulomb energy: " << directCoulombEnergy << endl;
-    cout << "Slater Coulomb energy: " << data.SlaterCoulombEnergy(grid) << endl;
 
     hfEnergies.push_back(newEnergy);
     cout << "Total energy as integral: " << newEnergy << endl;

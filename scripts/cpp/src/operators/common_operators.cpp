@@ -1,4 +1,5 @@
 #include "operators/common_operators.hpp"
+#include "Eigen/src/Core/Matrix.h"
 #include <iostream>
 Eigen::VectorXcd Operators::P(const Eigen::VectorXcd &psi, const Grid &grid) {
   Eigen::VectorXcd res(grid.get_total_points());
@@ -40,6 +41,10 @@ Eigen::VectorXd Operators::dot(Eigen::MatrixX3d x, Eigen::MatrixX3d y) {
   if (x.array().isNaN().any() || y.array().isNaN().any()) {
     std::cerr << "Attenzione: dot(x, y) ha prodotto un NaN!" << std::endl;
   }
+  Eigen::MatrixX3d x1 = 1e10 * x;
+  Eigen::MatrixX3d y1 = 1e10 * y;
+
+  return (x1 * y1.adjoint()).diagonal() / 1e20;
   return (x.col(0).array() * y.col(0).array() +
           x.col(1).array() * y.col(1).array() +
           x.col(2).array() * y.col(2).array())

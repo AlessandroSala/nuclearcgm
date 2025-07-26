@@ -7,6 +7,7 @@
 namespace Wavefunction {
 Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid);
 Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid);
+Eigen::VectorXd exchangeCoulombField(Eigen::VectorXd &rho, const Grid &grid);
 Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
                       Eigen::VectorXd &tau, Eigen::VectorXd &tauQ,
                       Eigen::VectorXd &nabla2rho, Eigen::VectorXd &nabla2rhoQ,
@@ -16,6 +17,7 @@ Eigen::Matrix3Xd spinDensity(const Eigen::MatrixXcd &psi, const Grid &grid);
 Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid);
 Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
                                                    const Grid &grid);
+Eigen::VectorXd divJ(const Eigen::MatrixXcd &psi, const Grid &grid);
 void normalize(Eigen::MatrixXcd &psi, const Grid &grid);
 std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::MatrixXcd>
 hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid);
