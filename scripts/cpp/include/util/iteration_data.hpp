@@ -1,10 +1,12 @@
 #pragma once
 #include "input_parser.hpp"
 #include "types.hpp"
-#include "util/effective_mass.hpp"
 #include <Eigen/Dense>
 #include <memory>
+
+class InputParser;
 class Grid;
+class EffectiveMass;
 
 class IterationData {
 public:
@@ -31,14 +33,14 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> BN;
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;
+  Eigen::VectorXd UCDir;
 
   SkyrmeParameters params;
   InputParser input;
   double massCorr;
 
   void updateQuantities(const Eigen::MatrixXcd &neutrons,
-                        const Eigen::MatrixXcd &protons, Eigen::VectorXd &vksN,
-                        Eigen::VectorXd &vksP, const Grid &grid);
+                        const Eigen::MatrixXcd &protons, const Grid &grid);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);

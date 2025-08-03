@@ -1,7 +1,7 @@
 #pragma once
 #include "input_parser.hpp"
-#include "util/iteration_data.hpp"
 #include <Eigen/Dense>
+class IterationData;
 class Output {
 private:
   std::string folder;

@@ -8,14 +8,13 @@
 #include <vector>
 
 namespace nuclearConstants {
-constexpr double h_bar = 197.326971;
+constexpr double h_bar = 197.327053;
 constexpr double ev = 1.60218e-19;
 constexpr double m = 938.91869;
 constexpr double C = -2 * m / (h_bar * h_bar);
-constexpr double diff = 0.67;
 constexpr double c = 299792458;
 constexpr double lambda = 35;
-constexpr double e2 = 1.439;
+constexpr double e2 = 1.43996446;
 constexpr std::complex<double> img = std::complex<double>(0, 1.0);
 
 void printConstants();

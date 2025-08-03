@@ -1,4 +1,5 @@
 #include "input_parser.hpp"
+#include "woods_saxon/deformed_woods_saxon.hpp"
 #include <fstream>
 
 InputParser::InputParser(std::string inputFile) {
@@ -10,6 +11,7 @@ InputParser::InputParser(std::string inputFile) {
   additional = data["additional"];
   pairing = data["pairing"];
   spinOrbit = data["spinOrbit"];
+  COMCorr = data["COMCorrection"];
 
   nlohmann::json interactionData = nlohmann::json::parse(
       std::ifstream("interactions/" + interaction + ".json"));
@@ -36,7 +38,22 @@ int InputParser::getA() { return data["nucleus"]["A"]; }
 
 int InputParser::getZ() { return data["nucleus"]["Z"]; }
 
-double InputParser::getKappa() { return data["kappa"]; }
+WoodsSaxonParameters InputParser::getWS() {
+  return WoodsSaxonParameters{
+      data["woods_saxon"]["V0"],
+      data["woods_saxon"]["r0"],
+      data["woods_saxon"]["diffusivity"],
+      data["woods_saxon"]["kappa"],
+  };
+}
+
+WSSpinOrbitParameters InputParser::getWSSO() {
+  return WSSpinOrbitParameters{
+      data["woods_saxon"]["spin_orbit"]["V0"],
+      data["woods_saxon"]["spin_orbit"]["r0"],
+      data["woods_saxon"]["diffusivity"],
+  };
+}
 
 Calculation InputParser::getCalculation() {
   HartreeFock hf = {data["hf"]["cycles"], data["hf"]["energyTol"],

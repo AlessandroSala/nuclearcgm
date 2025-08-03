@@ -1,11 +1,8 @@
 #include "constants.hpp"
 #include "operators/common_operators.hpp"
-#include "operators/differential_operators.hpp"
 #include "operators/integral_operators.hpp"
 #include "util/iteration_data.hpp"
-#include "util/wavefunction.hpp"
 #include <cmath>
-#include <iostream>
 
 double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid) {
 
@@ -149,7 +146,7 @@ double IterationData::CoulombDirectEnergy(const Grid &grid) {
   using Eigen::VectorXd;
 
   return 0.5 *
-         Operators::integral((VectorXd)(rhoP->array() * UCoul->array()), grid);
+         Operators::integral((VectorXd)(rhoP->array() * UCDir.array()), grid);
   // #pragma omp parallel for collapse(6) reduction(+ : res)
   //   for (int i = 0; i < n; ++i) {
   //     for (int j = 0; j < n; ++j) {
@@ -186,7 +183,7 @@ double IterationData::SlaterCoulombEnergy(const Grid &grid) {
 
   VectorXd func = rhoP->array().pow(4.0 / 3.0).matrix();
 
-  func *= -e2 / 2.0;
+  func *= -3.0 * e2 / 4.0;
   func *= pow(3.0 / M_PI, 1.0 / 3.0);
 
   return integral(func, grid);

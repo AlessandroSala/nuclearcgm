@@ -1,5 +1,6 @@
 #pragma once
 #include "potential.hpp"
+#include "util/iteration_data.hpp"
 class LocalPotential : public Potential {
 public:
   /**

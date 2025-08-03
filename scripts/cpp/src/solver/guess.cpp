@@ -1,5 +1,6 @@
 #include "guess.hpp"
 #include "constants.hpp"
+#include <iostream>
 ComplexDenseMatrix gaussian_guess(const Grid &grid, int nev, double a) {
   int n = grid.get_n();
 
@@ -33,9 +34,9 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
   int total_points = grid.get_total_points();
 
   ComplexDenseMatrix guess(total_points, nev);
-  using nuclearConstants::h_bar;
+  using namespace nuclearConstants;
 
-  // double a = sqrt(h_bar / omega);
+  // double a = sqrt(h_bar / omega / m);
   double a = omega;
 
   auto hermite = [](int n, double x) {
@@ -52,6 +53,9 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
       return 16.0 * x * x * x * x - 48.0 * x * x + 12.0;
     case 5:
       return 32.0 * x * x * x * x * x - 160.0 * x * x * x + 120.0 * x;
+    case 6:
+      return 64.0 * x * x * x * x * x * x - 480.0 * x * x * x * x +
+             720 * x * x - 120;
     default:
       return 0.0; // Implementazione più generale per n maggiore se necessario
     }
@@ -98,6 +102,7 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
     if (state_index >= nev)
       break;
   }
+  std::cout << "state index: " << state_index << std::endl;
 
   return guess;
 }

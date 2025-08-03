@@ -3,48 +3,42 @@
   "coulomb": true,
   "Jterms": true,
   "spinOrbit": true,
+  "COMCorrection": true,
   "additional": 0,
   "outputName": "output",
-    "calculation": "sp",
-    "box": {
-        "size": 12.0,
-        "n": 30
-    },
-    "interaction": "SLy5",
-    "hf": {
-      "cycles": 70,
-      "energyTol": 0.0001,
-      "gcg": {
-        "maxIter": 10,
-        "nev": 0,
-        "tol": 0.05
-      }
-    },
+  "calculation": "sp",
+  "box": {
+    "size": 12.0,
+    "n": 40
+  },
+  "interaction": "SLy5",
+  "hf": {
+    "cycles": 70,
+    "energyTol": 0.0001,
     "gcg": {
-        "cycles": 40,
-        "nev": 8,
-        "tol": 0.0001 
+      "maxIter": 14,
+      "nev": 0,
+      "tol": 0.005
+    }
+  },
+  "gcg": {
+    "cycles": 40,
+    "nev": 10,
+    "tol": 0.0001 
+  },
+  "nucleus": {
+    "A": 16,
+    "Z": 8
+  },
+  "woods_saxon": {
+    "V0": 55.5,
+    "r0": 1.21,
+    "diffusivity": 0.67,
+    "spin_orbit": {
+      "V0": 49.6,
+      "r0": 1.27,
+      "R": 1.310
     },
-    "nucleus": {
-        "A": 20,
-        "Z": 10
-    },
-    "potentials": [
-        {
-            "type": "spin_orbit",
-            "V0": 49.6,
-            "r0": 1.27,
-            "R": 1.310
-        },
-        {
-            "type": "woods_saxon",
-            "V0": 55.5,
-            "R": 1.310,
-            "r0": 1.21,
-            "alpha": 0.55
-        }
-    ],
     "kappa": 0.86
-
-    
+  }
 }

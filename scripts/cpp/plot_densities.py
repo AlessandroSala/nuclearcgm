@@ -1,25 +1,48 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+import plotly
+import plotly.graph_objects as go
 
-density = np.genfromtxt("output/density.csv")
-n = 30
+name = "be"
+density = np.genfromtxt("output/density_" + name + "_new.csv")
+#density = np.genfromtxt("output/density.csv")
+n = 50
+n2 = n // 2
 a = 12
 
-#def den(i, j):
-#    idx = i +n*j
-#    return  density[idx]
+mat_or = density.reshape((n, n, n))
+
+#mat = mat[:, :, n // 2]
+mat = mat_or[:, :, n2]
+#mat = mat[n // 2, :, :]
 
 x = np.linspace(-a, a, n)
 y = np.linspace(-a, a, n)
+z = np.linspace(-a, a, n)
 
-mat = density.reshape((n, n, n))
-mat = mat[:, 0, :]
+#rho_z = mat_or.sum(axis=0)
+#z = np.linspace(-a, a, n)
+#plt.plot(z, rho_z)
+#plt.title("Densità integrata su x e y (funzione di z)")
+#plt.xlabel("z [fm]")
+#plt.ylabel(r"$\int dx\,dy\, \rho(x,y,z)$")
+#plt.grid()
+#plt.show()
+
+#rho_z = mat[:, 10, 10]
+
+#mat = mat[:, 0, :]
+#mat = mat[n // 2, :, :]
+
+max = max(mat.flatten())
+threshold = max / 2
 
 X, Y = np.meshgrid(x, y)
 
-contour = plt.contourf(X, Y, mat, cmap='viridis', levels = 50)
+contour = plt.contourf(X, Y, mat, cmap='viridis', levels = 5)
 plt.colorbar(contour)
-plt.title("Neutron particle density $^{20}$Ne")
+plt.title("Total particle density")
 plt.xlabel("x [fm]")
 plt.ylabel("y [fm]")
 major_ticks = np.arange(-a, a, a/5)
@@ -28,5 +51,3 @@ plt.xticks(major_ticks)
 plt.yticks(major_ticks)
 
 plt.show()
-
-

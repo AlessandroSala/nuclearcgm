@@ -1,7 +1,6 @@
 #include "util/output.hpp"
-#include "operators/integral_operators.hpp"
+#include "util/iteration_data.hpp"
 #include "util/wavefunction.hpp"
-#include "json/json.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -157,12 +156,6 @@ void Output::shellsToFile(
   matrixToFile("density.csv", *(iterationData->rhoN));
   matrixToFile("kindensity.csv", *(iterationData->tauN));
   matrixToFile("nabla2dens.csv", *(iterationData->nabla2RhoN));
-  matrixToFile("mass.csv", iterationData->massN->vector);
-  Eigen::VectorXd gradMod = (iterationData->massN->gradient *
-                             iterationData->massN->gradient.adjoint())
-                                .diagonal()
-                                .real();
-  matrixToFile("gradMass.csv", gradMod);
 
   file.close();
 }

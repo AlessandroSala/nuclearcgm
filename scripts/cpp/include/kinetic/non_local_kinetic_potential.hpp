@@ -1,10 +1,10 @@
 
 #pragma once
+#include "constants.hpp"
 #include "potential.hpp"
-#include "util/iteration_data.hpp"
-#include "util/mass.hpp"
 #include <Eigen/Dense>
 #include <memory>
+class IterationData;
 /**
  * @brief Implements a non local kinetic energy term, related to the Skyrme
  * interaction.
