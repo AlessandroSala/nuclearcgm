@@ -1,6 +1,8 @@
 #include "skyrme/skyrme_u.hpp"
 #include "constants.hpp"
+#include "local_potential.hpp"
 #include "types.hpp"
+#include "util/iteration_data.hpp"
 #include <cmath>
 
 SkyrmeU::SkyrmeU(SkyrmeParameters p, NucleonType n_,

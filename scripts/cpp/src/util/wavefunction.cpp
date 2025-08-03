@@ -1,7 +1,11 @@
 #include "VariadicTable.h"
 #include "constants.hpp" // Assuming this is where nuclearConstants are
+#include "coulomb/laplacian_potential.hpp"
+#include "hamiltonian.hpp"
 #include "input_parser.hpp"
 #include "operators/differential_operators.hpp" // Assuming this is where Operators::derivative is
+#include "operators/integral_operators.hpp"
+#include "spherical_harmonics.hpp"
 #include "types.hpp"
 #include "util/shell.hpp"
 #include <cmath>
@@ -10,6 +14,7 @@
 #include <iostream>
 #include <memory>
 #include <omp.h> // Required for OpenMP
+#include <vector>
 
 // Forward declaration of Grid class if not fully included,
 // or include the necessary header for Grid.
@@ -52,6 +57,174 @@ Eigen::VectorXd exchangeCoulombField(Eigen::VectorXd &rhoP, const Grid &grid) {
   res -= e2 * pow(3.0 / M_PI, 1.0 / 3.0) * rhoP.array().pow(1.0 / 3.0).matrix();
 
   return res;
+}
+
+Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
+                                    int Z, std::shared_ptr<Eigen::VectorXd> U) {
+
+  using namespace Eigen;
+  using nuclearConstants::e2;
+  using Operators::integral;
+  using SphericalHarmonics::Y20;
+  using SphericalHarmonics::Y22;
+  using std::make_shared;
+  using std::shared_ptr;
+  using std::sqrt;
+  using std::vector;
+
+  double pi = M_PI;
+
+  double eps0inv = e2 * 4 * M_PI; // Mev fm
+  Eigen::VectorXd Q20int(grid.get_total_spatial_points());
+  Eigen::VectorXd Q22int(grid.get_total_spatial_points());
+
+#pragma omp parallel for collapse(3)
+  for (int i = 0; i < grid.get_n(); i++) {
+    for (int j = 0; j < grid.get_n(); j++) {
+      for (int k = 0; k < grid.get_n(); k++) {
+        int idx = grid.idxNoSpin(i, j, k);
+        double x = grid.get_xs()[i];
+        double y = grid.get_ys()[j];
+        double z = grid.get_zs()[k];
+
+        Q20int(idx) = rhoP(idx) * (2.0 * z * z - x * x - y * y);
+        Q22int(idx) = rhoP(idx) * (x * x - y * y);
+      }
+    }
+  }
+
+  Q20int *= sqrt(5.0 / (16.0 * pi));
+  Q22int *= sqrt(15.0 / (32.0 * pi));
+  double Q20 = integral(Q20int, grid);
+  double Q22 = integral(Q22int, grid);
+
+  Eigen::VectorXd Uquad(grid.get_total_spatial_points());
+
+#pragma omp parallel for collapse(3)
+  for (int i = 0; i < grid.get_n(); i++) {
+    for (int j = 0; j < grid.get_n(); j++) {
+      for (int k = 0; k < grid.get_n(); k++) {
+        int idx = grid.idxNoSpin(i, j, k);
+        double x = grid.get_xs()[i];
+        double y = grid.get_ys()[j];
+        double z = grid.get_zs()[k];
+
+        double r = sqrt(x * x + y * y + z * z);
+        if (r < 1e-9)
+          r = 1e-9;
+
+        Uquad(idx) = (e2 * Z) / (r);
+        Uquad(idx) += e2 * (Y20(x, y, z) * Q20 + Y22(x, y, z) * Q22) / (r);
+      }
+    }
+  }
+
+  vector<shared_ptr<Potential>> pots;
+  pots.push_back(make_shared<LaplacianPotential>());
+  Hamiltonian ham(make_shared<Grid>(grid), pots);
+
+  using std::sqrt;
+
+  SparseMatrix<double> mat = ham.buildMatrixNoSpin().real();
+  VectorXd rhs = -eps0inv * rhoP;
+
+  int n = grid.get_n();
+  // Fase 1 : "Lifting" per stencil a 5 punti.
+  for (int i = 1; i < grid.get_n() - 1; i++) {
+    for (int j = 1; j < grid.get_n() - 1; j++) {
+      for (int k = 1; k < grid.get_n() - 1; k++) {
+        int p_idx = grid.idxNoSpin(i, j, k);
+
+        // Correzioni per bordo X
+        if (i == 1) {
+          int b_idx = grid.idxNoSpin(0, j, k);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx) * Uquad(b_idx);
+        }
+        if (i == 2) {
+          int b_idx1 = grid.idxNoSpin(0, j, k); // i-2 = 0
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+        if (i == n - 2) {
+          int b_idx1 = grid.idxNoSpin(n - 1, j, k);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+        if (i == n - 3) {
+          int b_idx1 = grid.idxNoSpin(n - 1, j, k);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+
+        // Correzioni per bordo Y
+        if (j == 1) {
+          int b_idx = grid.idxNoSpin(i, 0, k);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx) * Uquad(b_idx);
+        }
+        if (j == 2) {
+          int b_idx1 = grid.idxNoSpin(i, 0, k); // i-2 = 0
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+        if (j == n - 2) {
+          int b_idx1 = grid.idxNoSpin(i, n - 1, k);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+        if (j == n - 3) {
+          int b_idx1 = grid.idxNoSpin(i, n - 1, k);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+
+        // Correzioni per bordo Z
+        if (k == 1) {
+          int b_idx = grid.idxNoSpin(i, j, 0);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx) * Uquad(b_idx);
+        }
+        if (k == 2) {
+          int b_idx1 = grid.idxNoSpin(i, j, 0); // i-2 = 0
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+        if (k == n - 2) {
+          int b_idx1 = grid.idxNoSpin(i, j, n - 1);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+        if (k == n - 3) {
+          int b_idx1 = grid.idxNoSpin(i, j, n - 1);
+          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
+        }
+      }
+    }
+  }
+
+  // Fase 2: Imposta le equazioni per i punti di bordo.
+  for (int i = 0; i < grid.get_n(); i++) {
+    for (int j = 0; j < grid.get_n(); j++) {
+      for (int k = 0; k < grid.get_n(); k++) {
+        if (i == 0 || i == grid.get_n() - 1 || j == 0 ||
+            j == grid.get_n() - 1 || k == 0 || k == grid.get_n() - 1) {
+
+          int idx = grid.idxNoSpin(i, j, k);
+
+          for (SparseMatrix<double>::InnerIterator it(mat, idx); it; ++it) {
+            if (it.row() != it.col()) {
+              it.valueRef() = 0.0;
+            }
+          }
+          mat.coeffRef(idx, idx) = 1.0;
+          rhs(idx) = Uquad(idx);
+        }
+      }
+    }
+  }
+  mat.prune(0.0);
+
+  // **CAMBIO DEL SOLUTORE**
+  // Usiamo BiCGSTAB che non richiede una matrice simmetrica.
+  BiCGSTAB<SparseMatrix<double>> solver;
+  if (U != nullptr)
+    solver.setTolerance(1e-10);
+
+  solver.compute(mat);
+  if (U != nullptr)
+    return solver.solveWithGuess(rhs, *U);
+  else
+    return solver.solve(rhs);
 }
 
 Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {

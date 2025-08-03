@@ -32,6 +32,7 @@ public:
    */
   // ComplexSparseMatrix build_matrix();
   ComplexSparseMatrix buildMatrix();
+  Eigen::SparseMatrix<double> buildMatrixNoSpin();
   ComplexSparseMatrix build_matrix5p();
   ComplexSparseMatrix build_matrix7p();
 

@@ -1,13 +1,8 @@
 
 #pragma once
-#include "potential.hpp"
-#include "spin_orbit/deformed_spin_orbit.hpp"
-#include "types.hpp"
-#include "woods_saxon/deformed_woods_saxon.hpp"
 #include "json/json.hpp"
-#include <memory> // For std::shared_ptr
 #include <string>
-#include <vector>
+
 class Grid;
 
 typedef struct GCGParameters {
@@ -39,6 +34,19 @@ typedef struct {
   HartreeFock hf;
 } Calculation;
 
+typedef struct {
+  double V0;
+  double r0;
+  double diffusivity;
+  double kappa;
+} WoodsSaxonParameters;
+
+typedef struct {
+  double V0;
+  double r0;
+  double diff;
+} WSSpinOrbitParameters;
+
 /**
  * @brief Gathers the objects related to a calculation.
  */
@@ -59,7 +67,9 @@ public:
   std::string getOutputName();
   nlohmann::json getWoodsSaxon();
   int additional;
-  bool pairing, spinOrbit;
+  bool pairing, spinOrbit, COMCorr;
+  WoodsSaxonParameters getWS();
+  WSSpinOrbitParameters getWSSO();
 
   SkyrmeParameters skyrme;
 

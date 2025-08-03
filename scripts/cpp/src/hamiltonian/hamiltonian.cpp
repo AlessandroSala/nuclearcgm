@@ -1,4 +1,5 @@
 #include "hamiltonian.hpp"
+#include "Eigen/src/SparseCore/SparseMatrix.h"
 #include "constants.hpp"
 #include "grid.hpp"
 #include "potential.hpp"
@@ -431,6 +432,82 @@ ComplexSparseMatrix Hamiltonian::buildMatrix() {
 
   // Build sparse matrix
   ComplexSparseMatrix H(N_total, N_total);
+  H.setFromTriplets(tripletList.begin(), tripletList.end());
+  H.makeCompressed();
+
+  return H;
+}
+
+Eigen::SparseMatrix<double> Hamiltonian::buildMatrixNoSpin() {
+  if (!grid_ptr_) {
+    throw std::runtime_error(
+        "Hamiltonian error: Grid pointer is null during build.");
+  }
+
+  // Get grid parameters
+  const int n = grid_ptr_->get_n();
+  const double h = grid_ptr_->get_h();
+  if (n == 0 || std::abs(h) < 1e-15) {
+    throw std::runtime_error(
+        "Hamiltonian error: Invalid grid parameters (n=0 or h=0).");
+  }
+
+  size_t N_total = grid_ptr_->get_total_spatial_points();
+
+  // Use thread-local storage to avoid critical sections
+  std::vector<std::vector<Eigen::Triplet<double>>> threadTriplets(
+      omp_get_max_threads());
+
+#pragma omp parallel for collapse(3)
+  for (int k = 0; k < n; ++k) {
+    for (int j = 0; j < n; ++j) {
+      for (int i = 0; i < n; ++i) {
+        auto &localTriplets = threadTriplets[omp_get_thread_num()];
+
+        // Precompute the neighborhood bounds
+        const int k1_min = std::max(0, k - 2);
+        const int k1_max = std::min(n - 1, k + 2);
+        const int j1_min = std::max(0, j - 2);
+        const int j1_max = std::min(n - 1, j + 2);
+        const int i1_min = std::max(0, i - 2);
+        const int i1_max = std::min(n - 1, i + 2);
+
+        for (int k1 = k1_min; k1 <= k1_max; ++k1) {
+          for (int j1 = j1_min; j1 <= j1_max; ++j1) {
+            for (int i1 = i1_min; i1 <= i1_max; ++i1) {
+              // Calculate kinetic term
+              double val = 0.0;
+
+              // Add potential terms
+              for (const auto &term_ptr : potential_terms_) {
+                if (term_ptr) {
+                  val +=
+                      term_ptr
+                          ->getElement5p(i, j, k, 0, i1, j1, k1, 0, *grid_ptr_)
+                          .real();
+                }
+              }
+
+              if (val != 0.0) {
+                const size_t n0 = grid_ptr_->idxNoSpin(i, j, k);
+                const size_t n1 = grid_ptr_->idxNoSpin(i1, j1, k1);
+                localTriplets.emplace_back(n0, n1, val);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Merge thread-local triplets
+  std::vector<Eigen::Triplet<double>> tripletList;
+  for (auto &local : threadTriplets) {
+    tripletList.insert(tripletList.end(), local.begin(), local.end());
+  }
+
+  // Build sparse matrix
+  Eigen::SparseMatrix<double> H(N_total, N_total);
   H.setFromTriplets(tripletList.begin(), tripletList.end());
   H.makeCompressed();
 

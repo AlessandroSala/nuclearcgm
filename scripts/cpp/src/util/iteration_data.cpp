@@ -1,6 +1,6 @@
 #include "util/iteration_data.hpp"
-#include "Eigen/src/Core/Matrix.h"
 #include "constants.hpp"
+#include "input_parser.hpp"
 #include "operators/common_operators.hpp"
 #include "operators/differential_operators.hpp"
 #include "operators/integral_operators.hpp"
@@ -15,7 +15,7 @@ IterationData::IterationData(InputParser input) : input(input) {
   int A = input.getA();
   using nuclearConstants::m;
 
-  massCorr = m * ((double)A) / ((double)(A - 1));
+  massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
 }
 
 double IterationData::totalEnergyIntegral(SkyrmeParameters params,
@@ -70,15 +70,8 @@ double IterationData::totalEnergyIntegral(SkyrmeParameters params,
 
   return energy_C0Rho + energy_C1Rho + energy_C0nabla2Rho + energy_C1nabla2Rho +
          energy_C0Tau + energy_C1Tau + energy_CoulombDirect +
-         0.5 * SlaterCoulombEnergy(grid) + energy_Hso + energy_Hsg;
+         SlaterCoulombEnergy(grid) + energy_Hso + energy_Hsg;
 }
-
-//
-// return C0RhoEnergy(params, grid) + C1RhoEnergy(params, grid) +
-//        C0nabla2RhoEnergy(params, grid) + C1nabla2RhoEnergy(params, grid) +
-//        C0TauEnergy(params, grid) + C1TauEnergy(params, grid) +
-//        SlaterCoulombEnergy(grid) + CoulombDirectEnergy(grid) +
-//        Hso(params, grid) + Hsg(params, grid);
 
 double IterationData::Erear(const Grid &grid) {
 
@@ -114,7 +107,7 @@ double IterationData::Erear(const Grid &grid) {
 double IterationData::HFEnergy(double SPE, const Grid &grid) {
 
   return 0.5 * (SPE + kineticEnergy(params, grid)) - 0.5 * Erear(grid) +
-         0.5 * SlaterCoulombEnergy(grid);
+         SlaterCoulombEnergy(grid) / 3.0;
 
   return 0.5 * Erear(grid) - 0.5 * densityUVPIntegral(grid) +
          +0.5 * (SPE + kineticEnergy(params, grid));
@@ -173,29 +166,15 @@ double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid) {
 
 void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
                                      const Eigen::MatrixXcd &protonsShells,
-                                     Eigen::VectorXd &vksN,
-                                     Eigen::VectorXd &vksP, const Grid &grid) {
+                                     const Grid &grid) {
   int A = input.getA();
   int Z = input.getZ();
   int N = A - Z;
 
   Eigen::MatrixXcd neutrons, protons;
-  if (input.pairing) {
-    std::cout << vksN << std::endl;
-    neutrons = Eigen::MatrixXcd(neutronsShells.rows(), neutronsShells.cols());
-    protons = Eigen::MatrixXcd(protonsShells.rows(), protonsShells.cols());
 
-    for (int i = 0; i < neutronsShells.cols(); ++i) {
-      neutrons.col(i) = neutronsShells.col(i) * vksN(i);
-      protons.col(i) = protonsShells.col(i) * vksP(i);
-    }
-
-  } else {
-
-    neutrons = neutronsShells(Eigen::all, Eigen::seq(0, N - 1));
-    protons = protonsShells(Eigen::all, Eigen::seq(0, Z - 1));
-  }
-  std::cout << neutrons.cols() << " " << protons.cols() << std::endl;
+  neutrons = neutronsShells(Eigen::all, Eigen::seq(0, N - 1));
+  protons = protonsShells(Eigen::all, Eigen::seq(0, Z - 1));
 
   rhoN =
       std::make_shared<Eigen::VectorXd>(Wavefunction::density(neutrons, grid));
@@ -262,20 +241,6 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
   // divJvecP = Operators::divNoSpin(*JvecP, grid);
   divJvecN = Wavefunction::divJ(neutrons, grid);
   divJvecP = Wavefunction::divJ(protons, grid);
-  for (int j = 0; j < divJvecN.size(); j++) {
-    if (std::isnan((divJvecN)(j))) {
-      (divJvecN)(j) = 0.0;
-    }
-    if (std::isnan((divJvecP)(j))) {
-      (divJvecP)(j) = 0.0;
-    }
-  }
-  //  } else {
-  //    JvecN = std::make_shared<Eigen::MatrixX3d>(
-  //        Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3));
-  //    JvecP = std::make_shared<Eigen::MatrixX3d>(
-  //        Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3));
-  //  }
 
   Eigen::VectorXd divJJQN;
   Eigen::VectorXd divJJQP;
@@ -303,7 +268,37 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
 
   Eigen::VectorXd newFieldCoul;
   if (input.useCoulomb) {
-    newFieldCoul = Wavefunction::coulombField(*rhoP, grid);
+    auto startC = std::chrono::steady_clock::now();
+    // newFieldCoul = Wavefunction::coulombField(*rhoP, grid);
+    auto endC = std::chrono::steady_clock::now();
+    std::cout << "Coulomb integration time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(endC -
+                                                                       startC)
+                     .count()
+              << std::endl;
+
+    startC = std::chrono::steady_clock::now();
+
+    std::shared_ptr<Eigen::VectorXd> UCDirPtr;
+
+    if (UCoul == nullptr) {
+      UCDir = Wavefunction::coulombFieldPoisson(*rhoP, grid, Z, nullptr);
+    } else {
+      UCDir = Wavefunction::coulombFieldPoisson(
+          *rhoP, grid, Z, std::make_shared<Eigen::VectorXd>(UCDir));
+    }
+    endC = std::chrono::steady_clock::now();
+    std::cout << "Coulomb Poisson time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(endC -
+                                                                       startC)
+                     .count()
+              << std::endl;
+
+    // std::cout << "Difference: " << (newFieldCoul -
+    // newFieldCoulPoisson).norm()
+    //           << std::endl;
+
+    newFieldCoul = UCDir;
     newFieldCoul += Wavefunction::exchangeCoulombField(*rhoP, grid);
   } else {
     newFieldCoul = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
@@ -358,35 +353,5 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
     *BN = (*BN) * (1 - mu) + newBN * mu;
     *BP = (*BP) * (1 - mu) + newBP * mu;
   }
-
-  //  if (BP == nullptr) {
-  //
-  //    if (!input.spinOrbit) {
-  //      BP = std::make_shared<Eigen::MatrixX3d>(
-  //          Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3));
-  //      BN = std::make_shared<Eigen::MatrixX3d>(
-  //          Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3));
-  //    } else {
-  //      BP = std::make_shared<Eigen::MatrixX3d>(
-  //          params.W0 * 0.5 * (*nablaRhoP + *nablaRhoN + *nablaRhoP));
-  //      if (input.useJ)
-  //        *BP += 0.125 * ((t1 - t2) * (*JvecP) -
-  //                        (t1 * x1 + t2 * x2) * ((*JvecN) + (*JvecP)));
-  //
-  //      BN = std::make_shared<Eigen::MatrixX3d>(
-  //          params.W0 * 0.5 * (*nablaRhoN + *nablaRhoN + *nablaRhoP));
-  //      if (input.useJ)
-  //        *BN += 0.125 * ((t1 - t2) * (*JvecN) -
-  //                        (t1 * x1 + t2 * x2) * ((*JvecN) + (*JvecP)));
-  //    }
-  //  } else {
-  //    if (input.spinOrbit) {
-  //      // TODO: fixare con J2!!
-  //      auto newBN = params.W0 * 0.5 * (*nablaRhoN + *nablaRhoP + *nablaRhoP);
-  //      auto newBP = params.W0 * 0.5 * (*nablaRhoN + *nablaRhoP + *nablaRhoN);
-  //      *BP = (*BP) * (1 - mu) + newBP * mu;
-  //      *BN = (*BN) * (1 - mu) + newBN * mu;
-  //    }
-  //  }
   std::cout << "Quantities updated" << std::endl << std::endl;
 }

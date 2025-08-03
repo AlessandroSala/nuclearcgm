@@ -1,5 +1,6 @@
 #include "skyrme/skyrme_so.hpp"
 #include "constants.hpp"
+#include "util/iteration_data.hpp"
 #include <cmath>
 #include <complex>
 #include <memory>
