@@ -3,6 +3,7 @@
 #include "guess.hpp"
 #include "hamiltonian.hpp"
 #include "input_parser.hpp"
+#include "kinetic/iso_kinetic_potential.hpp"
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
 #include "radius.hpp"
@@ -16,6 +17,7 @@
 #include "woods_saxon/deformed_woods_saxon.hpp"
 #include <chrono>
 #include <cmath>
+#include <experimental/filesystem>
 #include <iostream>
 #include <memory>
 #include <skyrme/skyrme_so.hpp>
@@ -48,14 +50,17 @@ int main(int argc, char **argv) {
   std::cout << input.skyrme.t0 << " " << input.skyrme.t1 << " "
             << input.skyrme.t2 << " " << input.skyrme.t3 << " "
             << input.skyrme.W0 << std::endl;
+  cout << "Initial CG tol: " << calc.initialGCG.cgTol << endl;
+  cout << "Initial CG steps: " << calc.initialGCG.steps << endl;
 
   std::pair<ComplexDenseMatrix, DenseVector> eigenpair;
   vector<shared_ptr<Potential>> pots;
 
-  Radius radius(0.000, WS.r0, A);
+  Radius radius(0.0, WS.r0, A);
 
   pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
       WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa));
+  pots.push_back(make_shared<IsoKineticPotential>());
   if (input.spinOrbit) {
     pots.push_back(make_shared<DeformedSpinOrbitPotential>(WSSO.V0, radius,
                                                            WS.diffusivity));
@@ -65,13 +70,16 @@ int main(int argc, char **argv) {
   // cout << ham.buildMatrix() << endl;
   //
 
-  double h_omega = 41.0 / (pow(A, 0.33333));
+  // double h_omega = 41.0 / (pow(A, 0.33333));
+  double nucRadius = pow(A, 0.3333333) * 1.27;
   pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B(
-      initialWS.build_matrix5p(),
-      harmonic_oscillator_guess(grid, N + input.additional, grid.get_a()),
-      N + input.additional, 35 + 0.01, calc.cycles, 0.0001, grid.get_n() * 1.2,
-      1.0e-7 / grid.get_n(), false, 1);
+      initialWS.buildMatrix(),
+      harmonic_oscillator_guess(grid, N + input.additional, nucRadius,
+                                input.spinOrbit),
+      N + input.additional, 60, calc.initialGCG.maxIter, 0.0001,
+      calc.initialGCG.steps, calc.initialGCG.cgTol, false, 2);
 
+  std::cout << neutronsEigenpair.second << std::endl;
   pair<MatrixXcd, VectorXd> protonsEigenpair;
   if (Z != N) {
     if (N > Z) {
@@ -97,8 +105,8 @@ int main(int argc, char **argv) {
       protonsEigenpair = gcgm_complex_no_B(
           initialWS.build_matrix5p(),
           harmonic_oscillator_guess(grid, N + input.additional, grid.get_a()),
-          pEigval, 35 + 0.01, calc.cycles, 0.0001, grid.get_n() * 1.2,
-          1.0e-7 / grid.get_n(), false, 1);
+          pEigval, 35 + 0.01, calc.initialGCG.maxIter, 0.0001,
+          grid.get_n() * 1.2, 1.0e-7 / grid.get_n(), false, 1);
     }
   } else {
     protonsEigenpair = neutronsEigenpair;
@@ -118,12 +126,11 @@ int main(int argc, char **argv) {
 
   int hfIter = 0;
   for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
-
     int maxIterGCGHF = calc.hf.gcg.maxIter;
     maxIterGCGHF = 14 - (hfIter % 5);
-    if (hfIter == 0) {
-      maxIterGCGHF = A + 6;
-    }
+    //    if (hfIter == 0) {
+    //    maxIterGCGHF = ;
+    //  }
 
     cout << "HF iteration: " << hfIter << endl;
 
@@ -141,10 +148,10 @@ int main(int argc, char **argv) {
 
     Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
-    auto newNeutronsEigenpair =
-        gcgm_complex_no_B(skyrmeHam.buildMatrix(), neutronsEigenpair.first,
-                          N + input.additional, 35 + 0.01, maxIterGCGHF,
-                          calc.hf.gcg.tol, 40, 1.0e-4 / (calc.nev), false, 1);
+    auto newNeutronsEigenpair = gcgm_complex_no_B(
+        skyrmeHam.buildMatrix(), neutronsEigenpair.first, N + input.additional,
+        35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
+        1.0e-4 / (calc.initialGCG.nev), false, 1);
 
     pair<MatrixXcd, VectorXd> newProtonsEigenpair;
     if (input.useCoulomb) {
@@ -161,9 +168,10 @@ int main(int argc, char **argv) {
       std::cout << "Protons " << std::endl;
       pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
       Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
-      newProtonsEigenpair = gcgm_complex_no_B(
-          skyrmeHam.buildMatrix(), protonsEigenpair.first, Z, 35 + 0.01,
-          maxIterGCGHF, calc.hf.gcg.tol, 40, 1.0e-4 / (calc.nev), false, 1);
+      newProtonsEigenpair =
+          gcgm_complex_no_B(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
+                            35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
+                            1.0e-4 / (calc.initialGCG.nev), false, 1);
       skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
 
     } else {

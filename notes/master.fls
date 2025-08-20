@@ -1,8 +1,8 @@
-PWD /home/ale/dev/nuclearcgm
+PWD /home/ale/dev/nuclearcgm/notes
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/ale/dev/nuclearcgm/master.tex
+INPUT /home/ale/dev/nuclearcgm/notes/master.tex
 OUTPUT master.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -786,6 +786,10 @@ INPUT ./chapters/hartree_fock/energy/energy.tex
 INPUT chapters/hartree_fock/energy/energy.tex
 INPUT ./chapters/hartree_fock/energy/energy.tex
 INPUT chapters/hartree_fock/energy/energy.tex
+INPUT ./chapters/hartree_fock/benchmark/benchmark.tex
+INPUT chapters/hartree_fock/benchmark/benchmark.tex
+INPUT ./chapters/hartree_fock/benchmark/benchmark.tex
+INPUT chapters/hartree_fock/benchmark/benchmark.tex
 INPUT master.aux
 INPUT ./master.out
 INPUT ./master.out

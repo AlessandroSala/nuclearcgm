@@ -1,4 +1,5 @@
 #include "grid.hpp"
+#include <cassert>
 #include <stdexcept> // For std::invalid_argument
 #include <string>    // For std::to_string in error message
 
@@ -16,6 +17,13 @@ Grid::Grid(int n, double a)
 
   // Initialize the coordinate vectors
   initialize_coordinates();
+  instance = this;
+}
+
+Grid *Grid::instance = nullptr;
+Grid *Grid::getInstance() {
+  assert(instance);
+  return instance;
 }
 
 // Private helper function implementation

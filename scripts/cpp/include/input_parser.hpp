@@ -9,6 +9,8 @@ typedef struct GCGParameters {
   int nev;
   double tol;
   int maxIter;
+  int steps;
+  double cgTol;
 } CGCParameters;
 typedef struct {
   double W0;
@@ -28,9 +30,7 @@ typedef struct HartreeFock {
   GCGParameters gcg;
 } HartreeFock;
 typedef struct {
-  int nev;
-  int cycles;
-  double tol;
+  GCGParameters initialGCG;
   HartreeFock hf;
 } Calculation;
 
