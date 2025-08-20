@@ -1,6 +1,8 @@
 
 #include "solver.hpp"
 #include <chrono>
+#include <iostream>
+#include <numeric>
 
 using Clock = std::chrono::high_resolution_clock;
 using Duration = std::chrono::duration<double>;
@@ -579,8 +581,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
   // ConjugateGradient<ComplexSparseMatrix, Lower | Upper> cg;
   // cg.setMaxIterations(cg_steps);
   // cg.setTolerance(cg_tol);
-  const int blockSize = std::max(1, nev / size);
-  std::cout << "Using block size " << blockSize << std::endl;
+  const int blocks = std::max(1, nev / size);
+  std::cout << "Using block size " << size << std::endl;
 
   // --- Validazione Input --- (controlli dimensioni simili)
   if (A.rows() != n || A.cols() != n || X_initial.rows() != n) {
@@ -597,14 +599,15 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 
   // --- Inizializzazione Complessa ---
   ComplexDenseMatrix X = X_initial.leftCols(nev);
-  ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, blockSize);
-  ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, blockSize);
+  ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, blocks);
+  ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, blocks);
   DenseVector Lambda;           // Autovalori reali
   double current_shift = shift; // Shift reale
   ComplexSparseMatrix Id(n, n);
   Id.setIdentity();
 
   b_modified_gram_schmidt_complex_no_B(X); // Rendi X B-ortonormale
+  int converged = 0;
 
   // Rayleigh-Ritz iniziale
 
@@ -642,18 +645,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     // BXLambda è Complessa
     ComplexDenseMatrix BXLambda = X * Lambda.asDiagonal();
 
-    // Usa BiCGSTAB (o altro solver iterativo complesso) invece di CG
-    // if(iter > 0) cg.setMaxIterations(std::min(cg_steps, 10));
-    // std::cout << "Using " << cg.maxIterations() << " iterations" <<
-    // std::endl;
-
-    // if (cg.info() != Eigen::Success && iter == 0)
-    //{
-    // std::cerr << "Error: CG compute structure failed (Complex GCGM)." <<
-    // std::endl;
-    //// Questo errore è meno probabile con BiCGSTAB che con CG
-    // return {};
-    //}
     start = Clock::now();
 
 // Prepare cg solvers
@@ -668,11 +659,13 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     }
 
 #pragma omp parallel for // Opzionale
-    for (int k = 0; k < blockSize; ++k) {
+    for (int k = 0; k < blocks; ++k) {
       int threadId = omp_get_thread_num();
+
+      int i = k + converged;
       // Risolvi A_shifted * w_k = (BXLambda)_k
-      W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(k),
-                                                    X.col(k)); // W è complesso
+      W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(i),
+                                                    X.col(i)); // W è complesso
       // Controllo errore solve opzionale
     }
     end = Clock::now();
@@ -682,13 +675,13 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     }
 
     // 2. Costruisci V = [X, P, W] (tutte complesse)
-    int p_cols = (iter == 0) ? 0 : blockSize;
-    ComplexDenseMatrix V(n, nev + p_cols + blockSize);
+    int p_cols = blocks;
+    ComplexDenseMatrix V(n, nev + p_cols + blocks);
     V.leftCols(nev) = X;
     if (p_cols > 0) {
-      V.block(0, nev, n, blockSize) = P;
+      V.block(0, nev, n, blocks) = P;
     }
-    V.rightCols(blockSize) = W;
+    V.rightCols(blocks) = W;
 
     start = Clock::now();
 
@@ -747,8 +740,18 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 
     // 5. Verifica Convergenza (Residuo complesso, norma reale)
     ComplexDenseMatrix Residual = A * X_new - X_new * Lambda_new.asDiagonal();
+    converged = 0;
+    for (int i = 0; i < Residual.rows(); i++) {
+
+      if (Residual.row(i).norm() < tolerance) {
+        converged++;
+      }
+    }
+    converged = converged + blocks > nev ? nev - blocks : converged;
+
     double residual_norm = Residual.norm(); // Norma di Frobenius (reale)
     double x_norm = X_new.norm();
+
     double relative_residual =
         (x_norm > 1e-12) ? (residual_norm / x_norm) : residual_norm;
 

@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1753779213.37659 "/home/ale/dev/nuclearcgm/master.tex" "master.pdf" "master" 1753779213.86371 0
-  "/home/ale/dev/nuclearcgm/master.tex" 1753778832.39284 17458 824d77df9066bdefee51d6471e2b47dd ""
+["pdflatex"] 1755596462.52056 "/home/ale/dev/nuclearcgm/notes/master.tex" "master.pdf" "master" 1755596463.06756 0
+  "/home/ale/dev/nuclearcgm/notes/master.tex" 1755596460.44831 17512 ea8cf47d8c34783388f67ce478d3a027 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -133,16 +133,17 @@
   "chapters/finite_differences/shell_model/deformed_woods_saxon.tex" 1746603861.45486 2019 ab35b05b9ade86f7fb9358773384f125 ""
   "chapters/finite_differences/shell_model/shell_model.tex" 1746007926.13796 3296 1d5a0391473728117fdc497646b3fd07 ""
   "chapters/finite_differences/spin/spin_treatment.tex" 1744896232.89807 3589 967e04f8b8a661cc6f8bf85fa7ee8b80 ""
+  "chapters/hartree_fock/benchmark/benchmark.tex" 1755596443.63321 41 9b690d6ac8e084d22315eff7c813a52b ""
   "chapters/hartree_fock/coulomb/coulomb.tex" 1753777447.05345 1236 a9e1776c342544266cd9f7b44a92f12a ""
   "chapters/hartree_fock/energy/energy.tex" 1753778832.47384 37 19489971fd33e757e504a2557dd2cf86 ""
-  "chapters/hartree_fock/introduction/hartree_fock_introduction.tex" 1753779212.72219 2395 fe87de5ee9b471d02db3d9568911b93c ""
+  "chapters/hartree_fock/introduction/hartree_fock_introduction.tex" 1753779216.08818 2395 fe87de5ee9b471d02db3d9568911b93c ""
   "chapters/hartree_fock/skyrme/functional.tex" 1753778264.28931 3860 076211ce91da54a6c687c8dba12c3e22 ""
   "chapters/hartree_fock/skyrme/skyrme.tex" 1753779169.58835 6859 6fd31b11c5a6b4699e64a1ec8f69cd2c ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
-  "master.aux" 1753779213.78219 8459 a8d180a7d3e0b398ed6db3eb6e4c7941 "pdflatex"
-  "master.out" 1753779213.78319 7423 e474f40931c304576159fee5d8452b4b "pdflatex"
-  "master.tex" 1753778832.39284 17458 824d77df9066bdefee51d6471e2b47dd ""
-  "master.toc" 1753779213.78319 3942 148a722d3ad81ddb047f7af95b21a0ea "pdflatex"
+  "master.aux" 1755596463.00033 8588 b29e873f0bbb563f93142829715eda5f "pdflatex"
+  "master.out" 1755596463.00133 7631 67f2fafa491f860f96ba951e9353ac06 "pdflatex"
+  "master.tex" 1755596460.44831 17512 ea8cf47d8c34783388f67ce478d3a027 ""
+  "master.toc" 1755596463.00133 4030 5d3a9ea54ed2bbbeb22d08fc5dad6770 "pdflatex"
   (generated)
   "master.aux"
   "master.log"

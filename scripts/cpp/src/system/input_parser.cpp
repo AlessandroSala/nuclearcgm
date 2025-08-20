@@ -56,10 +56,13 @@ WSSpinOrbitParameters InputParser::getWSSO() {
 }
 
 Calculation InputParser::getCalculation() {
-  HartreeFock hf = {data["hf"]["cycles"], data["hf"]["energyTol"],
-                    GCGParameters{data["hf"]["gcg"]["nev"],
-                                  data["hf"]["gcg"]["tol"],
-                                  data["hf"]["gcg"]["maxIter"]}};
-  return Calculation{data["gcg"]["nev"], data["gcg"]["cycles"],
-                     data["gcg"]["tol"], hf};
+  HartreeFock hf = {
+      data["hf"]["cycles"], data["hf"]["energyTol"],
+      GCGParameters{data["hf"]["gcg"]["nev"], data["hf"]["gcg"]["tol"],
+                    data["hf"]["gcg"]["maxIter"], data["hf"]["gcg"]["steps"],
+                    data["hf"]["gcg"]["cgTol"]}};
+  return Calculation{GCGParameters{data["gcg"]["nev"], data["gcg"]["tol"],
+                                   data["gcg"]["maxIter"], data["gcg"]["steps"],
+                                   data["gcg"]["cgTol"]},
+                     hf};
 }

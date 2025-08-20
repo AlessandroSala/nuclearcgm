@@ -98,128 +98,136 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
   double Q20 = integral(Q20int, grid);
   double Q22 = integral(Q22int, grid);
 
-  Eigen::VectorXd Uquad(grid.get_total_spatial_points());
+  vector<shared_ptr<Potential>> pots;
+  pots.push_back(make_shared<LaplacianPotential>());
+  Hamiltonian ham(make_shared<Grid>(grid), pots);
+
+  int n = grid.get_n();
+  double a = grid.get_a();
+  double h = grid.get_h();
+  int nnew = n + 4;
+  double hh = h * h;
+
+  Eigen::VectorXd Uquad(nnew * nnew * nnew);
+
+  auto idxNoSpin = [&](int i, int j, int k, int dim) {
+    return i * dim * dim + j * dim + k;
+  };
 
 #pragma omp parallel for collapse(3)
-  for (int i = 0; i < grid.get_n(); i++) {
-    for (int j = 0; j < grid.get_n(); j++) {
-      for (int k = 0; k < grid.get_n(); k++) {
-        int idx = grid.idxNoSpin(i, j, k);
-        double x = grid.get_xs()[i];
-        double y = grid.get_ys()[j];
-        double z = grid.get_zs()[k];
+  for (int i = 0; i < nnew; i++) {
+    for (int j = 0; j < nnew; j++) {
+      for (int k = 0; k < nnew; k++) {
+
+        int idx = idxNoSpin(i, j, k, nnew);
+        double x = -a - 2 * h + i * h;
+        double y = -a - 2 * h + j * h;
+        double z = -a - 2 * h + k * h;
 
         double r = sqrt(x * x + y * y + z * z);
         if (r < 1e-9)
           r = 1e-9;
 
-        Uquad(idx) = (e2 * Z) / (r);
-        Uquad(idx) += e2 * (Y20(x, y, z) * Q20 + Y22(x, y, z) * Q22) / (r);
+        Uquad(idx) = (e2 * Z) / r;
+        Uquad(idx) += e2 * (Y20(x, y, z) * Q20 + Y22(x, y, z) * Q22) / r;
       }
     }
   }
-
-  vector<shared_ptr<Potential>> pots;
-  pots.push_back(make_shared<LaplacianPotential>());
-  Hamiltonian ham(make_shared<Grid>(grid), pots);
-
-  using std::sqrt;
 
   SparseMatrix<double> mat = ham.buildMatrixNoSpin().real();
   VectorXd rhs = -eps0inv * rhoP;
 
-  int n = grid.get_n();
-  // Fase 1 : "Lifting" per stencil a 5 punti.
-  for (int i = 1; i < grid.get_n() - 1; i++) {
-    for (int j = 1; j < grid.get_n() - 1; j++) {
-      for (int k = 1; k < grid.get_n() - 1; k++) {
-        int p_idx = grid.idxNoSpin(i, j, k);
-
-        // Correzioni per bordo X
-        if (i == 1) {
-          int b_idx = grid.idxNoSpin(0, j, k);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx) * Uquad(b_idx);
-        }
-        if (i == 2) {
-          int b_idx1 = grid.idxNoSpin(0, j, k); // i-2 = 0
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-        if (i == n - 2) {
-          int b_idx1 = grid.idxNoSpin(n - 1, j, k);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-        if (i == n - 3) {
-          int b_idx1 = grid.idxNoSpin(n - 1, j, k);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-
-        // Correzioni per bordo Y
-        if (j == 1) {
-          int b_idx = grid.idxNoSpin(i, 0, k);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx) * Uquad(b_idx);
-        }
-        if (j == 2) {
-          int b_idx1 = grid.idxNoSpin(i, 0, k); // i-2 = 0
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-        if (j == n - 2) {
-          int b_idx1 = grid.idxNoSpin(i, n - 1, k);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-        if (j == n - 3) {
-          int b_idx1 = grid.idxNoSpin(i, n - 1, k);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-
-        // Correzioni per bordo Z
-        if (k == 1) {
-          int b_idx = grid.idxNoSpin(i, j, 0);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx) * Uquad(b_idx);
-        }
-        if (k == 2) {
-          int b_idx1 = grid.idxNoSpin(i, j, 0); // i-2 = 0
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-        if (k == n - 2) {
-          int b_idx1 = grid.idxNoSpin(i, j, n - 1);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-        if (k == n - 3) {
-          int b_idx1 = grid.idxNoSpin(i, j, n - 1);
-          rhs(p_idx) -= mat.coeff(p_idx, b_idx1) * Uquad(b_idx1);
-        }
-      }
+// i = 0 (contributi da -1, -2)
+#pragma omp parallel for collapse(2)
+  for (int j = 0; j < n; ++j) {
+    for (int k = 0; k < n; ++k) {
+      int rhs_idx = idxNoSpin(0, j, k, n);
+      rhs(rhs_idx) -=
+          (16.0 / 12.0) * Uquad(idxNoSpin(1, j + 2, k + 2, nnew)) / hh;
+      rhs(rhs_idx) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(0, j + 2, k + 2, nnew)) / hh;
+      int rhs_idx1 = idxNoSpin(1, j, k, n);
+      rhs(rhs_idx1) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(1, j + 2, k + 2, nnew)) / hh;
     }
   }
 
-  // Fase 2: Imposta le equazioni per i punti di bordo.
-  for (int i = 0; i < grid.get_n(); i++) {
-    for (int j = 0; j < grid.get_n(); j++) {
-      for (int k = 0; k < grid.get_n(); k++) {
-        if (i == 0 || i == grid.get_n() - 1 || j == 0 ||
-            j == grid.get_n() - 1 || k == 0 || k == grid.get_n() - 1) {
-
-          int idx = grid.idxNoSpin(i, j, k);
-
-          for (SparseMatrix<double>::InnerIterator it(mat, idx); it; ++it) {
-            if (it.row() != it.col()) {
-              it.valueRef() = 0.0;
-            }
-          }
-          mat.coeffRef(idx, idx) = 1.0;
-          rhs(idx) = Uquad(idx);
-        }
-      }
+// i = n-1 (contributi da n, n+1)
+#pragma omp parallel for collapse(2)
+  for (int j = 0; j < n; ++j) {
+    for (int k = 0; k < n; ++k) {
+      int rhs_idx = idxNoSpin(n - 1, j, k, n);
+      rhs(rhs_idx) -=
+          (16.0 / 12.0) * Uquad(idxNoSpin(n + 2, j + 2, k + 2, nnew)) / hh;
+      rhs(rhs_idx) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(n + 3, j + 2, k + 2, nnew)) / hh;
+      int rhs_idx1 = idxNoSpin(n - 2, j, k, n);
+      rhs(rhs_idx1) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(n + 2, j + 2, k + 2, nnew)) / hh;
     }
   }
-  mat.prune(0.0);
 
-  // **CAMBIO DEL SOLUTORE**
-  // Usiamo BiCGSTAB che non richiede una matrice simmetrica.
+// j = 0
+#pragma omp parallel for collapse(2)
+  for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
+      int rhs_idx = idxNoSpin(i, 0, k, n);
+      rhs(rhs_idx) -=
+          (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, 1, k + 2, nnew)) / hh;
+      rhs(rhs_idx) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, 0, k + 2, nnew)) / hh;
+      int rhs_idx1 = idxNoSpin(i, 1, k, n);
+      rhs(rhs_idx1) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, 1, k + 2, nnew)) / hh;
+    }
+  }
+
+// j = n-1
+#pragma omp parallel for collapse(2)
+  for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
+      int rhs_idx = idxNoSpin(i, n - 1, k, n);
+      rhs(rhs_idx) -=
+          (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, n + 2, k + 2, nnew)) / hh;
+      rhs(rhs_idx) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, n + 3, k + 2, nnew)) / hh;
+      int rhs_idx1 = idxNoSpin(i, n - 2, k, n);
+      rhs(rhs_idx1) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, n + 2, k + 2, nnew)) / hh;
+    }
+  }
+
+// k = 0
+#pragma omp parallel for collapse(2)
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      int rhs_idx = idxNoSpin(i, j, 0, n);
+      rhs(rhs_idx) -=
+          (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, 1, nnew)) / hh;
+      rhs(rhs_idx) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, 0, nnew)) / hh;
+      int rhs_idx1 = idxNoSpin(i, j, 1, n);
+      rhs(rhs_idx1) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, 1, nnew)) / hh;
+    }
+  }
+
+// k = n-1
+#pragma omp parallel for collapse(2)
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      int rhs_idx = idxNoSpin(i, j, n - 1, n);
+      rhs(rhs_idx) -=
+          (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, n + 2, nnew)) / hh;
+      rhs(rhs_idx) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, n + 3, nnew)) / hh;
+      int rhs_idx1 = idxNoSpin(i, j, n - 2, n);
+      rhs(rhs_idx1) +=
+          (1.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, n + 2, nnew)) / hh;
+    }
+  }
+
   BiCGSTAB<SparseMatrix<double>> solver;
-  if (U != nullptr)
-    solver.setTolerance(1e-10);
-
   solver.compute(mat);
   if (U != nullptr)
     return solver.solveWithGuess(rhs, *U);
@@ -315,7 +323,8 @@ Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
 
   return field;
 }
-// Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid)
+// Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const
+// Grid &grid)
 //{
 //// using std::complex;
 // Eigen::VectorXd tau(grid.get_total_spatial_points());
@@ -332,18 +341,22 @@ Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
 // double point_tau = 0.0;
 // for (int s = 0; s < 2; ++s) // Loop over spin components
 //{
-// for (int col = 0; col < psi.cols(); ++col) // Loop over orbitals/states
+// for (int col = 0; col < psi.cols(); ++col) // Loop over
+// orbitals/states
 //{
-//// psi.col(col) passes a column vector (or an expression representing it)
-//// to the derivative function. Operators::derivative is assumed to be
+//// psi.col(col) passes a column vector (or an expression representing
+/// it) / to the derivative function. Operators::derivative is assumed to
+/// be
 /// thread-safe.
-// point_tau += std::norm(Operators::derivative(psi.col(col), i, j, k, s, grid,
-// 'x')); point_tau += std::norm(Operators::derivative(psi.col(col), i, j, k, s,
-// grid, 'y')); point_tau += std::norm(Operators::derivative(psi.col(col), i, j,
-// k, s, grid, 'z'));
+// point_tau += std::norm(Operators::derivative(psi.col(col), i, j, k,
+// s, grid, 'x')); point_tau +=
+// std::norm(Operators::derivative(psi.col(col), i, j, k, s, grid,
+// 'y')); point_tau += std::norm(Operators::derivative(psi.col(col), i,
+// j, k, s, grid, 'z'));
 //}
 //}
-// tau(tau_idx) = point_tau; // Each thread writes to a unique element of tau
+// tau(tau_idx) = point_tau; // Each thread writes to a unique element
+// of tau
 //}
 //}
 //}
@@ -401,8 +414,8 @@ Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
       grid.get_total_spatial_points(), 9);
   J.setZero();
 
-  auto pauli =
-      nuclearConstants::getPauli(); // Call once outside the parallel region
+  auto pauli = nuclearConstants::getPauli(); // Call once outside the
+                                             // parallel region
 
   using nuclearConstants::img;
   for (int col = 0; col < psi.cols(); ++col) {
@@ -530,8 +543,8 @@ hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid) {
         complex<double> Jz_point(0.0, 0.0);
         for (int col = 0; col < psi.cols(); ++col) {
           Eigen::Matrix<complex<double>, 2, 3>
-              chiGrad; // Stores nabla_x chi, nabla_y chi, nabla_z chi for
-                       // spin up/down
+              chiGrad;          // Stores nabla_x chi, nabla_y chi, nabla_z chi
+                                // for spin up/down
           Eigen::Vector2cd chi; // Spinor for current point and orbital
           point_density += std::norm(
               psi(psi_idx_s0, col)); // std::norm(complex) = |complex|^2
@@ -563,8 +576,8 @@ hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid) {
         J(rho_idx, 0) = Jx_point;
         J(rho_idx, 1) = Jy_point;
         J(rho_idx, 2) = Jz_point;
-        rho(rho_idx) =
-            point_density; // Each thread writes to a unique element of rho
+        rho(rho_idx) = point_density; // Each thread writes to a unique
+                                      // element of rho
       }
     }
   }
