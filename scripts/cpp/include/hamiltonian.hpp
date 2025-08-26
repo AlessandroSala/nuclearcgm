@@ -34,6 +34,7 @@ public:
   ComplexSparseMatrix buildMatrix();
   Eigen::SparseMatrix<double> buildMatrixNoSpin();
   ComplexSparseMatrix build_matrix5p();
+  ComplexSparseMatrix build_matrix5p_symm();
   ComplexSparseMatrix build_matrix7p();
 
   inline double getzero() { return 0.0; }

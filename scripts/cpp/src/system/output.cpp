@@ -1,12 +1,16 @@
 #include "util/output.hpp"
+#include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
 #include "util/wavefunction.hpp"
 #include <fstream>
 #include <iostream>
 
 double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir) {
+
   double h = grid.get_h();
+
   double hh = h * h;
+
   int n = grid.get_n();
   double res = 0.0;
   for (int i = 0; i < grid.get_n(); ++i) {
@@ -42,6 +46,10 @@ void Output::shellsToFile(
     std::shared_ptr<IterationData> iterationData, InputParser input,
     int iterations, std::vector<double> energies, double cpuTime,
     const Grid &grid) {
+  int N = input.getZ();
+  int Z = input.getA() - N;
+  auto neutrons = neutronShells.first(Eigen::all, Eigen::seq(0, N - 1));
+  auto protons = protonShells.first(Eigen::all, Eigen::seq(0, Z - 1));
 
   std::ofstream file(folder + "/" + input.getOutputName() + ".txt");
   file << "=== BOX ===" << std::endl;
@@ -90,6 +98,13 @@ void Output::shellsToFile(
   file << ", sqrt<y^2>: " << y2Sqrt << " fm";
   file << ", sqrt<z^2>: " << z2Sqrt << " fm" << std::endl;
   file << "sqrt<r^2>: " << r2Sqrt << " fm" << std::endl;
+  file << "RN: " << std::sqrt(iterationData->neutronRadius()) << " fm"
+       << std::endl;
+  file << "RP: " << std::sqrt(iterationData->protonRadius()) << " fm"
+       << std::endl;
+  file << "CR: "
+       << std::sqrt(iterationData->chargeRadius(neutrons, protons, N, Z))
+       << " fm" << std::endl;
 
   file << std::endl;
   double Q0 = (3 * z2int - r2Sqrt * r2Sqrt);
@@ -125,7 +140,7 @@ void Output::shellsToFile(
        << " MeV" << std::endl;
   file << "E (kin): " << eKin << " MeV" << std::endl;
   double totEnInt = eKin + skyrmeEnergy;
-  file << "E: " << totEnInt << " MeV" << std::endl;
+  file << "E_INT: " << totEnInt << " MeV" << std::endl;
 
   double SPE = 0.5 * (neutronShells.second.sum() + protonShells.second.sum());
   file << std::endl;
@@ -133,12 +148,14 @@ void Output::shellsToFile(
   file << "E (SPE): " << SPE << " MeV" << std::endl;
   file << "E (Kin): " << eKin * 0.5 << " MeV" << std::endl;
 
-  double eRea = skyrmeEnergy - 0.5 * iterationData->densityUVPIntegral(grid);
+  double eRea = iterationData->Erear(grid);
   double E = eRea + eKin * 0.5 + SPE;
+  auto E_HF = iterationData->HFEnergy(SPE * 2.0, grid);
   file << "E (REA): " << eRea << " MeV" << std::endl;
-  file << "E: " << iterationData->HFEnergy(SPE * 2.0, grid) << " MeV"
-       << std::endl;
+  file << "E_HF: " << E_HF << " MeV" << std::endl;
   file << std::endl;
+  file << "E_INT/E_HF - 1: " << 100.0 * ((totEnInt / E_HF) - 1.0) << " %"
+       << std::endl;
 
   file << "=== Neutrons ===" << std::endl;
   Wavefunction::printShellsToFile(neutronShells, grid, file);
@@ -147,6 +164,18 @@ void Output::shellsToFile(
   Wavefunction::printShellsToFile(protonShells, grid, file);
   file << std::endl;
 
+  using namespace SphericalHarmonics;
+  file << "=== Multipole moments ===" << std::endl;
+  Eigen::VectorXd rho = *(iterationData->rhoN) + *(iterationData->rhoP);
+
+  for (int l = 0; l <= input.get_json()["output_lmax"]; ++l) {
+    file << "l: " << l << std::endl;
+    for (int m = -l; m <= l; ++m) {
+      file << l << ", " << m << ": " << Q(l, m, rho) << std::endl;
+    }
+    file << std::endl;
+  }
+
   file << "=== Energies ===" << std::endl;
   for (int i = 0; i < energies.size(); ++i) {
     double e = energies[i];
@@ -154,8 +183,6 @@ void Output::shellsToFile(
   }
 
   matrixToFile("density.csv", *(iterationData->rhoN));
-  matrixToFile("kindensity.csv", *(iterationData->tauN));
-  matrixToFile("nabla2dens.csv", *(iterationData->nabla2RhoN));
 
   file.close();
 }

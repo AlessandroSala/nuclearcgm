@@ -1,1 +1,19 @@
 \section{Comparison with hfbcs-qrpa code}
+All the calculations are carried out using SLy5 parameters. 
+\begin{table}[ht]
+  \centering
+  \label{tab:confronto}
+  \begin{tabular}{lccc}
+    \toprule
+    & Unconstrained CG & hfbcs\_qrpa & $\Delta\%$ \\
+    \midrule
+    $E_\text{I}$ [MeV] & -141.605 & -141.599 & 0.12 \\
+    $E_\text{HF}$ [MeV] & -141.607 & -141.599 & 0.12 \\
+    CPU time [s]& 305s & - & -\\
+    1S$_{1/2}$ [MeV] & -36.14 & -36.14 & -\\
+    
+    $\langle r^2 \rangle^{1/2}$ [fm] & 3.55 & 3.60 & 1.4 \\
+    \bottomrule
+  \end{tabular}
+  \caption{$^{16}$O neglecting spin-orbit interaction, spin-gradient coulpling and Coulomb field}
+\end{table}
