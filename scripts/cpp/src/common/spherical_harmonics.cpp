@@ -27,7 +27,7 @@ std::complex<double> SphericalHarmonics::Y(int l, int m, double theta,
 
 int SphericalHarmonics::factorial(int n) {
   assert(n >= 0);
-  int res = 0;
+  int res = 1;
   for (int i = 2; i <= n; i++)
     res *= i;
   return res;

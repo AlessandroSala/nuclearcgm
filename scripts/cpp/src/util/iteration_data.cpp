@@ -1,15 +1,19 @@
 #include "util/iteration_data.hpp"
 #include "constants.hpp"
+#include "grid.hpp"
 #include "input_parser.hpp"
+#include "operators/angular_momentum.hpp"
 #include "operators/common_operators.hpp"
 #include "operators/differential_operators.hpp"
 #include "operators/integral_operators.hpp"
 #include "util/effective_mass.hpp"
+#include "util/fields.hpp"
 #include "util/wavefunction.hpp"
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <memory>
+
 IterationData::IterationData(InputParser input) : input(input) {
   params = input.skyrme;
   int A = input.getA();
@@ -18,55 +22,75 @@ IterationData::IterationData(InputParser input) : input(input) {
   massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
 }
 
+double IterationData::protonRadius() {
+
+  auto grid = *Grid::getInstance();
+  auto pos = Fields::position();
+  using Eigen::VectorXd;
+  using Operators::integral;
+  VectorXd f = pos.array().pow(2) * rhoP->array();
+
+  return integral(f, grid) / integral(*rhoP, grid);
+}
+double IterationData::neutronRadius() {
+
+  auto grid = *Grid::getInstance();
+  auto pos = Fields::position();
+  using Eigen::VectorXd;
+  using Operators::integral;
+  VectorXd f = pos.array().pow(2) * rhoN->array();
+
+  return integral(f, grid) / integral(*rhoN, grid);
+}
+
+double IterationData::chargeRadius(const Eigen::MatrixXcd psiN,
+                                   const Eigen::MatrixXcd psiP, int N, int Z) {
+  auto grid = *Grid::getInstance();
+
+  using namespace nuclearConstants;
+  using Eigen::VectorXcd;
+  using Eigen::VectorXd;
+  using Operators::integral;
+  using Operators::LS;
+
+  double corr = 0.0;
+  for (int i = 0; i < psiN.cols(); i++) {
+    VectorXcd lsPsi = LS(psiN.col(i), grid);
+    auto ls =
+        integral((VectorXcd)(lsPsi * psiN.col(i).adjoint()).diagonal(), grid)
+            .real();
+    corr += muN * ls / h_bar / h_bar;
+  }
+
+  for (int i = 0; i < psiP.cols(); i++) {
+    VectorXcd lsPsi = LS(psiP.col(i), grid);
+    double ls =
+        integral((VectorXcd)(lsPsi * psiP.col(i).adjoint()).diagonal(), grid)
+            .real();
+    corr += muP * ls / h_bar / h_bar;
+  }
+  corr *= 2.0 * (h_bar * h_bar / m / m) / Z;
+
+  std::cout << "Corr_n + p: " << corr << std::endl;
+  return std::abs(protonRadius() + N * rn / Z + rp + corr);
+}
+
 double IterationData::totalEnergyIntegral(SkyrmeParameters params,
                                           const Grid &grid) {
   double energy_C0Rho = C0RhoEnergy(params, grid);
-  if (std::isnan(energy_C0Rho)) {
-    std::cerr << "Attenzione: C0RhoEnergy ha prodotto un NaN!" << std::endl;
-  }
-
   double energy_C1Rho = C1RhoEnergy(params, grid);
-  if (std::isnan(energy_C1Rho)) {
-    std::cerr << "Attenzione: C1RhoEnergy ha prodotto un NaN!" << std::endl;
-  }
 
   double energy_C0nabla2Rho = C0nabla2RhoEnergy(params, grid);
-  if (std::isnan(energy_C0nabla2Rho)) {
-    std::cerr << "Attenzione: C0nabla2RhoEnergy ha prodotto un NaN!"
-              << std::endl;
-  }
-
   double energy_C1nabla2Rho = C1nabla2RhoEnergy(params, grid);
-  if (std::isnan(energy_C1nabla2Rho)) {
-    std::cerr << "Attenzione: C1nabla2RhoEnergy ha prodotto un NaN!"
-              << std::endl;
-  }
 
   double energy_C0Tau = C0TauEnergy(params, grid);
-  if (std::isnan(energy_C0Tau)) {
-    std::cerr << "Attenzione: C0TauEnergy ha prodotto un NaN!" << std::endl;
-  }
-
   double energy_C1Tau = C1TauEnergy(params, grid);
-  if (std::isnan(energy_C1Tau)) {
-    std::cerr << "Attenzione: C1TauEnergy ha prodotto un NaN!" << std::endl;
-  }
 
   double energy_CoulombDirect = CoulombDirectEnergy(grid);
-  if (std::isnan(energy_CoulombDirect)) {
-    std::cerr << "Attenzione: CoulombDirectEnergy ha prodotto un NaN!"
-              << std::endl;
-  }
 
   double energy_Hso = input.spinOrbit ? Hso(params, grid) : 0.0;
-  if (std::isnan(energy_Hso)) {
-    std::cerr << "Attenzione: Hso ha prodotto un NaN!" << std::endl;
-  }
 
   double energy_Hsg = Hsg(params, grid);
-  if (std::isnan(energy_Hsg)) {
-    std::cerr << "Attenzione: Hsg ha prodotto un NaN!" << std::endl;
-  }
 
   return energy_C0Rho + energy_C1Rho + energy_C0nabla2Rho + energy_C1nabla2Rho +
          energy_C0Tau + energy_C1Tau + energy_CoulombDirect +
@@ -166,7 +190,8 @@ double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid) {
 
 void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
                                      const Eigen::MatrixXcd &protonsShells,
-                                     const Grid &grid) {
+                                     int iter) {
+  Grid grid = *Grid::getInstance();
   int A = input.getA();
   int Z = input.getZ();
   int N = A - Z;
@@ -252,7 +277,7 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
     divJJQP = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   }
 
-  double mu = 0.2;
+  double mu = 0.01 + 0.01 * iter;
   Eigen::VectorXd tau = *tauN + *tauP;
   Eigen::VectorXd nabla2rho = *nabla2RhoN + *nabla2RhoP;
 
@@ -269,15 +294,6 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
   Eigen::VectorXd newFieldCoul;
   if (input.useCoulomb) {
     auto startC = std::chrono::steady_clock::now();
-    // newFieldCoul = Wavefunction::coulombField(*rhoP, grid);
-    auto endC = std::chrono::steady_clock::now();
-    std::cout << "Coulomb integration time: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(endC -
-                                                                       startC)
-                     .count()
-              << std::endl;
-
-    startC = std::chrono::steady_clock::now();
 
     std::shared_ptr<Eigen::VectorXd> UCDirPtr;
 
@@ -287,16 +303,12 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
       UCDir = Wavefunction::coulombFieldPoisson(
           *rhoP, grid, Z, std::make_shared<Eigen::VectorXd>(UCDir));
     }
-    endC = std::chrono::steady_clock::now();
+    auto endC = std::chrono::steady_clock::now();
     std::cout << "Coulomb Poisson time: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(endC -
                                                                        startC)
                      .count()
               << std::endl;
-
-    // std::cout << "Difference: " << (newFieldCoul -
-    // newFieldCoulPoisson).norm()
-    //           << std::endl;
 
     newFieldCoul = UCDir;
     newFieldCoul += Wavefunction::exchangeCoulombField(*rhoP, grid);

@@ -425,7 +425,75 @@ gcgm_complex(const ComplexSparseMatrix &A, // A Complessa Hermitiana
   std::cout << "Eigenvalues: " << Lambda.transpose() << std::endl;
   return {X, Lambda};
 }
+void recursive_ortho_helper(ComplexDenseMatrix &V, int start, int end);
 
+/**
+ * @brief Implements the Recursive Blocked Orthogonalization from the article
+ * (Algorithm 4).
+ *
+ * This function serves as a user-friendly wrapper for the main recursive
+ * implementation. It is adapted for the standard L2 inner product to match the
+ * context of the provided code snippet (b_modified_gram_schmidt_complex_no_B).
+ *
+ * @param V The matrix whose columns will be orthonormalized in place.
+ */
+void recursive_blocked_orthogonalization_from_article(ComplexDenseMatrix &V) {
+  if (V.cols() == 0) {
+    return;
+  }
+  // Initial call to the recursive helper function on the entire matrix
+  recursive_ortho_helper(V, 0, V.cols() - 1);
+}
+
+/**
+ * @brief Helper function implementing the core logic of Algorithm 4.
+ *
+ * @param V The matrix being operated on.
+ * @param start The starting column index of the current block.
+ * @param end The ending column index of the current block.
+ */
+void recursive_ortho_helper(ComplexDenseMatrix &V, int start, int end) {
+  int current_block_size = end - start + 1;
+
+  // Base Case: If the block contains one or zero vectors, just normalize it.
+  // This corresponds to lines 3-9 in Algorithm 4.
+  if (current_block_size <= 1) {
+    if (current_block_size == 1) {
+      double norm = V.col(start).norm();
+      if (norm > 1e-12) {
+        V.col(start) /= norm;
+      } else {
+        V.col(start).setZero();
+      }
+    }
+    return; // Return if block is size 1 or empty
+  }
+
+  // Recursive Step: Divide the current block into two halves.
+  // Corresponds to line 2 in Algorithm 4.
+  int mid = start + (current_block_size / 2);
+
+  // 1. Orthonormalize the first half recursively.
+  // Corresponds to line 11 in Algorithm 4.
+  recursive_ortho_helper(V, start, mid - 1);
+
+  // 2. Make the second half orthogonal to the first half using a block
+  // operation. This is the key step (line 16 in Algorithm 4) that leverages
+  // Level-3 BLAS.
+  auto V1 = V.block(0, start, V.rows(), mid - start);
+  auto V2 = V.block(0, mid, V.rows(), end - mid + 1);
+
+  // The paper suggests repeating this step for stability
+  // (re-orthogonalization). We will perform it twice, a common practice known
+  // as CGS2.
+  for (int i = 0; i < 2; ++i) {
+    V2 -= V1 * (V1.adjoint() * V2); // V2 = V2 - V1 * (V1^H * V2)
+  }
+
+  // 3. Orthonormalize the now-modified second half recursively.
+  // Corresponds to line 17 in Algorithm 4.
+  recursive_ortho_helper(V, mid, end);
+}
 void b_modified_gram_schmidt_complex_no_B(ComplexDenseMatrix &V) {
   if (V.cols() == 0)
     return;
@@ -578,11 +646,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
       maxThreads);
 
   int n = A.rows();
-  // ConjugateGradient<ComplexSparseMatrix, Lower | Upper> cg;
-  // cg.setMaxIterations(cg_steps);
-  // cg.setTolerance(cg_tol);
-  const int blocks = std::max(1, nev / size);
-  std::cout << "Using block size " << size << std::endl;
 
   // --- Validazione Input --- (controlli dimensioni simili)
   if (A.rows() != n || A.cols() != n || X_initial.rows() != n) {
@@ -599,8 +662,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 
   // --- Inizializzazione Complessa ---
   ComplexDenseMatrix X = X_initial.leftCols(nev);
-  ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, blocks);
-  ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, blocks);
+  ComplexDenseMatrix P = ComplexDenseMatrix::Zero(n, nev);
+  ComplexDenseMatrix W = ComplexDenseMatrix::Zero(n, nev);
   DenseVector Lambda;           // Autovalori reali
   double current_shift = shift; // Shift reale
   ComplexSparseMatrix Id(n, n);
@@ -642,8 +705,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     // A_shifted è Complessa Hermitiana (potenzialmente indefinita)
     ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * Id;
 
+    auto smallId = MatrixXd::Identity(Lambda.rows(), Lambda.cols());
     // BXLambda è Complessa
     ComplexDenseMatrix BXLambda = X * Lambda.asDiagonal();
+    BXLambda += X * current_shift;
 
     start = Clock::now();
 
@@ -659,13 +724,12 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     }
 
 #pragma omp parallel for // Opzionale
-    for (int k = 0; k < blocks; ++k) {
+    for (int k = 0; k < nev; ++k) {
       int threadId = omp_get_thread_num();
 
-      int i = k + converged;
       // Risolvi A_shifted * w_k = (BXLambda)_k
-      W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(i),
-                                                    X.col(i)); // W è complesso
+      W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(k),
+                                                    X.col(k)); // W è complesso
       // Controllo errore solve opzionale
     }
     end = Clock::now();
@@ -675,13 +739,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
     }
 
     // 2. Costruisci V = [X, P, W] (tutte complesse)
-    int p_cols = blocks;
-    ComplexDenseMatrix V(n, nev + p_cols + blocks);
+    ComplexDenseMatrix V(n, 3 * nev);
     V.leftCols(nev) = X;
-    if (p_cols > 0) {
-      V.block(0, nev, n, blocks) = P;
-    }
-    V.rightCols(blocks) = W;
+    V(seq(0, n), seq(nev, 2 * nev - 1)) = P;
+    V.rightCols(nev) = W;
 
     start = Clock::now();
 
@@ -740,14 +801,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 
     // 5. Verifica Convergenza (Residuo complesso, norma reale)
     ComplexDenseMatrix Residual = A * X_new - X_new * Lambda_new.asDiagonal();
-    converged = 0;
-    for (int i = 0; i < Residual.rows(); i++) {
-
-      if (Residual.row(i).norm() < tolerance) {
-        converged++;
-      }
-    }
-    converged = converged + blocks > nev ? nev - blocks : converged;
 
     double residual_norm = Residual.norm(); // Norma di Frobenius (reale)
     double x_norm = X_new.norm();

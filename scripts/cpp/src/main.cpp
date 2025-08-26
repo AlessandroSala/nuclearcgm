@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
   pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
       WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa));
-  pots.push_back(make_shared<IsoKineticPotential>());
+  // pots.push_back(make_shared<IsoKineticPotential>());
   if (input.spinOrbit) {
     pots.push_back(make_shared<DeformedSpinOrbitPotential>(WSSO.V0, radius,
                                                            WS.diffusivity));
@@ -73,11 +73,11 @@ int main(int argc, char **argv) {
   // double h_omega = 41.0 / (pow(A, 0.33333));
   double nucRadius = pow(A, 0.3333333) * 1.27;
   pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B(
-      initialWS.buildMatrix(),
+      initialWS.build_matrix5p(),
       harmonic_oscillator_guess(grid, N + input.additional, nucRadius,
                                 input.spinOrbit),
       N + input.additional, 60, calc.initialGCG.maxIter, 0.0001,
-      calc.initialGCG.steps, calc.initialGCG.cgTol, false, 2);
+      calc.initialGCG.steps, calc.initialGCG.cgTol, false, 1);
 
   std::cout << neutronsEigenpair.second << std::endl;
   pair<MatrixXcd, VectorXd> protonsEigenpair;
@@ -122,12 +122,12 @@ int main(int argc, char **argv) {
   double integralEnergy = 0.0;
   double HFEnergy = 0.0;
 
-  data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, grid);
+  data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, 0);
 
   int hfIter = 0;
   for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
     int maxIterGCGHF = calc.hf.gcg.maxIter;
-    maxIterGCGHF = 14 - (hfIter % 5);
+    maxIterGCGHF = 10 - (hfIter % 8);
     //    if (hfIter == 0) {
     //    maxIterGCGHF = ;
     //  }
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
         1.0e-4 / (calc.initialGCG.nev), false, 1);
 
     pair<MatrixXcd, VectorXd> newProtonsEigenpair;
-    if (input.useCoulomb) {
+    if (input.useCoulomb || N != Z) {
       pots.clear();
       pots.push_back(make_shared<LocalKineticPotential>(
           make_shared<IterationData>(data), NucleonType::P));
@@ -175,7 +175,10 @@ int main(int argc, char **argv) {
       skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
 
     } else {
-      newProtonsEigenpair = newNeutronsEigenpair;
+      newProtonsEigenpair.first =
+          newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1));
+      newProtonsEigenpair.second =
+          newNeutronsEigenpair.second(Eigen::seq(0, Z - 1));
     }
 
     neutronsEigenpair = newNeutronsEigenpair;
@@ -183,9 +186,6 @@ int main(int argc, char **argv) {
 
     Wavefunction::normalize(neutronsEigenpair.first, grid);
     Wavefunction::normalize(protonsEigenpair.first, grid);
-
-    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first,
-                          grid);
 
     double newIntegralEnergy = data.totalEnergyIntegral(input.skyrme, grid) +
                                data.kineticEnergy(input.skyrme, grid);
@@ -209,6 +209,8 @@ int main(int argc, char **argv) {
     }
     integralEnergy = newIntegralEnergy;
     HFEnergy = newHFEnergy;
+    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first,
+                          hfIter);
   }
   cout << "Neutrons " << endl;
   Wavefunction::printShells(neutronsEigenpair, grid);
@@ -225,19 +227,22 @@ int main(int argc, char **argv) {
                    integralEnergies, cpuTime, grid);
   return 0;
   // pots.push_back(
-  //     make_shared<WoodsSaxonPotential>(V0, r_0 * pow(A, 1.0 / 3.0), 0.67));
+  //     make_shared<WoodsSaxonPotential>(V0, r_0 * pow(A, 1.0 / 3.0),
+  //     0.67));
   // pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
-  //    V0, Radius(0.000, r_0, A), 0.67, A, input.getZ(), input.getKappa()));
+  //    V0, Radius(0.000, r_0, A), 0.67, A, input.getZ(),
+  //    input.getKappa()));
   // pots.push_back(
-  //    make_shared<DeformedSpinOrbitPotential>(V0, Radius(0.000, r_0, A),
-  //    0.67));
+  //    make_shared<DeformedSpinOrbitPotential>(V0, Radius(0.000, r_0,
+  //    A), 0.67));
 
   // Hamiltonian hamDef = Hamiltonian(make_shared<Grid>(grid), pots);
   //// cout << ham.buildMatrix() << endl;
   // pair<MatrixXcd, VectorXd> defNeutronsEigenpair = gcgm_complex_no_B(
   //     hamDef.build_matrix7p(),
-  //     harmonic_oscillator_guess(grid, calc.nev, grid.get_a()), calc.nev,
-  //     35 + 0.01, calc.cycles, calc.tol * N, 40, 5.0e-8, false, 1);
+  //     harmonic_oscillator_guess(grid, calc.nev, grid.get_a()),
+  //     calc.nev, 35 + 0.01, calc.cycles, calc.tol * N, 40, 5.0e-8,
+  //     false, 1);
 
   // std::chrono::steady_clock::time_point end =
   // std::chrono::steady_clock::now();
@@ -274,18 +279,22 @@ int main(int argc, char **argv) {
   //   vector<shared_ptr<Potential>> pots;
   //   Radius radius(Beta, r_0, A);
   //   pots.push_back(make_shared<DeformedSpinOrbitPotential>(
-  //       DeformedSpinOrbitPotential(V0, Radius(Beta, r_0_so, A), 0.67)));
+  //       DeformedSpinOrbitPotential(V0, Radius(Beta, r_0_so, A),
+  //       0.67)));
   //   pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
-  //       DeformedWoodsSaxonPotential(V0, Radius(Beta, r_0, A), 0.67, A,
-  //                                   input.getZ(), input.getKappa())));
+  //       DeformedWoodsSaxonPotential(V0, Radius(Beta, r_0, A), 0.67,
+  //       A,
+  //                                   input.getZ(),
+  //                                   input.getKappa())));
 
   //  Hamiltonian ham(make_shared<Grid>(grid), pots);
   //  string path = "output/def/";
 
   //  ComplexSparseMatrix ham_mat_5p = ham.build_matrix5p();
-  //  eigenpair = gcgm_complex_no_B(ham_mat_5p, defNeutronsEigenpair.first,
-  //                                calc.nev, 35 + 0.01, 20, calc.tol, 40,
-  //                                1.0e-5 / (calc.nev), false, 1);
+  //  eigenpair = gcgm_complex_no_B(ham_mat_5p,
+  //  defNeutronsEigenpair.first,
+  //                                calc.nev, 35 + 0.01, 20, calc.tol,
+  //                                40, 1.0e-5 / (calc.nev), false, 1);
   //  energies.col(i) = eigenpair.second;
   //  Wavefunction::normalize(eigenpair.first, grid);
   //  for (int j = 0; j < calc.nev; ++j) {

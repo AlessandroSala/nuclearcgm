@@ -5,11 +5,11 @@ import plotly
 import plotly.graph_objects as go
 
 name = "be"
-density = np.genfromtxt("output/density_" + name + "_new.csv")
+density = np.genfromtxt("output/density.csv")
 #density = np.genfromtxt("output/density.csv")
-n = 50
+n = 30
 n2 = n // 2
-a = 12
+a = 8
 
 mat_or = density.reshape((n, n, n))
 

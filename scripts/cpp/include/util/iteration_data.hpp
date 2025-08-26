@@ -40,7 +40,7 @@ public:
   double massCorr;
 
   void updateQuantities(const Eigen::MatrixXcd &neutrons,
-                        const Eigen::MatrixXcd &protons, const Grid &grid);
+                        const Eigen::MatrixXcd &protons, int iter);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
@@ -67,6 +67,11 @@ public:
 
   double CoulombDirectEnergy(const Grid &grid);
   double SlaterCoulombEnergy(const Grid &grid);
+
+  double protonRadius();
+  double neutronRadius();
+  double chargeRadius(const Eigen::MatrixXcd psiN, const Eigen::MatrixXcd psiP,
+                      int N, int Z);
 
   IterationData(InputParser input);
 };
