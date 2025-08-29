@@ -83,7 +83,10 @@ gcgm_complex_no_B(const ComplexSparseMatrix &A, // A Complessa Hermitiana
                   double cg_tol, bool benchmark, int blockSize);
 
 std::pair<ComplexDenseMatrix, DenseVector>
-block_gcg_noB(const ComplexSparseMatrix &A, const ComplexDenseMatrix &X_initial,
-              int nev, int blockSize, double shift = 0.0, int max_iter = 100,
-              double tolerance = 1e-8, int cg_steps = 15);
+gcgm_complex_no_B_lock(const ComplexSparseMatrix &A, // A Complessa Hermitiana
+                  const ComplexDenseMatrix &X_initial, int nev,
+                  double shift, // Shift rimane reale
+                  int max_iter, double tolerance,
+                  int cg_steps, // Passi BiCGSTAB (o altro solver complesso)
+                  double cg_tol, bool benchmark);
 Eigen::MatrixXd random_orthonormal_matrix(int n, int k);

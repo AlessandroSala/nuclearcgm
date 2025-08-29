@@ -5,14 +5,16 @@
 
 class Grid;
 
-typedef struct GCGParameters {
+typedef struct GCGParameters
+{
   int nev;
   double tol;
   int maxIter;
   int steps;
   double cgTol;
 } CGCParameters;
-typedef struct {
+typedef struct
+{
   double W0;
   double t0;
   double t1;
@@ -24,24 +26,28 @@ typedef struct {
   double x3;
   double sigma;
 } SkyrmeParameters;
-typedef struct HartreeFock {
+typedef struct HartreeFock
+{
   int cycles;
   double energyTol;
   GCGParameters gcg;
 } HartreeFock;
-typedef struct {
+typedef struct
+{
   GCGParameters initialGCG;
   HartreeFock hf;
 } Calculation;
 
-typedef struct {
+typedef struct
+{
   double V0;
   double r0;
   double diffusivity;
   double kappa;
 } WoodsSaxonParameters;
 
-typedef struct {
+typedef struct
+{
   double V0;
   double r0;
   double diff;
@@ -50,7 +56,8 @@ typedef struct {
 /**
  * @brief Gathers the objects related to a calculation.
  */
-class InputParser {
+class InputParser
+{
 public:
   /**
    * @param inputFile The path to the input file in the input directory.
@@ -70,6 +77,7 @@ public:
   bool pairing, spinOrbit, COMCorr;
   WoodsSaxonParameters getWS();
   WSSpinOrbitParameters getWSSO();
+  std::string outputDirectory;
 
   SkyrmeParameters skyrme;
 

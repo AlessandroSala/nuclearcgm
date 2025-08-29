@@ -1,19 +1,23 @@
 \section{Comparison with hfbcs-qrpa code}
-All the calculations are carried out using SLy5 parameters. 
+All the calculations are carried out using SLy5 parameters.
+\[\delta\triangleq \frac{E_\text{INT}}{E_\text{HF}}-1\]
 \begin{table}[ht]
   \centering
   \label{tab:confronto}
-  \begin{tabular}{lccc}
+  \begin{tabular}{lrccc}
     \toprule
-    & Unconstrained CG & hfbcs\_qrpa & $\Delta\%$ \\
+    && Unconstrained GCG & hfbcs\_qrpa & $\Delta\%$ \\
     \midrule
-    $E_\text{I}$ [MeV] & -141.605 & -141.599 & 0.12 \\
-    $E_\text{HF}$ [MeV] & -141.607 & -141.599 & 0.12 \\
-    CPU time [s]& 305s & - & -\\
-    1S$_{1/2}$ [MeV] & -36.14 & -36.14 & -\\
-    
-    $\langle r^2 \rangle^{1/2}$ [fm] & 3.55 & 3.60 & 1.4 \\
+    $E_\text{INT}$& [MeV] & -141.605 & -141.599 & \num{4.2e-3} \\
+    $E_\text{HF}$ &[MeV] & -141.607 & -141.599 & \num{5.6e-3}\\
+    $\delta$ &[\%] & \num{1.4e-3} & \num{2.2e-4} & - \\
+    CPU time &[s]& 305 & - & -\\
+    $\expval{ r^2}^{1/2}$ &[fm] & 2.651 & 2.651 & -\\
+    \midrule
+    1S$_{1/2}$ &[MeV] & -36.142 & -36.14 & -\\
+    1P$_{3/2}$ &[MeV] & -18.574 & -18.57 & -\\
+    1P$_{1/2}$ &[MeV] & -18.574 & -18.57 & -\\
     \bottomrule
   \end{tabular}
-  \caption{$^{16}$O neglecting spin-orbit interaction, spin-gradient coulpling and Coulomb field}
+  \caption{$^{16}$O neglecting spin-orbit interaction, spin-gradient coulpling, and Coulomb field}
 \end{table}

@@ -2,7 +2,8 @@
 #include "input_parser.hpp"
 #include <Eigen/Dense>
 class IterationData;
-class Output {
+class Output
+{
 private:
   std::string folder;
 

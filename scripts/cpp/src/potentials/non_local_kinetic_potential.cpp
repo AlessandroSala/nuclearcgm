@@ -1,6 +1,7 @@
 #include "kinetic/non_local_kinetic_potential.hpp"
 #include "constants.hpp"
 #include "util/iteration_data.hpp"
+#include "util/effective_mass.hpp"
 #include <cmath>
 
 NonLocalKineticPotential::NonLocalKineticPotential(
