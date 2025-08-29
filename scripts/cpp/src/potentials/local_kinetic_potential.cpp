@@ -1,6 +1,8 @@
 #include "kinetic/local_kinetic_potential.hpp"
 #include "constants.hpp"
 #include <cmath>
+#include "util/effective_mass.hpp"
+#include "util/iteration_data.hpp"
 
 LocalKineticPotential::LocalKineticPotential(std::shared_ptr<IterationData> d,
                                              NucleonType n)

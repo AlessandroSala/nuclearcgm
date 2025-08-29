@@ -5,7 +5,8 @@
 #include <fstream>
 #include <iostream>
 
-double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir) {
+double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir)
+{
 
   double h = grid.get_h();
 
@@ -13,18 +14,26 @@ double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir) {
 
   int n = grid.get_n();
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i) {
-    for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+  for (int i = 0; i < grid.get_n(); ++i)
+  {
+    for (int j = 0; j < grid.get_n(); ++j)
+    {
+      for (int k = 0; k < grid.get_n(); ++k)
+      {
         int idx = grid.idxNoSpin(i, j, k);
-        int ii = (n / 2.0 - i);
-        int jj = (n / 2.0 - j);
-        int kk = (n / 2.0 - k);
-        if (dir == 'x') {
+        int ii = grid.get_xs()[i] / h;
+        int jj = grid.get_xs()[i] / h;
+        int kk = grid.get_xs()[i] / h;
+        if (dir == 'x')
+        {
           res += ii * ii * ((*(data->rhoN))(idx) + (*(data->rhoP))(idx));
-        } else if (dir == 'y') {
+        }
+        else if (dir == 'y')
+        {
           res += jj * jj * ((*(data->rhoN))(idx) + (*(data->rhoP))(idx));
-        } else if (dir == 'z') {
+        }
+        else if (dir == 'z')
+        {
           res += kk * kk * ((*(data->rhoN))(idx) + (*(data->rhoP))(idx));
         }
       }
@@ -33,19 +42,26 @@ double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir) {
   return hh * res / ((*(data->rhoN)).sum() + (*(data->rhoP)).sum());
 }
 Output::Output() : Output("output") {}
-Output::Output(std::string folder_) : folder(folder_) {}
-void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix) {
+Output::Output(std::string folder_) : folder(folder_)
+{
+  namespace fs = std::filesystem;
+  fs::create_directory(folder);
+}
+void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix)
+{
   std::ofstream file(folder + "/" + fileName);
   file << matrix << std::endl;
   file.close();
 }
+
 void Output::shellsToFile(
     std::string fileName,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
     std::shared_ptr<IterationData> iterationData, InputParser input,
     int iterations, std::vector<double> energies, double cpuTime,
-    const Grid &grid) {
+    const Grid &grid)
+{
   int N = input.getZ();
   int Z = input.getA() - N;
   auto neutrons = neutronShells.first(Eigen::all, Eigen::seq(0, N - 1));
@@ -97,7 +113,6 @@ void Output::shellsToFile(
   file << "sqrt<x^2>: " << x2Sqrt << " fm";
   file << ", sqrt<y^2>: " << y2Sqrt << " fm";
   file << ", sqrt<z^2>: " << z2Sqrt << " fm" << std::endl;
-  file << "sqrt<r^2>: " << r2Sqrt << " fm" << std::endl;
   file << "RN: " << std::sqrt(iterationData->neutronRadius()) << " fm"
        << std::endl;
   file << "RP: " << std::sqrt(iterationData->protonRadius()) << " fm"
@@ -156,6 +171,7 @@ void Output::shellsToFile(
   file << std::endl;
   file << "E_INT/E_HF - 1: " << 100.0 * ((totEnInt / E_HF) - 1.0) << " %"
        << std::endl;
+  file << std::endl;
 
   file << "=== Neutrons ===" << std::endl;
   Wavefunction::printShellsToFile(neutronShells, grid, file);
@@ -168,16 +184,19 @@ void Output::shellsToFile(
   file << "=== Multipole moments ===" << std::endl;
   Eigen::VectorXd rho = *(iterationData->rhoN) + *(iterationData->rhoP);
 
-  for (int l = 0; l <= input.get_json()["output_lmax"]; ++l) {
+  for (int l = 0; l <= input.get_json()["output_lmax"]; ++l)
+  {
     file << "l: " << l << std::endl;
-    for (int m = -l; m <= l; ++m) {
+    for (int m = -l; m <= l; ++m)
+    {
       file << l << ", " << m << ": " << Q(l, m, rho) << std::endl;
     }
     file << std::endl;
   }
 
   file << "=== Energies ===" << std::endl;
-  for (int i = 0; i < energies.size(); ++i) {
+  for (int i = 0; i < energies.size(); ++i)
+  {
     double e = energies[i];
     file << i << ":  " << e << std::endl;
   }

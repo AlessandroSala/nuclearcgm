@@ -837,3 +837,238 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
   std::cout << "Eigenvalues: " << Lambda.transpose() << std::endl;
   return {X, Lambda};
 }
+
+std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
+    const ComplexSparseMatrix &A, // A Complessa Hermitiana
+    const ComplexDenseMatrix &X_initial, int nev,
+    double shift = 0.0, // Shift rimane reale
+    int max_iter = 100, double tolerance = 1e-8,
+    int cg_steps = 10, // Passi del solver lineare complesso
+    double cg_tol = 1e-9, bool benchmark = false) {
+
+    // ... (Setup and initialization code is identical to the previous version) ...
+    auto start_total = Clock::now();
+    auto start_op = Clock::now();
+    auto end_op = Clock::now();
+
+    std::cout << "GCGM Complex - Corrected Implementation of Algorithm 2" << std::endl;
+    int maxThreads = omp_get_max_threads();
+    std::cout << "Using " << maxThreads << " thread(s)." << std::endl;
+
+    int n = A.rows();
+    ComplexSparseMatrix Id(n, n);
+    Id.setIdentity();
+    double current_shift = shift;
+
+    std::vector<Eigen::ConjugateGradient<ComplexSparseMatrix, Eigen::Lower | Eigen::Upper>>
+        cgSolvers(maxThreads);
+
+    ComplexDenseMatrix X0(n, 0);
+    ComplexDenseMatrix X = X_initial.leftCols(nev);
+    ComplexDenseMatrix P(n, 0);
+
+    b_modified_gram_schmidt_complex_no_B(X);
+    ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * Id;
+    auto rr_init = rayleighRitz_complex_no_B(X, A_shifted, X.cols());
+    if (rr_init.first.cols() == 0) {
+        std::cerr << "Error: Initial Complex Rayleigh-Ritz failed." << std::endl;
+        return {};
+    }
+    X = X * rr_init.first;
+    DenseVector Lambda = rr_init.second - DenseVector::Constant(rr_init.second.size(), current_shift);
+
+
+    // --- Main GCGM Iteration Loop ---
+    for (int iter = 0; iter < max_iter; ++iter) {
+        int num_converged = X0.cols();
+        int num_active = X.cols();
+
+        // --- Step 6: Termination Condition (Unchanged) ---
+        if (num_converged == nev) {
+            // ... (Final sorting and return logic is identical) ...
+            std::cout << std::endl << "Converged (Corrected GCGM) in " << iter << " iterations." << std::endl;
+            DenseVector final_lambda(nev);
+            for(int i = 0; i < nev; ++i) {
+                final_lambda(i) = (X0.col(i).adjoint() * A * X0.col(i)).value().real();
+            }
+            std::vector<int> p(nev);
+            std::iota(p.begin(), p.end(), 0);
+            std::sort(p.begin(), p.end(), [&](int i, int j) { return final_lambda(i) < final_lambda(j); });
+            ComplexDenseMatrix sorted_X0(n, nev);
+            DenseVector sorted_lambda(nev);
+            for (int i = 0; i < nev; ++i) {
+                sorted_X0.col(i) = X0.col(p[i]);
+                sorted_lambda(i) = final_lambda(p[i]);
+            }
+            std::cout << "Final Eigenvalues: " << sorted_lambda.transpose() << std::endl;
+            return {sorted_X0, sorted_lambda};
+        }
+
+        // --- Shift Strategy and W Generation (Unchanged) ---
+        // ...
+        if (Lambda.size() > 1) {
+            current_shift = (Lambda(Lambda.size() - 1) - 100.0 * Lambda(0)) / 99.0;
+        }
+        A_shifted = A + ComplexScalar(current_shift) * Id;
+        std::cout << "Iter: " << iter + 1 << ", Converged: " << num_converged << "/"
+                  << nev << ", Active: " << num_active
+                  << ", Shift: " << current_shift << " \r" << std::flush;
+        ComplexDenseMatrix W(n, num_active);
+        if (num_active > 0) {
+            ComplexDenseMatrix BXLambda = X * (Lambda.array() + current_shift).matrix().asDiagonal();
+            start_op = Clock::now();
+            #pragma omp parallel for
+            for (int i = 0; i < maxThreads; ++i) {
+                cgSolvers[i].setMaxIterations(cg_steps);
+                cgSolvers[i].setTolerance(cg_tol);
+                cgSolvers[i].compute(A_shifted);
+            }
+            #pragma omp parallel for
+            for (int k = 0; k < num_active; ++k) {
+                int threadId = omp_get_thread_num();
+                W.col(k) = cgSolvers[threadId].solveWithGuess(BXLambda.col(k), X.col(k));
+            }
+            end_op = Clock::now();
+        }
+
+        // --- Subspace V and Rayleigh-Ritz (Unchanged) ---
+        // ...
+        int p_cols = P.cols();
+        ComplexDenseMatrix V(n, num_converged + num_active + p_cols + num_active);
+        V.leftCols(num_converged) = X0;
+        V.block(0, num_converged, n, num_active) = X;
+        if (p_cols > 0) V.block(0, num_converged + num_active, n, p_cols) = P;
+        if (num_active > 0) V.block(0, num_converged + num_active + p_cols, n, num_active) = W;
+        b_modified_gram_schmidt_complex_no_B(V);
+        std::vector<int> keep_cols;
+        for (int k = 0; k < V.cols(); ++k) {
+            if (V.col(k).squaredNorm() > 1e-20) keep_cols.push_back(k);
+        }
+        ComplexDenseMatrix V_eff(n, keep_cols.size());
+        for (size_t i = 0; i < keep_cols.size(); ++i) {
+            V_eff.col(i) = V.col(keep_cols[i]);
+        }
+        if (V_eff.cols() < nev) { /* Warning */ }
+
+        ComplexDenseMatrix AV_eff = A_shifted * V_eff;
+        ComplexDenseMatrix A_proj = V_eff.adjoint() * AV_eff;
+        Eigen::SelfAdjointEigenSolver<ComplexDenseMatrix> es(A_proj);
+        if (es.info() != Eigen::Success) {
+            std::cerr << "\nError: Complex Rayleigh-Ritz eigensolver failed." << std::endl;
+            return {X0, DenseVector()};
+        }
+        int rr_nev = std::min(nev, (int)V_eff.cols());
+        ComplexDenseMatrix C = es.eigenvectors().leftCols(rr_nev);
+        DenseVector Lambda_proj = es.eigenvalues().head(rr_nev);
+        ComplexDenseMatrix X_new_full = V_eff * C;
+        DenseVector Lambda_new = Lambda_proj - DenseVector::Constant(Lambda_proj.size(), current_shift);
+
+        ComplexDenseMatrix Residuals = A * X_new_full - X_new_full * Lambda_new.asDiagonal();
+        ComplexDenseMatrix X_old_active = X; // Store old active X for P update
+
+        // ======================================================================
+        // --- CORRECTED Step 5: Check Convergence and Partition the Set ---
+        // ======================================================================
+
+        // The first `num_converged` Ritz vectors are the updated versions of our
+        // already-locked vectors. We keep them without re-checking.
+        ComplexDenseMatrix updated_X0 = X_new_full.leftCols(num_converged);
+
+        // We only check the REMAINING candidates for *new* convergence.
+        std::vector<int> newly_converged_indices;
+        std::vector<int> next_active_indices;
+        for (int i = num_converged; i < X_new_full.cols(); ++i) {
+            // Check residual and ensure we don't exceed the desired `nev` total.
+            if (Residuals.col(i).norm() < tolerance && (num_converged + newly_converged_indices.size() < nev)) {
+                newly_converged_indices.push_back(i);
+            } else {
+                next_active_indices.push_back(i);
+            }
+        }
+
+        // Build the next converged set: old (updated) + new
+        X0.resize(n, num_converged + newly_converged_indices.size());
+        X0.leftCols(num_converged) = updated_X0;
+        for (size_t i = 0; i < newly_converged_indices.size(); ++i) {
+            X0.col(num_converged + i) = X_new_full.col(newly_converged_indices[i]);
+        }
+
+        // Build the next active set from the remaining candidates
+        X.resize(n, next_active_indices.size());
+        Lambda.resize(next_active_indices.size());
+        for (size_t i = 0; i < next_active_indices.size(); ++i) {
+            X.col(i) = X_new_full.col(next_active_indices[i]);
+            Lambda(i) = Lambda_new(next_active_indices[i]);
+        }
+        // ======================================================================
+        // --- END OF CORRECTION ---
+        // ======================================================================
+
+
+        // --- Step 7: Update P Efficiently (Unchanged from previous optimized version) ---
+        ComplexDenseMatrix C_active(C.rows(), next_active_indices.size());
+        for(size_t i=0; i < next_active_indices.size(); ++i) {
+            C_active.col(i) = C.col(next_active_indices[i]);
+        }
+        
+        int new_p_cols = 0;
+        if (X_old_active.cols() > 0 && C_active.cols() > 0) {
+            ComplexDenseMatrix C_old_in_new_basis = V_eff.adjoint() * X_old_active;
+            new_p_cols = std::min((int)C_active.cols(), (int)C_old_in_new_basis.cols());
+            if (new_p_cols > 0) {
+                ComplexDenseMatrix C_p = C_active.leftCols(new_p_cols) - C_old_in_new_basis.leftCols(new_p_cols);
+                P = V_eff * C_p;
+            }
+        }
+        if (new_p_cols == 0) {
+            P.resize(n, 0);
+        }
+    }
+
+    // --- Warning and final return if not converged (Unchanged) ---
+    std::cout << std::endl;
+    if(X0.cols() == nev) {
+        std::cout << "Converged in " << max_iter << " iterations." << std::endl;
+    }
+    else{
+    std::cerr << "Warning: Corrected GCGM did not converge within " << max_iter << " iterations." << std::endl;
+}
+int num_converged_final = X0.cols();
+    int num_needed_from_active = nev - num_converged_final;
+    int num_active_to_take = std::min((int)X.cols(), num_needed_from_active);
+
+    ComplexDenseMatrix final_X = ComplexDenseMatrix::Zero(n, nev);
+    final_X.leftCols(num_converged_final) = X0;
+    if (num_active_to_take > 0) {
+        final_X.block(0, num_converged_final, n, num_active_to_take) = X.leftCols(num_active_to_take);
+    }
+
+    DenseVector final_lambda = DenseVector::Zero(nev);
+    for (int i = 0; i < num_converged_final; ++i) {
+        final_lambda(i) = (X0.col(i).adjoint() * A * X0.col(i)).value().real();
+    }
+    if (num_active_to_take > 0) {
+        final_lambda.segment(num_converged_final, num_active_to_take) = Lambda.head(num_active_to_take);
+    }
+
+  // 1. Costruiamo un vettore di indici [0, 1, ..., nev-1]
+  std::vector<int> indices(nev);
+  std::iota(indices.begin(), indices.end(), 0);
+
+  // 2. Ordiniamo gli indici in base ai valori di final_lambda
+  std::sort(indices.begin(), indices.end(),
+            [&](int i, int j) { return final_lambda(i) < final_lambda(j); });
+
+  // 3. Creiamo copie ordinate
+  DenseVector sorted_lambda(nev);
+  ComplexDenseMatrix sorted_X(final_X.rows(), final_X.cols());
+
+  for (int k = 0; k < nev; ++k) {
+      sorted_lambda(k) = final_lambda(indices[k]);
+      sorted_X.col(k) = final_X.col(indices[k]);
+  }
+
+    std::cout << "Final Eigenvalues: " << sorted_lambda.transpose() << std::endl;
+  // 4. Ritorniamo i risultati ordinati
+  return {sorted_X, sorted_lambda};
+}

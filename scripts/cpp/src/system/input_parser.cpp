@@ -1,10 +1,13 @@
 #include "input_parser.hpp"
 #include "woods_saxon/deformed_woods_saxon.hpp"
 #include <fstream>
+#include <iostream>
 
-InputParser::InputParser(std::string inputFile) {
+InputParser::InputParser(std::string inputFile)
+{
   std::ifstream file(inputFile);
   data = nlohmann::json::parse(file);
+
   useCoulomb = data["coulomb"];
   useJ = data["Jterms"];
   std::string interaction = data["interaction"];
@@ -12,6 +15,7 @@ InputParser::InputParser(std::string inputFile) {
   pairing = data["pairing"];
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];
+  outputDirectory = data["outputDirectory"];
 
   nlohmann::json interactionData = nlohmann::json::parse(
       std::ifstream("interactions/" + interaction + ".json"));
@@ -30,7 +34,8 @@ std::string InputParser::getOutputName() { return data["outputName"]; }
 
 nlohmann::json InputParser::get_json() { return data; }
 
-Grid InputParser::get_grid() {
+Grid InputParser::get_grid()
+{
   return Grid(data["box"]["n"], data["box"]["size"]);
 }
 
@@ -38,7 +43,8 @@ int InputParser::getA() { return data["nucleus"]["A"]; }
 
 int InputParser::getZ() { return data["nucleus"]["Z"]; }
 
-WoodsSaxonParameters InputParser::getWS() {
+WoodsSaxonParameters InputParser::getWS()
+{
   return WoodsSaxonParameters{
       data["woods_saxon"]["V0"],
       data["woods_saxon"]["r0"],
@@ -47,7 +53,8 @@ WoodsSaxonParameters InputParser::getWS() {
   };
 }
 
-WSSpinOrbitParameters InputParser::getWSSO() {
+WSSpinOrbitParameters InputParser::getWSSO()
+{
   return WSSpinOrbitParameters{
       data["woods_saxon"]["spin_orbit"]["V0"],
       data["woods_saxon"]["spin_orbit"]["r0"],
@@ -55,7 +62,8 @@ WSSpinOrbitParameters InputParser::getWSSO() {
   };
 }
 
-Calculation InputParser::getCalculation() {
+Calculation InputParser::getCalculation()
+{
   HartreeFock hf = {
       data["hf"]["cycles"], data["hf"]["energyTol"],
       GCGParameters{data["hf"]["gcg"]["nev"], data["hf"]["gcg"]["tol"],

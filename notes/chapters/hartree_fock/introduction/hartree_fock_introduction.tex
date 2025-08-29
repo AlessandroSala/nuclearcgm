@@ -33,3 +33,14 @@ This variation, along with the constraint, gives rise to a single particle Schro
 \end{equation}
 One can choose a proper potential $v(\mathbf{r_1}, \mathbf{r_2})$, a trial set of wavefunctions, and solve for $(\phi_i, \varepsilon_i)$.
 \\Since the equation changes for the new solutions, one can use an iterative procedure to solve the self consistent problem.
+\subsection{Formal treatment}
+Often there is the need of expanding the coordinate space representation of the single particle hamiltonian solution on an arbitrary basis.
+\begin{equation}
+    \phi_k = \sum_i D_{ik} \chi_i
+\end{equation}
+Defining the corresponding creation/annihilation operators $c_l^\dagger, c_l$ for $\{\chi_l\}$ and $a_l^\dagger, a_l$ for $\{\phi_k\}$, the transformation between the two will be
+\begin{equation}
+   a_k^\dagger = \sum_l D_{lk} c_l^\dagger
+\end{equation}
+Since we're dealing with otrhonormal, complete basis sets, it's trivial to show that the transformation matrix $D$ is unitary.
+\\This also implies that the c/a operators commute and obey separate anticommutation relations.

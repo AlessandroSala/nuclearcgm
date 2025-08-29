@@ -1,16 +1,17 @@
 {
   "pairing": false,
   "coulomb": false,
-  "Jterms": true,
-  "spinOrbit": true,
+  "Jterms": false,
+  "spinOrbit": false,
   "COMCorrection": true,
   "additional": 0,
-  "outputName": "output",
+  "outputName": "test1",
+  "outputDirectory": "test",
   "calculation": "sp",
   "output_lmax": 2,
   "box": {
-    "size": 8.0,
-    "n": 30
+    "size": 9.0,
+    "n": 50
   },
   "interaction": "SLy5",
   "hf": {
@@ -25,15 +26,15 @@
     }
   },
   "gcg": {
-    "maxIter": 24,
+    "maxIter": 40,
     "nev": 10,
-    "tol": 0.0001,
+    "tol": 0.0000001,
     "cgTol": 0.0000001,
-    "steps": 40
+    "steps": 50
   },
   "nucleus": {
-    "A": 8,
-    "Z": 4
+    "A": 16,
+    "Z": 8
   },
   "woods_saxon": {
     "V0": 55.5,

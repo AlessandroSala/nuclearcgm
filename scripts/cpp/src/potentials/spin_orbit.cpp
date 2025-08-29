@@ -7,9 +7,10 @@ SpinOrbitPotential::SpinOrbitPotential(double V0_, double r0_, double R_)
 double SpinOrbitPotential::getValue(double x, double y, double z) const {
     double fac = 1;
     double r = sqrt(x*x + y*y + z*z);
+    double diff = 0.67;
     if(r > 1e-12) {
-        double t = (r-R)/nuclearConstants::diff;
-        fac = -pow(nuclearConstants::diff*r, -1)*exp(t)/pow(1+exp(t), 2);
+        double t = (r-R)/diff;
+        fac = -pow(diff*r, -1)*exp(t)/pow(1+exp(t), 2);
     }
     return 0.44*V0*pow((r0/nuclearConstants::h_bar), 2)*fac;
 }

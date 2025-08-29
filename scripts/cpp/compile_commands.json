@@ -2,7 +2,7 @@
   {
     "arguments": [
       "/usr/bin/g++",
-      "-std=c++11",
+      "-std=c++17",
       "-fopenmp",
       "-O3",
       "-march=native",
@@ -13,11 +13,11 @@
       "include",
       "-c",
       "-o",
-      "build/skyrme/skyrme_so.o",
-      "src/skyrme/skyrme_so.cpp"
+      "build/solver/solver.o",
+      "src/solver/solver.cpp"
     ],
     "directory": "/home/ale/dev/nuclearcgm/scripts/cpp",
-    "file": "/home/ale/dev/nuclearcgm/scripts/cpp/src/skyrme/skyrme_so.cpp",
-    "output": "/home/ale/dev/nuclearcgm/scripts/cpp/build/skyrme/skyrme_so.o"
+    "file": "/home/ale/dev/nuclearcgm/scripts/cpp/src/solver/solver.cpp",
+    "output": "/home/ale/dev/nuclearcgm/scripts/cpp/build/solver/solver.o"
   }
 ]
