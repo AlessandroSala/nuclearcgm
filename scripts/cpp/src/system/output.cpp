@@ -8,10 +8,7 @@
 double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir)
 {
 
-  double h = grid.get_h();
-
-  double hh = h * h;
-
+  auto rho = *(data->rhoN) + *(data->rhoP);
   int n = grid.get_n();
   double res = 0.0;
   for (int i = 0; i < grid.get_n(); ++i)
@@ -21,26 +18,27 @@ double x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir)
       for (int k = 0; k < grid.get_n(); ++k)
       {
         int idx = grid.idxNoSpin(i, j, k);
-        int ii = grid.get_xs()[i] / h;
-        int jj = grid.get_xs()[i] / h;
-        int kk = grid.get_xs()[i] / h;
+        double ii = grid.get_xs()[i];
+        double jj = grid.get_ys()[j];
+        double kk = grid.get_zs()[k];
         if (dir == 'x')
         {
-          res += ii * ii * ((*(data->rhoN))(idx) + (*(data->rhoP))(idx));
+          res += ii * ii * rho(idx);
         }
         else if (dir == 'y')
         {
-          res += jj * jj * ((*(data->rhoN))(idx) + (*(data->rhoP))(idx));
+          res += jj * jj * rho(idx);
         }
         else if (dir == 'z')
         {
-          res += kk * kk * ((*(data->rhoN))(idx) + (*(data->rhoP))(idx));
+          res += kk * kk * rho(idx);
         }
       }
     }
   }
-  return hh * res / ((*(data->rhoN)).sum() + (*(data->rhoP)).sum());
+  return res / rho.sum();
 }
+
 Output::Output() : Output("output") {}
 Output::Output(std::string folder_) : folder(folder_)
 {
@@ -86,8 +84,16 @@ void Output::shellsToFile(
   //  file << "diff: " << ws["alpha"] << std::endl;
   //  file << "Beta: " << "0.0" << std::endl;
   //  file << std::endl;
+  auto toYesNo = [](bool value)
+  {
+    return value ? "YES" : "NO";
+  };
 
-  file << "=== Skyrme ===" << std::endl;
+  file << "=== Interaction ===" << std::endl;
+  file << "Name: " << input.get_json()["interaction"] << std::endl;
+  file << "Options: " << "J2 terms: " << toYesNo(input.useJ) << " | " << "Spin orbit: " << toYesNo(input.spinOrbit) << " | " << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl;
+  file << std::endl
+       << "Parameters" << std::endl;
   file << "t0: " << input.skyrme.t0 << ", ";
   file << "t1: " << input.skyrme.t1 << ", ";
   file << "t2: " << input.skyrme.t2 << ", ";
