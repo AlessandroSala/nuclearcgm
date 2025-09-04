@@ -1,4 +1,6 @@
 #include "constants.hpp"
+#include "spherical_harmonics.hpp"
+#include "skyrme/quadrupole_constraint.hpp"
 #include "grid.hpp"
 #include "guess.hpp"
 #include "hamiltonian.hpp"
@@ -31,6 +33,8 @@ int main(int argc, char **argv)
   using namespace Eigen;
   using namespace nuclearConstants;
 
+  Eigen::initParallel();
+
   using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
   for (const auto &dirEntry : recursive_directory_iterator("input/exec"))
   {
@@ -42,6 +46,7 @@ int main(int argc, char **argv)
 
     Grid grid = input.get_grid();
     Calculation calc = input.getCalculation();
+
 
     std::vector<double> betas;
     int A = input.getA();
@@ -83,6 +88,7 @@ int main(int argc, char **argv)
         calc.initialGCG.steps, calc.initialGCG.cgTol, false);
 
     std::cout << neutronsEigenpair.second << std::endl;
+
     pair<MatrixXcd, VectorXd> protonsEigenpair;
     if (Z != N)
     {
@@ -134,6 +140,11 @@ int main(int argc, char **argv)
 
     data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, 0);
 
+    std::cout << "X2: " << out.x2(make_shared<IterationData>(data), grid, 'x') << std::endl;
+    std::cout << "Y2: " << out.x2(make_shared<IterationData>(data), grid, 'y') << std::endl;
+    std::cout << "Z2: " << out.x2(make_shared<IterationData>(data), grid, 'z') << std::endl;
+
+    double mu = 0.1;
     int hfIter = 0;
     for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
     {
@@ -152,6 +163,8 @@ int main(int argc, char **argv)
       if (input.spinOrbit)
         pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
                                              NucleonType::N));
+      if(mu != 0.0)
+          pots.push_back(make_shared<QuadrupoleConstraint>(mu));
 
       Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
@@ -160,6 +173,7 @@ int main(int argc, char **argv)
           35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
           1.0e-4 / (calc.initialGCG.nev), false);
 
+      
       pair<MatrixXcd, VectorXd> newProtonsEigenpair;
       if (input.useCoulomb || N != Z)
       {
@@ -173,9 +187,13 @@ int main(int argc, char **argv)
         if (input.spinOrbit)
           pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
                                                NucleonType::P));
+      if(mu != 0.0)
+          pots.push_back(make_shared<QuadrupoleConstraint>(mu));
+
         std::cout << "Protons " << std::endl;
         pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
         Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
+
         newProtonsEigenpair =
             gcgm_complex_no_B_lock(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
                                    35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
@@ -210,6 +228,16 @@ int main(int argc, char **argv)
       cout << "Direct coulomb energy: " << data.CoulombDirectEnergy(grid) << endl;
       cout << "Slater exchange energy: " << data.SlaterCoulombEnergy(grid)
            << endl;
+    std::cout << "X2: " << out.x2(make_shared<IterationData>(data), grid, 'x') << std::endl;
+    std::cout << "Y2: " << out.x2(make_shared<IterationData>(data), grid, 'y') << std::endl;
+    std::cout << "Z2: " << out.x2(make_shared<IterationData>(data), grid, 'z') << std::endl;
+    VectorXd rho = *(data.rhoN) + *(data.rhoP);
+    out.swapAxes(rho, 0, 2);
+  double a20 = SphericalHarmonics::massMult(2, 0, rho);
+  double a22 = SphericalHarmonics::massMult(2, 2, rho);
+  double R = 1.2 * pow(A, 1.0 / 3.0);
+  double beta = 4*M_PI*std::sqrt(a20*a20 + a22*a22)/(3*A*R*R);
+  std::cout << "Beta: " << beta << std::endl;
 
       if (abs(newIntegralEnergy - integralEnergy) <
               input.getCalculation().hf.energyTol &&
