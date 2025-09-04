@@ -2,6 +2,13 @@
 #include "constants.hpp"
 #include "spherical_harmonics.hpp"
 #include <iostream>
+
+std::pair<int, int> getNumbers(int stateIndex) {
+    int part = stateIndex +1;
+    if(part <= 2) return {0, 0};
+    
+
+}
 ComplexDenseMatrix gaussian_guess(const Grid &grid, int nev, double a) {
   int n = grid.get_n();
 
@@ -151,7 +158,7 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
     // ---------------------------
     for (int n_rad = 0; n_rad < n && state_index < nev; ++n_rad) {
       for (int l = 0; l < n && state_index < nev; ++l) {
-        for (int m = -l; m <= l && state_index < nev; ++m) {
+        for (int m = -l; m <= l && state_index < nev; ) {
           for (int s = 0; s < 2 && state_index < nev; ++s) {
             for (int i = 0; i < n; ++i) {
               for (int j = 0; j < n; ++j) {
@@ -175,6 +182,12 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
             guess.col(state_index).normalize();
             state_index++;
           }
+                  if(m == 0)
+                      break;
+                  if(m > 0)
+                      m = -(m - 1);
+                  else
+                      m = -m;
         }
       }
     }

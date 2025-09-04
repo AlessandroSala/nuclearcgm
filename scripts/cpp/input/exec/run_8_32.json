@@ -1,0 +1,50 @@
+{
+    "pairing": false,
+    "coulomb": true,
+    "Jterms": true,
+    "spinOrbit": true,
+    "COMCorrection": true,
+    "additional": 0,
+    "outputName": "mg",
+    "outputDirectory": "def",
+    "calculation": "sp",
+    "output_lmax": 2,
+    "box": {
+        "size": 10.0,
+        "n": 30
+    },
+    "interaction": "SLy5",
+    "hf": {
+        "cycles": 70,
+        "energyTol": 0.0001,
+        "gcg": {
+            "maxIter": 10,
+            "nev": 0,
+            "tol": 0.005,
+            "steps": 40,
+            "cgTol": 1e-08
+        }
+    },
+    "gcg": {
+        "maxIter": 40,
+        "nev": 10,
+        "tol": 1e-05,
+        "cgTol": 1e-8,
+        "steps": 40
+    },
+    "nucleus": {
+        "A": 20,
+        "Z": 10
+    },
+    "woods_saxon": {
+        "V0": 55.5,
+        "r0": 1.21,
+        "diffusivity": 0.67,
+        "spin_orbit": {
+            "V0": 55.5,
+            "r0": 1.21,
+            "R": 1.21
+        },
+        "kappa": 0.86
+    }
+}

@@ -1,6 +1,17 @@
 import json
 import os
 import copy
+import numpy as np
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 def set_nested_value(d, keys, value):
     for k in keys[:-1]:
@@ -27,28 +38,33 @@ def generate_configs(base_config_path, output_dir, param_path, values, title_pat
         output_path = os.path.join(output_dir, output_filename)
 
         with open(output_path, 'w') as out_f:
-            json.dump(config_copy, out_f, indent=4)
+            json.dump(config_copy, out_f, indent=4, cls=NpEncoder)
 
         print(f"Creato: {output_path}")
 
 
 if __name__ == "__main__":
-    base_config = "input/exec/input.json"
-    output_folder = "input/steps"
+    inputs = np.linspace(7, 9, 3)
+    print(inputs)
+    for i in inputs:
+        base_config = "input/input" + str(int(i)) + ".json"
+        output_folder = "input/stability"
 
-    param_path = ["box", "n"]
+        param_path = ["box", "n"]
 
-    title_path = ["outputName"]
+        title_path = ["outputName"]
 
-    # Lista di valori per steps
-    steps_values = [100, 200, 500, 1000]
+        step_sizes = np.linspace(0.5, 0.7, 3)
 
-    # Genera i file di configurazione
-    generate_configs(
-        base_config,
-        output_folder,
-        param_path=param_path,
-        values=steps_values,
-        title_path=title_path,
-        title_prefix="run"
-    )
+        values = i / step_sizes
+        values = 2*np.floor(values)
+        values = values.astype(np.int32)
+        # Genera i file di configurazione
+        generate_configs(
+            base_config,
+            output_folder,
+            param_path=param_path,
+            values=values,
+            title_path=title_path,
+            title_prefix=("run_" + str(int(i)))
+        )

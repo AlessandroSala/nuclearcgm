@@ -1,0 +1,48 @@
+\section{Spherical harmonics}
+Spherical harmonics, of order $\lambda, \mu$, are defined as
+\begin{equation}
+    Y_{\lambda\mu} (\theta, \phi) = (-1)^\mu 
+    \sqrt{\frac{2\lambda + 1}{4\pi}\frac{(\lambda-\mu)!}{(\lambda+\mu)!}}
+    \, P_\lambda^\mu(\cos\theta) \, e^{i\mu\phi}.
+\end{equation}
+Being able to provide the expression for arbitrary $\mu, \lambda$ through an algorithm 
+is important in the current framework, to solve the Poisson equation and investigate 
+nuclear properties.
+\\The major challenge is to generate the associated Legendre polynomials $P_\lambda^\mu$.
+They can be expressed in the form (for positive $\mu$)
+\begin{equation}
+    P_\lambda^\mu(x) = (1-x^2)^{\mu/2} \dv[\mu]{P_\lambda(x)}{x},
+\end{equation}
+where $x = \cos\theta$ and
+\begin{equation}
+    P_\lambda(x) = \frac 1 {2^\lambda \lambda !}
+    \dv[\lambda]{(x^2-1)^\lambda}{x}.
+\end{equation}
+To compute the arbitrary $\lambda, \mu$ associated Legendre polynomial we can employ a recursive approach, setting $\lambda =\mu$
+\begin{equation}
+    P_\mu^\mu(x) = (2\mu-1)!! \, (1-x^2)^{\mu/2},
+\end{equation}
+where $(2\mu-1)!! = 1\cdot 3 \cdot 5 \ldots (2\mu-1)$ denotes the double factorial.
+Once $P_\mu^\mu(x)$ is known, the next element with $\lambda = \mu +1$ reads
+\begin{equation}
+    P_{\mu+1}^\mu(x) = x(2\mu+1)P_\mu^\mu(x).
+\end{equation}
+All higher orders are then generated using the standard upward recurrence relation in $\lambda$:
+\begin{equation}
+    (\lambda - \mu + 1) \, P_{\lambda+1}^\mu(x) =
+    (2\lambda + 1) \, x \, P_\lambda^\mu(x) -
+    (\lambda + \mu) \, P_{\lambda-1}^\mu(x),
+\end{equation}
+valid for all $\lambda \geq \mu+1$.  
+\paragraph{Summarized algorithm}
+\begin{enumerate}
+    \item Compute the base case $P_\mu^\mu$ from the closed-form formula.
+    \item If $\mu = \lambda$ the procedure ends, otherwise
+    \item Evaluate $P_{\mu+1}^\mu$, if $\lambda = \mu +1$ the procedure ends, otherwise
+    \item Apply the recurrence relation $P_{\lambda+1}^\mu$ until the desired degree is reached
+\end{enumerate}
+This ought to be applied only for $ \mu \ge 0$. For $\mu < 0$ the procedure is carried out using $-\mu$ and in the end using the relation
+\begin{equation}
+    P_\lambda^{-\mu}(x) =  (-1)^{\mu}\frac{(\lambda-\mu)!}{(\lambda+\mu)!} P_\lambda^\mu(x),
+\end{equation}
+

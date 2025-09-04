@@ -4,77 +4,97 @@
 #include "util/fields.hpp"
 #include <cassert>
 #include <cmath>
+#include "math.h"
 
-std::complex<double> SphericalHarmonics::Y(int l, int m, double theta,
-                                           double phi)
-{
-  using std::abs;
-  assert(l >= 0);
-  assert(abs(m) <= l);
-  double norm = std::sqrt(
-      ((2.0 * l + 1.0) / (4.0 * M_PI)) *
-      ((double)factorial(l - std::abs(m)) / factorial(l + std::abs(m))));
 
-  double legendre =
-      SphericalHarmonics::associatedLegendre(l, std::abs(m), std::cos(theta));
-  std::complex<double> phase = std::polar(1.0, m * phi); // e^{i m phi}
-
-  if (m < 0)
-    return std::pow(-1.0, m) * norm * legendre *
-           std::conj(phase); // Relazione coniugata
-  else
-    return norm * legendre * phase;
+// Factorial function (double to avoid overflow for large l)
+double SphericalHarmonics::factorial(int n) {
+    assert(n >= 0);
+    double res = 1.0;
+    for (int i = 2; i <= n; i++) res *= i;
+    return res;
 }
 
-int SphericalHarmonics::factorial(int n)
-{
-  assert(n >= 0);
-  int res = 1;
-  for (int i = 2; i <= n; i++)
-    res *= i;
-  return res;
-}
+// Associated Legendre polynomial using quantum convention (Condon–Shortley)
+double SphericalHarmonics::associatedLegendre(int l, int m, double x) {
+    assert(m >= 0);
+    assert(m <= l);
+    assert(std::fabs(x) <= 1.0);
 
-double SphericalHarmonics::associatedLegendre(int l, int m, double x)
-{
-  assert(m >= 0);
-  assert(m <= l);
-  assert(x <= 1.0);
-  double pmm = 1.0;
-
-  if (m > 0)
-  {
-    double sx2 = sqrt(1.0 - x * x);
-    double fact = 1.0;
-
-    for (int i = 1; i <= m; ++i)
-    {
-      pmm *= -fact * sx2;
-      fact += 2.0;
+    // Base case: P_m^m(x)
+    double pmm = 1.0;
+    if (m > 0) {
+        //double sign = (m % 2) ? -1.0 : 1.0;  // (-1)^m
+        double sign = 1.0;
+        double fact = 1.0;
+        for (int i = 1; i <= 2 * m - 1; i += 2)
+            fact *= i;
+        pmm = sign * fact * std::pow(1.0 - x * x, m / 2.0);
     }
-  }
-  if (l == m)
-    return pmm;
 
-  double pmmp1 = x * (2 * m + 1) * pmm;
-  if (l == m + 1)
-    return pmmp1;
+    // If l == m, return P_m^m
+    if (l == m) return pmm;
 
-  double pll = 0.0;
-  for (int ll = m + 1; ll <= l; ++ll)
-  {
-    pll = ((2 * ll - 1) * x * pmmp1 - (ll + m - 1) * pmm) / (ll - m);
-    pmm = pmmp1;
-    pmmp1 = pll;
-  }
-  return pll;
+    // Compute P_{m+1}^m(x)
+    double pmmp1 = x * (2 * m + 1) * pmm;
+    if (l == m + 1) return pmmp1;
+
+    // Upward recurrence for P_l^m
+    double pll = 0.0;
+    double p1 = pmmp1;
+    double p2 = pmm;
+    for (int ll = m + 2; ll <= l; ++ll) {
+        pll = ((2 * ll - 1) * x * p1 - (ll + m - 1) * p2) / (ll - m);
+        p2 = p1;
+        p1 = pll;
+    }
+    return pll;
 }
+
+Eigen::VectorXd SphericalHarmonics::X(int l, int m){
+    using SphericalHarmonics::Y;
+    std::complex<double> img(0.0, 1.0);
+    assert(l >= 0);
+    assert(std::abs(m) <= l);
+    if(m > 0)
+        return (Y(l,-m) + Y(l,-m).conjugate()).real() / std::sqrt(2.0);
+    if(m < 0)
+        return (-img*(Y(l,m) - Y(l,m).conjugate())).real() / std::sqrt(2.0);
+    return Y(l,0).real();
+}
+
+// Spherical harmonics Y_l^m(theta, phi) using quantum convention
+std::complex<double> SphericalHarmonics::Y(int l, int m, double theta, double phi) {
+    assert(l >= 0);
+    assert(std::abs(m) <= l);
+
+    int mm = std::abs(m);
+    double norm = std::sqrt(
+        ((2.0 * l + 1.0) / (4.0 * M_PI)) *
+        (factorial(l - mm) / factorial(l + mm))
+    );
+
+    double legendre = associatedLegendre(l, mm, std::cos(theta));
+    std::complex<double> phase = std::polar(1.0, m * phi); // e^{i m phi}
+
+    std::complex<double> res = std::pow(-1.0, m) * norm * legendre * phase;
+
+    if (m < 0) {
+        // Relation for negative m:
+        // Y_l^{-m} = (-1)^m * conj(Y_l^m)
+        return std::pow(-1.0, mm) * std::conj(res);
+    } else {
+        return res;
+    }
+}
+
 SphericalHarmonics::angles SphericalHarmonics::cart2spher(double x, double y,
                                                           double z)
 {
   double r = std::sqrt(x * x + y * y + z * z);
   double theta = std::acos(z / r);
   double phi = std::atan2(y, x);
+  //if(phi < 0) phi += 2*M_PI;
   return {theta, phi};
 }
 
@@ -111,17 +131,43 @@ std::complex<double> SphericalHarmonics::Q(int l, int m, Eigen::VectorXd rho)
 {
   auto grid = Grid::getInstance();
 
-  auto pos = Fields::position();
+  Eigen::VectorXd pos = Fields::position();
+  pos = pos.array().abs();
+
 
   using Eigen::VectorXcd;
 
-  VectorXcd YLM = Y(l, m);
+  VectorXcd YLM = Y(l, m).conjugate();
 
   assert(pos.rows() == rho.rows() == YLM.rows());
 
-  Eigen::VectorXcd func = YLM.array() * (VectorXcd(rho)).array() * (VectorXcd(pos)).array().pow(l);
+  using comp = std::complex<double>;
 
-  return Operators::integral((Eigen::VectorXcd)func, *grid);
+  VectorXcd tmp = YLM.array() * rho.cast<comp>().array() ;
+  VectorXcd func = tmp.array() * pos.cast<comp>().array().pow(l);
+
+  return Operators::integralNoSpin(func, *grid);
+}
+
+double SphericalHarmonics::massMult(int l, int m, Eigen::VectorXd rho)
+{
+  auto grid = Grid::getInstance();
+
+  Eigen::VectorXd pos = Fields::position();
+  pos = pos.array().abs();
+
+  using Eigen::VectorXd;
+
+  VectorXd XLM = SphericalHarmonics::X(l, m);
+
+  assert(pos.rows() == rho.rows() == XLM.rows());
+
+  using comp = std::complex<double>;
+
+  VectorXd tmp = XLM.array() * rho.array() ;
+  VectorXd func = tmp.array() * pos.array().pow(l);
+
+  return Operators::integral(func, *grid);
 }
 
 double SphericalHarmonics::Y20(double theta)
