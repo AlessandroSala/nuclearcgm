@@ -1,8 +1,67 @@
 #include "constants.hpp"
+#include <iostream>
 #include "operators/common_operators.hpp"
 #include "operators/integral_operators.hpp"
 #include "util/iteration_data.hpp"
 #include <cmath>
+#include "spherical_harmonics.hpp"
+
+
+QuadrupoleDeformation IterationData::quadrupoleDeformation() {
+
+    Eigen::VectorXd rho = *rhoP + *rhoN;
+    int A = input.getA();
+    double a20 = SphericalHarmonics::massMult(2, 0, rho);
+    double a22 = SphericalHarmonics::massMult(2, 2,rho);
+    double R = 1.2 * pow(A, 1.0 / 3.0);
+
+    double gamma = atan2(a22, a20);
+
+    double beta = 4*M_PI*std::sqrt(a20*a20 + a22*a22)/(3*A*R*R);
+
+    if(axis2Exp('x') > axis2Exp('z')) {
+        beta = -beta;
+    }
+
+
+    return {beta, gamma};
+}
+
+double IterationData::axis2Exp(char dir) {
+
+
+Eigen::VectorXd rho = *rhoP + *rhoN;
+auto grid = *Grid::getInstance();
+  int n = grid.get_n();
+  double res = 0.0;
+  for (int i = 0; i < grid.get_n(); ++i)
+  {
+    for (int j = 0; j < grid.get_n(); ++j)
+    {
+      for (int k = 0; k < grid.get_n(); ++k)
+      {
+        int idx = grid.idxNoSpin(i, j, k);
+        double ii = grid.get_xs()[i];
+        double jj = grid.get_ys()[j];
+        double kk = grid.get_zs()[k];
+        if (dir == 'x')
+        {
+          res += ii * ii * rho(idx);
+        }
+        else if (dir == 'y')
+        {
+          res += jj * jj * rho(idx);
+        }
+        else if (dir == 'z')
+        {
+          res += kk * kk * rho(idx);
+        }
+      }
+    }
+  }
+  return res / rho.sum();
+}
+
 
 double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid) {
 
@@ -114,6 +173,7 @@ double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
   using Operators::integral;
   return integral(energy0c, grid);
 }
+
 
 double IterationData::C1nabla2RhoEnergy(SkyrmeParameters params,
                                         const Grid &grid) {

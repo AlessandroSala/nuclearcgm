@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1756809009.55504 "/home/ale/dev/nuclearcgm/notes/master.tex" "master.pdf" "master" 1756809011.08587 0
+["pdflatex"] 1757355887.34557 "/home/ale/dev/nuclearcgm/notes/master.tex" "master.pdf" "master" 1757355887.83904 0
   "/home/ale/dev/nuclearcgm/notes/master.tex" 1756808282.0255 17569 7e4de164f708aaaf6913fdee4bef8028 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -144,18 +144,17 @@
   "chapters/finite_differences/shell_model/shell_model.tex" 1746007926.13796 3296 1d5a0391473728117fdc497646b3fd07 ""
   "chapters/finite_differences/spin/spin_treatment.tex" 1744896232.89807 3589 967e04f8b8a661cc6f8bf85fa7ee8b80 ""
   "chapters/hartree_fock/benchmark/benchmark.tex" 1756808455.3019 2069 7a9223b1bc0abe825620d27d3eedcd8a ""
-  "chapters/hartree_fock/coulomb/coulomb.tex" 1756808844.15304 3632 1264b7bd83deec3cd836af95dc6669c7 ""
-  "chapters/hartree_fock/energy/energy.tex" 1756656204.56126 519 72b7f5147904108e32ba96ba2634a006 ""
+  "chapters/hartree_fock/coulomb/coulomb.tex" 1757355887.18316 3604 6b51f552354cf85ba08ecfa78386fda9 ""
   "chapters/hartree_fock/introduction/hartree_fock_introduction.tex" 1756278999.88969 3109 cf480f0bb64603e945fc4009b4fbd9f3 ""
-  "chapters/hartree_fock/skyrme/functional.tex" 1753778264.28931 3860 076211ce91da54a6c687c8dba12c3e22 ""
-  "chapters/hartree_fock/skyrme/skyrme.tex" 1756656392.05294 6417 a4cdad32ebba9e5e37d3bc2ac3656eb4 ""
-  "chapters/spherical_harmonics.tex" 1756809009.2178 2283 f3ce6e5281d81db2d021170644f5f4f3 ""
+  "chapters/hartree_fock/skyrme/functional.tex" 1757355135.8991 5658 2710dcf1ff569664c9a83cfc7d54b5a2 ""
+  "chapters/hartree_fock/skyrme/skyrme.tex" 1757355201.74243 5796 9369dd60519fc550180ccebe496331cd ""
+  "chapters/spherical_harmonics.tex" 1757355609.40932 2241 ec241f2bfb3d14a178b94af00ab53513 ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
   "figures/stability.pdf" 1756808166.81454 18864 5dbde05743a84ead6347dcc7021ae3d7 ""
-  "master.aux" 1756809010.89581 9636 fc2213cc1dc48f00e57c9c6f831e9517 "pdflatex"
-  "master.out" 1756809010.89781 8151 c5f1b497893f22bb4ce147f75df9a1f0 "pdflatex"
+  "master.aux" 1757355887.78217 9749 40180fd70134ef924b4bc99cc03b9e16 "pdflatex"
+  "master.out" 1757355887.78217 8234 4e1c5fda4525ccb388dd7b6f681ff63e "pdflatex"
   "master.tex" 1756808282.0255 17569 7e4de164f708aaaf6913fdee4bef8028 ""
-  "master.toc" 1756809010.89881 4363 187b6c4da7045b3ed4093d56aa7d03bc "pdflatex"
+  "master.toc" 1757355887.78317 4435 7010f823e11165c58f675a46999c07ee "pdflatex"
   (generated)
   "master.aux"
   "master.log"

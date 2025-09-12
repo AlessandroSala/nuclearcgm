@@ -5,7 +5,7 @@ import plotly
 import plotly.graph_objects as go
 
 name = "be"
-density = np.genfromtxt("output/def/mg.csv")
+density = np.genfromtxt("output/def/density.csv")
 #density = np.genfromtxt("output/density.csv")
 n = 40
 n2 = n // 2
@@ -14,7 +14,7 @@ a = 12
 mat_or = density.reshape((n, n, n))
 
 #mat = mat[:, :, n // 2]
-mat = mat_or[:, n2, :]
+mat = mat_or[:, :, n2]
 #mat = mat[n // 2, :, :]
 
 x = np.linspace(-a, a, n)

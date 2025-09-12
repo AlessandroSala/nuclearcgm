@@ -900,6 +900,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
                 sorted_X0.col(i) = X0.col(p[i]);
                 sorted_lambda(i) = final_lambda(p[i]);
             }
+        //b_modified_gram_schmidt_complex_no_B(sorted_X0);
             std::cout << "Final Eigenvalues: " << sorted_lambda.transpose() << std::endl;
             return {sorted_X0, sorted_lambda};
         }

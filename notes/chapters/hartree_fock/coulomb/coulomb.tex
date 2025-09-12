@@ -24,9 +24,9 @@ Where $\expval{Q_{\lambda\mu}}$ is defined as
     \expval{Q_{\lambda\mu}} = \int r^\lambda Y_{\lambda\mu}^* (\mathbf r)\rho_p(\mathbf r ) d^3 \mathbf r
 \end{equation}
 Since we expect a charge density confined to the nuclear shape, higher order terms in the expansion can be neglected, provided that the box is sufficiently large.
-\\In the frequent case of a nucleus in a parity eigenstate, the charge density is even, leading to 
+\\In a reference frame where the nucleus center of mass is at the origin, the expansion reduces to
 \begin{equation}
-    V_{c}(\mathbf r ) = \frac{Ze^2}{r} + e^2\frac{\expval{Q_{20}} Y_{20}(\mathbf r) + \expval{Q_{22}}\Re Y_{22}(\mathbf r)}{{r}^3} \text{ on } \partial V
+    V_{c}(\mathbf r ) = \frac{Ze^2}{r} + e^2\sum_{\mu=-2}^{2}\frac{\expval{Q_{2\mu}}Y_{2\mu}}{r^3} \text{ on } \partial \Omega
 \end{equation}
 \subsubsection{Imposing the boundary conditions}
 The high order discretization stencil of the laplacian, like in our case, involves points with a distance up to $\pm 2$, this means that the quadrupole expanded potential must be calculated on a box bigger than the one used.

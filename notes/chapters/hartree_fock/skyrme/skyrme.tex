@@ -51,19 +51,11 @@ The index $\alpha$ goes through all single particle states of the particles of t
 Where $\alpha$ goes through all single particle states, the index is omitted on $\phi$ for brevity.
 \\Taking the variation of $E[\Psi]$ with respect to $\phi_i^*$ we get a single particle equation
 \begin{equation}
-   \bigg(-\nabla \frac{\hbar^2}{2m^*(\mathbf r)} \nabla + U_q(\mathbf r)+\delta_{q, \text{proton}}V_c(\mathbf r)+ \frac 1 i \mathbf W_q \cdot (\nabla \times \boldsymbol{\sigma)} \bigg)\phi_\alpha = \varepsilon_\alpha\phi_\alpha 
+   \bigg(-\nabla \frac{\hbar^2}{2m^*(\mathbf r)} \nabla + U_q(\mathbf r)+\delta_{q, \text{proton}}V_c(\mathbf r)-  i \mathbf W_q \cdot (\nabla \times \boldsymbol{\sigma)} \bigg)\phi_\alpha = \varepsilon_\alpha\phi_\alpha 
 \end{equation}
 We will now see how to properly treat each term of the equation.
 \input{chapters/hartree_fock/skyrme/functional.tex}
-\subsubsection{Kinetic term}
-Regarding the kinetic component, we end up with an effective mass, such that 
-\[\frac{\hbar^2}{2m^*(\mathbf r)} = \frac{\hbar^2}{2m} + \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\rho(\mathbf r) - \frac 1 8 [t_1(1+2x_1)+t_2(1+2x_2)]\rho_q(\mathbf r ) = \mu(\mathbf r)\]
-This allows us to write
-\begin{align}
-    \nabla\bigg( \frac{\hbar^2}{2m^*(\mathbf r)} \nabla \phi\bigg)&= \nabla \mu(\mathbf r)\cdot \nabla \phi +\mu(\mathbf r)\nabla^2 \phi 
-\end{align}
-Where both $\nabla\cdot, \nabla^2$ can be readily evaluated in the previously illustrated finite difference scheme as matrix coefficients.
 
-\input{chapters/hartree_fock/energy/energy.tex}
+%\input{chapters/hartree_fock/energy/energy.tex}
 \input{chapters/hartree_fock/coulomb/coulomb.tex}
 \input{chapters/spherical_harmonics.tex}

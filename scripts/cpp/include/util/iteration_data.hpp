@@ -5,8 +5,14 @@
 #include <memory>
 
 class InputParser;
+class Constraint;
 class Grid;
 class EffectiveMass;
+
+typedef struct QuadrupoleDeformation {
+    double beta;
+    double gamma;
+} QuadrupoleDeformation;
 
 class IterationData {
 public:
@@ -40,11 +46,11 @@ public:
   double massCorr;
 
   void updateQuantities(const Eigen::MatrixXcd &neutrons,
-                        const Eigen::MatrixXcd &protons, int iter);
+                        const Eigen::MatrixXcd &protons, int iter, const std::vector<std::unique_ptr<Constraint>> &constraints);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
-  double HFEnergy(double SPE, const Grid &grid);
+  double HFEnergy(double SPE, const std::vector<std::unique_ptr<Constraint>> &constraints);
   double Erear(const Grid &grid);
 
   double C0RhoEnergy(SkyrmeParameters params, const Grid &grid);
@@ -67,6 +73,10 @@ public:
 
   double CoulombDirectEnergy(const Grid &grid);
   double SlaterCoulombEnergy(const Grid &grid);
+
+  QuadrupoleDeformation quadrupoleDeformation();
+
+  double axis2Exp(char dir);
 
   double protonRadius();
   double neutronRadius();

@@ -37,7 +37,7 @@ While the finite range term
     \mathcal H_\text{fin} = &+\frac 1 {32} [3t_1(2+x_1)-t_2(2+x_2)] | \nabla\rho|^2 \\&- \frac 1 {32} [3t_1(2x_1+1)+t_2(2x_2+1)] ( |\nabla\rho_p| ^2 + |\nabla\rho_n|^2) 
 \end{align}
 Having in mind the relation 
-\[\mathcal F [\rho] = |\nabla\rho|^2 \implies \fdv {\mathcal F} {\rho} = -2\nabla^2 \rho\]
+\[\mathcal F [\rho] = \int|\nabla\rho|^2d\mathbf r \implies \fdv {\mathcal F} {\rho} = -2\nabla^2 \rho\]
 Gives
 \begin{align}
     \fdv{\mathcal H_\text{fin}}{\rho_q} = &+ \frac 1 {16} [t_2(2+x_2)-3t_1(2+x_1)] \nabla^2 \rho \\&+ \frac 1 {16} [3t_1(2x_1+1)+t_2(2x_2+1)] ( \nabla^2 \rho_q )
@@ -48,6 +48,14 @@ The final single particle equation will now have effective mass terms and furthe
 \end{align}
 Where 
 \[\frac{\hbar^2}{2m^*(\mathbf r)} = \frac{\hbar^2}{2m} + \fdv{\mathcal{H}_\text{eff}}{\tau_q}\]
+\subsubsection{Kinetic term}
+Regarding the kinetic component, we end up with an effective mass, such that 
+\[\frac{\hbar^2}{2m^*(\mathbf r)} = \frac{\hbar^2}{2m} + \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\rho(\mathbf r) - \frac 1 8 [t_1(1+2x_1)+t_2(1+2x_2)]\rho_q(\mathbf r ) = \mu(\mathbf r)\]
+This allows us to write
+\begin{align}
+    \nabla\bigg( \frac{\hbar^2}{2m^*(\mathbf r)} \nabla \phi\bigg)&= \nabla \mu(\mathbf r)\cdot \nabla \phi +\mu(\mathbf r)\nabla^2 \phi 
+\end{align}
+Where both $\nabla\cdot, \nabla^2$ can be readily evaluated in the previously illustrated finite difference scheme as matrix coefficients.
 \subsection{Spin Orbit interaction}
 The spin orbit interaction arises by including 
 \begin{align}
@@ -61,4 +69,22 @@ And a contribution to the spin orbit interaction
 \begin{equation}
     \mathbf W_q (\mathbf r ) = \frac 1 2 W_0 [\nabla\rho + \nabla \rho_q]
 \end{equation}
+\subsection{Spin Gradient coupling}
+The remainging Skyrme interaction term is given by
+\[
+\mathcal H_\text{sg} = -\frac 1 {16} (t_1 x_1 + t_2 x_2) \mathbf J ^2 + \frac 1 {16}(t_1 - t_2) [\mathbf J^2_p + \mathbf J^2_n]
+\]
+Whose variation with respect to $\mathbf J_q$ adds the following contribution to the spin-orbit term
+\[
+\fdv{\mathcal H_\text{sg}}{\mathbf J_q} = - \frac 1 8 (t_1 x_1 + t_2 x_2) \mathbf J + \frac 1 8 (t_1 - t_2) \mathbf J_q
+\]
+\subsection{Summary}
+The full interaction reads 
+\begin{align*}
+    \frac{\hbar^2}{2m^*(\mathbf r)} &= \frac{\hbar^2}{2m} + \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\rho(\mathbf r) - \frac 1 8 [t_1(1+2x_1)+t_2(1+2x_2)]\rho_q(\mathbf r ) \\\\
+    U_q(\mathbf r) &= \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\rho + \frac 1 8 [t_2(1+2x_2)-t_1(1+2x_1)]\rho_q \\
+    &+ \frac 1 8 [t_1(2+x_1)+t_2(2+x_2)]\tau + \frac 1 8 [t_2(1+2x_2)-t_1(1+2x_1)]\tau_q \\
+    &+ \frac 1 {16} [t_2(2+x_2)-3t_1(2+x_1)] \nabla^2 \rho + \frac 1 {16} [3t_1(2x_1+1)+t_2(2x_2+1)] \nabla^2 \rho_q \\\\
+    \mathbf W_q (\mathbf r ) &= \frac 1 2 W_0 [\nabla\rho + \nabla \rho_q] -\frac 1 8 (t_1 x_1 + t_2 x_2) \mathbf J + \frac 1 8 (t_1 - t_2) \mathbf J_q 
+\end{align*}
 

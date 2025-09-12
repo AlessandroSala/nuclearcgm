@@ -2,6 +2,7 @@
 #include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
 #include "util/wavefunction.hpp"
+#include "constraint.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -90,15 +91,18 @@ void Output::shellsToFile(
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
     std::shared_ptr<IterationData> iterationData, InputParser input,
     int iterations, std::vector<double> energies, double cpuTime,
-    const Grid &grid)
+char mode, const std::vector<std::unique_ptr<Constraint>> &constraints)
 {
+    auto grid = *Grid::getInstance();
   int N = input.getZ();
   int Z = input.getA() - N;
   auto neutrons = neutronShells.first(Eigen::all, Eigen::seq(0, N - 1));
   auto protons = protonShells.first(Eigen::all, Eigen::seq(0, Z - 1));
   Eigen::VectorXd rho = *(iterationData->rhoN) + *(iterationData->rhoP);
 
-  std::ofstream file(folder + "/" + input.getOutputName() + ".txt");
+  auto fileMode = mode == 'a' ? std::ios_base::app : std::ios_base::out;
+
+  std::ofstream file(folder + "/" + input.getOutputName() + ".txt", std::ios_base::app);
   file << "=== BOX ===" << std::endl;
   auto a = grid.get_a();
   file << "Size: [-" << a << ", " << a << "]" << " fm " << std::endl;
@@ -161,21 +165,16 @@ void Output::shellsToFile(
        << " fm" << std::endl;
 
   file << std::endl;
-  double roundx2 = std::round(x2Sqrt * 100.0) / 100.0;
-  double roundy2 = std::round(y2Sqrt * 100.0) / 100.0;
-  double roundz2 = std::round(z2Sqrt * 100.0) / 100.0;
-  if(roundx2 > roundz2) {
-      swapAxes(rho, 0, 2);
-  } else if(roundy2 > roundz2) {
-      swapAxes(rho, 1, 2);
-  }
+  //double roundx2 = std::round(x2Sqrt * 100.0) / 100.0;
+  //double roundy2 = std::round(y2Sqrt * 100.0) / 100.0;
+  //double roundz2 = std::round(z2Sqrt * 100.0) / 100.0;
+  //if(roundx2 > roundz2) {
+  //    swapAxes(rho, 0, 2);
+  //} else if(roundy2 > roundz2) {
+  //    swapAxes(rho, 1, 2);
+  //}
 
-  double a20 = SphericalHarmonics::massMult(2, 0, rho);
-  double a22 = SphericalHarmonics::massMult(2, 2, rho);
-  int A = input.getA();
-  double R = 1.2 * pow(A, 1.0 / 3.0);
-  double beta = 4*M_PI*std::sqrt(a20*a20 + a22*a22)/(3*A*R*R);
-  std::cout << "Beta: " << beta << std::endl;
+  double beta = iterationData->quadrupoleDeformation().beta;
   file << "Beta: " << beta << std::endl;
   file << std::endl;
 
@@ -216,7 +215,7 @@ void Output::shellsToFile(
 
   double eRea = iterationData->Erear(grid);
   double E = eRea + eKin * 0.5 + SPE;
-  auto E_HF = iterationData->HFEnergy(SPE * 2.0, grid);
+  auto E_HF = iterationData->HFEnergy(SPE * 2.0, constraints);
   file << "E (REA): " << eRea << " MeV" << std::endl;
   file << "E_HF: " << E_HF << " MeV" << std::endl;
   file << std::endl;
@@ -244,22 +243,27 @@ void Output::shellsToFile(
     file << std::endl;
   }
 
-  file << "=== Energies ===" << std::endl;
-  for (int i = 0; i < energies.size(); ++i)
-  {
-    double e = energies[i];
-    file << i << ":  " << e << std::endl;
-  }
+  //file << "=== Energies ===" << std::endl;
+  //for (int i = 0; i < energies.size(); ++i)
+  //{
+  //  double e = energies[i];
+  //  file << i << ":  " << e << std::endl;
+  //}
+  file << std::endl;
+    file << std::endl;
 
   matrixToFile("density.csv", rho);
 
   //JSON output
   nlohmann::json j =  {
       {"Eint", totEnInt},
+      {"beta", beta},
       {"a", a},
       {"step", grid.get_h()},
   };
-  std::ofstream(folder + "/" + input.getOutputName() + ".json") << j << std::endl;
+  auto json = std::ofstream(folder + "/" + input.getOutputName() + ".json", fileMode);
+   json << j << std::endl;
+   json.close();
 
   file.close();
 }

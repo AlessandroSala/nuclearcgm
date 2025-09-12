@@ -75,9 +75,9 @@ std::complex<double> SphericalHarmonics::Y(int l, int m, double theta, double ph
     );
 
     double legendre = associatedLegendre(l, mm, std::cos(theta));
-    std::complex<double> phase = std::polar(1.0, m * phi); // e^{i m phi}
+    std::complex<double> phase = std::polar(1.0, mm * phi); // e^{i m phi}
 
-    std::complex<double> res = std::pow(-1.0, m) * norm * legendre * phase;
+    std::complex<double> res = std::pow(-1.0, mm) * norm * legendre * phase;
 
     if (m < 0) {
         // Relation for negative m:
@@ -153,8 +153,7 @@ double SphericalHarmonics::massMult(int l, int m, Eigen::VectorXd rho)
 {
   auto grid = Grid::getInstance();
 
-  Eigen::VectorXd pos = Fields::position();
-  pos = pos.array().abs();
+  Eigen::VectorXd pos = Fields::position().array().abs();
 
   using Eigen::VectorXd;
 

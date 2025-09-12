@@ -1,4 +1,5 @@
 #include "util/iteration_data.hpp"
+#include "constraint.hpp"
 #include "constants.hpp"
 #include "grid.hpp"
 #include "input_parser.hpp"
@@ -136,19 +137,18 @@ double IterationData::Erear(const Grid &grid)
   using Operators::integral;
   return integral(Eigen::VectorXd(energy0 + energy1), grid);
 }
-double IterationData::HFEnergy(double SPE, const Grid &grid)
+double IterationData::HFEnergy(double SPE, const std::vector<std::unique_ptr<Constraint>> &constraints)
 {
+    auto grid = *Grid::getInstance();
+    double constraintEnergy = 0.0;
+    for(auto&& constraint : constraints) {
+        constraintEnergy += constraint->evaluate(this);
+    }
 
-  return 0.5 * (SPE + kineticEnergy(params, grid)) - 0.5 * Erear(grid) +
+
+  return constraintEnergy + 0.5 * (SPE + kineticEnergy(params, grid)) - 0.5 * Erear(grid) +
          SlaterCoulombEnergy(grid) / 3.0;
 
-  return 0.5 * Erear(grid) - 0.5 * densityUVPIntegral(grid) +
-         +0.5 * (SPE + kineticEnergy(params, grid));
-
-  return totalEnergyIntegral(input.skyrme, grid) -
-         0.5 * densityUVPIntegral(grid) +
-         -0.5 * kineticEnergyEff(input.skyrme, grid) +
-         +kineticEnergy(input.skyrme, grid) + 0.5 * SPE;
 }
 
 double IterationData::densityUVPIntegral(const Grid &grid)
@@ -202,8 +202,7 @@ double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid)
 
 void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
                                      const Eigen::MatrixXcd &protonsShells,
-                                     int iter)
-{
+                                     int iter, const std::vector<std::unique_ptr<Constraint>> &constraints){
   Grid grid = *Grid::getInstance();
   int A = input.getA();
   int Z = input.getZ();
@@ -301,7 +300,13 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
     divJJQP = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   }
 
-  double mu = 0.01 + 0.01 * iter;
+  auto smooth = [](int iter) {
+    return std::min(0.2 + 0.01 * iter, 0.5);
+      //return 1.0/(1.0 + std::exp((-((double)iter - 15.0))/10.0));
+  };
+
+  double mu = constraints.size() != 0 ? smooth(iter) :  0.01 + 0.01 * iter;
+  std::cout << "mu: " << mu << std::endl;
   Eigen::VectorXd tau = *tauN + *tauP;
   Eigen::VectorXd nabla2rho = *nabla2RhoN + *nabla2RhoP;
 
@@ -314,6 +319,13 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
       rho, *rhoN, tau, *tauN, nabla2rho, *nabla2RhoN, divJJQN, grid, params);
   Eigen::VectorXd newFieldP = Wavefunction::field(
       rho, *rhoP, tau, *tauP, nabla2rho, *nabla2RhoP, divJJQP, grid, params);
+  Eigen::VectorXd constraintField = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
+  // CONSTRAINTS
+  for(auto&& constraint : constraints) {
+      constraintField += constraint->getField(this);
+  }
+ newFieldN += constraintField;
+ newFieldP += constraintField;
 
   Eigen::VectorXd newFieldCoul;
   if (input.useCoulomb)
@@ -369,6 +381,8 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
+  //+UN += constraintField;
+  //UP += constraintField;
 
   if (UCoul == nullptr)
   {
@@ -409,6 +423,8 @@ void IterationData::updateQuantities(const Eigen::MatrixXcd &neutronsShells,
     *BN = (*BN) * (1 - mu) + newBN * mu;
     *BP = (*BP) * (1 - mu) + newBP * mu;
   }
+
+
   std::cout << "Quantities updated" << std::endl
             << std::endl;
 }

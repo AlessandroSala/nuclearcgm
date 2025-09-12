@@ -1,19 +1,24 @@
 #pragma once
-#include "potential.hpp"
-#include "functional_term.hpp"
+#include "constraint.hpp"
+#include <Eigen/Dense>
 
-class QuadrupoleConstraint : public Potential, public FunctionalTerm {
+class QuadrupoleConstraint : public Constraint {
     public:
         QuadrupoleConstraint(double mu20);
 
-        std::complex<double> getElement5p(int i, int j, int k, int s, int i1, int j1, int k1, int s1,
-                                          const Grid& grid) const override;
-        double getValue(double x, double y, double z) const override;
 
-        double evaluate(IterationData* data) const ;
+
+    Eigen::VectorXd getField(IterationData* data) override; 
+
+        double evaluate(IterationData* data) const override;
 
 
     private:
         double mu20;
+        double lambda;
+        double C;
+        bool firstIter;
+        std::vector<double> residuals;
+
 };
 
