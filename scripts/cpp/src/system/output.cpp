@@ -1,69 +1,61 @@
 #include "util/output.hpp"
+#include "constraint.hpp"
 #include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
 #include "util/wavefunction.hpp"
-#include "constraint.hpp"
 #include <fstream>
 #include <iostream>
 
 #include <Eigen/Dense>
 #include <array>   // Per std::array
-#include <utility> // Per std::swap
 #include <cassert> // Per assert
+#include <utility> // Per std::swap
 
 void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2) {
-    if (a1 == a2) {
-        return;
-    }
+  if (a1 == a2) {
+    return;
+  }
 
-    Eigen::VectorXd tmp = rho;
-    auto grid = Grid::getInstance();
-    const int n = grid->get_n();
+  Eigen::VectorXd tmp = rho;
+  auto grid = Grid::getInstance();
+  const int n = grid->get_n();
 
 #pragma omp parallel for collapse(3)
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            for (int k = 0; k < n; ++k) {
-                int dest_idx = grid->idxNoSpin(i, j, k);
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      for (int k = 0; k < n; ++k) {
+        int dest_idx = grid->idxNoSpin(i, j, k);
 
-                std::array<int, 3> src_coords = {i, j, k};
+        std::array<int, 3> src_coords = {i, j, k};
 
-                std::swap(src_coords[a1], src_coords[a2]);
-                
-                int src_idx = grid->idxNoSpin(src_coords[0], src_coords[1], src_coords[2]);
+        std::swap(src_coords[a1], src_coords[a2]);
 
-                rho(dest_idx) = tmp(src_idx);
-            }
-        }
+        int src_idx =
+            grid->idxNoSpin(src_coords[0], src_coords[1], src_coords[2]);
+
+        rho(dest_idx) = tmp(src_idx);
+      }
     }
+  }
 }
 
-double Output::x2(std::shared_ptr<IterationData> data, const Grid &grid, char dir)
-{
+double Output::x2(IterationData *data, const Grid &grid, char dir) {
 
   auto rho = *(data->rhoN) + *(data->rhoP);
   int n = grid.get_n();
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i)
-  {
-    for (int j = 0; j < grid.get_n(); ++j)
-    {
-      for (int k = 0; k < grid.get_n(); ++k)
-      {
+  for (int i = 0; i < grid.get_n(); ++i) {
+    for (int j = 0; j < grid.get_n(); ++j) {
+      for (int k = 0; k < grid.get_n(); ++k) {
         int idx = grid.idxNoSpin(i, j, k);
         double ii = grid.get_xs()[i];
         double jj = grid.get_ys()[j];
         double kk = grid.get_zs()[k];
-        if (dir == 'x')
-        {
+        if (dir == 'x') {
           res += ii * ii * rho(idx);
-        }
-        else if (dir == 'y')
-        {
+        } else if (dir == 'y') {
           res += jj * jj * rho(idx);
-        }
-        else if (dir == 'z')
-        {
+        } else if (dir == 'z') {
           res += kk * kk * rho(idx);
         }
       }
@@ -73,13 +65,11 @@ double Output::x2(std::shared_ptr<IterationData> data, const Grid &grid, char di
 }
 
 Output::Output() : Output("output") {}
-Output::Output(std::string folder_) : folder(folder_)
-{
+Output::Output(std::string folder_) : folder(folder_) {
   namespace fs = std::filesystem;
   fs::create_directory(folder);
 }
-void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix)
-{
+void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix) {
   std::ofstream file(folder + "/" + fileName);
   file << matrix << std::endl;
   file.close();
@@ -89,11 +79,12 @@ void Output::shellsToFile(
     std::string fileName,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
-    std::shared_ptr<IterationData> iterationData, InputParser input,
-    int iterations, std::vector<double> energies, double cpuTime,
-char mode, const std::vector<std::unique_ptr<Constraint>> &constraints)
-{
-    auto grid = *Grid::getInstance();
+    IterationData *iterationData, InputParser input, int iterations,
+    std::vector<double> energies, double cpuTime, char mode,
+    const std::vector<std::unique_ptr<Constraint>> &constraints) {
+    
+  
+  auto grid = *Grid::getInstance();
   int N = input.getZ();
   int Z = input.getA() - N;
   auto neutrons = neutronShells.first(Eigen::all, Eigen::seq(0, N - 1));
@@ -102,7 +93,10 @@ char mode, const std::vector<std::unique_ptr<Constraint>> &constraints)
 
   auto fileMode = mode == 'a' ? std::ios_base::app : std::ios_base::out;
 
-  std::ofstream file(folder + "/" + input.getOutputName() + ".txt", std::ios_base::app);
+  std::ofstream file(folder + "/" + input.getOutputName() + ".txt",
+                     std::ios_base::app);
+
+  std::cout << "Writing to " << folder + "/" + input.getOutputName() + ".txt" << " in mode " << fileMode << std::endl;
   file << "=== BOX ===" << std::endl;
   auto a = grid.get_a();
   file << "Size: [-" << a << ", " << a << "]" << " fm " << std::endl;
@@ -121,16 +115,14 @@ char mode, const std::vector<std::unique_ptr<Constraint>> &constraints)
   //  file << "diff: " << ws["alpha"] << std::endl;
   //  file << "Beta: " << "0.0" << std::endl;
   //  file << std::endl;
-  auto toYesNo = [](bool value)
-  {
-    return value ? "YES" : "NO";
-  };
+  auto toYesNo = [](bool value) { return value ? "YES" : "NO"; };
 
   file << "=== Interaction ===" << std::endl;
   file << "Name: " << input.get_json()["interaction"] << std::endl;
-  file << "Options: " << "J2 terms: " << toYesNo(input.useJ) << " | " << "Spin orbit: " << toYesNo(input.spinOrbit) << " | " << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl;
-  file << std::endl
-       << "Parameters" << std::endl;
+  file << "Options: " << "J2 terms: " << toYesNo(input.useJ) << " | "
+       << "Spin orbit: " << toYesNo(input.spinOrbit) << " | "
+       << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl;
+  file << std::endl << "Parameters" << std::endl;
   file << "t0: " << input.skyrme.t0 << ", ";
   file << "t1: " << input.skyrme.t1 << ", ";
   file << "t2: " << input.skyrme.t2 << ", ";
@@ -165,14 +157,14 @@ char mode, const std::vector<std::unique_ptr<Constraint>> &constraints)
        << " fm" << std::endl;
 
   file << std::endl;
-  //double roundx2 = std::round(x2Sqrt * 100.0) / 100.0;
-  //double roundy2 = std::round(y2Sqrt * 100.0) / 100.0;
-  //double roundz2 = std::round(z2Sqrt * 100.0) / 100.0;
-  //if(roundx2 > roundz2) {
-  //    swapAxes(rho, 0, 2);
-  //} else if(roundy2 > roundz2) {
-  //    swapAxes(rho, 1, 2);
-  //}
+  // double roundx2 = std::round(x2Sqrt * 100.0) / 100.0;
+  // double roundy2 = std::round(y2Sqrt * 100.0) / 100.0;
+  // double roundz2 = std::round(z2Sqrt * 100.0) / 100.0;
+  // if(roundx2 > roundz2) {
+  //     swapAxes(rho, 0, 2);
+  // } else if(roundy2 > roundz2) {
+  //     swapAxes(rho, 1, 2);
+  // }
 
   double beta = iterationData->quadrupoleDeformation().beta;
   file << "Beta: " << beta << std::endl;
@@ -233,37 +225,36 @@ char mode, const std::vector<std::unique_ptr<Constraint>> &constraints)
   using namespace SphericalHarmonics;
   file << "=== Multipole moments ===" << std::endl;
 
-  for (int l = 0; l <= input.get_json()["output_lmax"]; ++l)
-  {
+  for (int l = 0; l <= input.get_json()["output_lmax"]; ++l) {
     file << "l: " << l << std::endl;
-    for (int m = -l; m <= l; ++m)
-    {
+    for (int m = -l; m <= l; ++m) {
       file << l << ", " << m << ": " << Q(l, m, rho) << std::endl;
     }
     file << std::endl;
   }
 
-  //file << "=== Energies ===" << std::endl;
-  //for (int i = 0; i < energies.size(); ++i)
+  // file << "=== Energies ===" << std::endl;
+  // for (int i = 0; i < energies.size(); ++i)
   //{
-  //  double e = energies[i];
-  //  file << i << ":  " << e << std::endl;
-  //}
+  //   double e = energies[i];
+  //   file << i << ":  " << e << std::endl;
+  // }
   file << std::endl;
-    file << std::endl;
+  file << std::endl;
 
   matrixToFile("density.csv", rho);
 
-  //JSON output
-  nlohmann::json j =  {
+  // JSON output
+  nlohmann::json j = {
       {"Eint", totEnInt},
       {"beta", beta},
       {"a", a},
       {"step", grid.get_h()},
   };
-  auto json = std::ofstream(folder + "/" + input.getOutputName() + ".json", fileMode);
-   json << j << std::endl;
-   json.close();
+  auto json =
+      std::ofstream(folder + "/" + input.getOutputName() + ".json", fileMode);
+  json << j << std::endl;
+  json.close();
 
   file.close();
 }
