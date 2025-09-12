@@ -10,8 +10,8 @@ class Grid;
 class EffectiveMass;
 
 typedef struct QuadrupoleDeformation {
-    double beta;
-    double gamma;
+  double beta;
+  double gamma;
 } QuadrupoleDeformation;
 
 class IterationData {
@@ -45,8 +45,10 @@ public:
   InputParser input;
   double massCorr;
 
-  void updateQuantities(const Eigen::MatrixXcd &neutrons,
-                        const Eigen::MatrixXcd &protons, int iter, const std::vector<std::unique_ptr<Constraint>> &constraints);
+  void
+  updateQuantities(const Eigen::MatrixXcd &neutrons,
+                   const Eigen::MatrixXcd &protons, int iter,
+                   const std::vector<std::unique_ptr<Constraint>> &constraints);
 
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
@@ -82,6 +84,10 @@ public:
   double neutronRadius();
   double chargeRadius(const Eigen::MatrixXcd psiN, const Eigen::MatrixXcd psiP,
                       int N, int Z);
+  void
+  logData(const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsEigenpair,
+          const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsEigenpair, 
+          const std::vector<std::unique_ptr<Constraint>> &constraints);
 
   IterationData(InputParser input);
 };

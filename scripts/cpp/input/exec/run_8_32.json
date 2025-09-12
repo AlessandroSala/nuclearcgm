@@ -5,13 +5,13 @@
     "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
-    "outputName": "surf_c",
+    "outputName": "surf_c_b",
     "outputDirectory": "def",
     "calculation": "sp",
     "output_lmax": 4,
     "box": {
         "size": 12.0,
-        "n": 20
+        "n": 30
     },
     "interaction": "SLy5",
     "hf": {
@@ -33,8 +33,8 @@
         "steps": 60
     },
     "nucleus": {
-        "A": 20,
-        "Z": 10
+        "A": 16,
+        "Z": 8
     },
     "woods_saxon": {
         "V0": 55.5,
