@@ -2,6 +2,7 @@
 #include "input_parser.hpp"
 #include <Eigen/Dense>
 class IterationData;
+class Constraint;
 class Output
 {
 private:
@@ -19,5 +20,5 @@ public:
                     std::shared_ptr<IterationData> iterationData,
                     InputParser input, int iterations,
                     std::vector<double> energies, double cpuTime,
-                    const Grid &grid);
+                    char mode, const std::vector<std::unique_ptr<Constraint>> &constraints);
 };

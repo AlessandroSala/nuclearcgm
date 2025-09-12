@@ -4,7 +4,7 @@ class IterationData;
 
 class FunctionalTerm {
     public:
-        double evaluate(IterationData* data) const;
+        virtual double evaluate(IterationData* data) const ;
 
 };
 

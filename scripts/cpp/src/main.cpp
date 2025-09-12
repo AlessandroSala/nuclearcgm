@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     std::pair<ComplexDenseMatrix, DenseVector> eigenpair;
     vector<shared_ptr<Potential>> pots;
 
-    Radius radius(0.0, WS.r0, A);
+    Radius radius(0.001, WS.r0, A);
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
         WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa));
@@ -78,12 +78,13 @@ int main(int argc, char **argv)
     // cout << ham.buildMatrix() << endl;
     //
 
-    // double h_omega = 41.0 / (pow(A, 0.33333));
     double nucRadius = pow(A, 0.3333333) * 1.27;
+    //MatrixXcd initial = harmonic_oscillator_guess(grid, N + input.additional, nucRadius, true);
+    //Wavefunction::normalize(initial, grid);
+    //Wavefunction::printShells(make_pair(initial, VectorXd::Zero(initial.cols())), grid);  // double h_omega = 41.0 / (pow(A, 0.33333));
     pair<MatrixXcd, VectorXd> neutronsEigenpair = gcgm_complex_no_B_lock(
         initialWS.build_matrix5p(),
-        harmonic_oscillator_guess(grid, N + input.additional, nucRadius,
-                                  input.spinOrbit),
+        harmonic_oscillator_guess(grid, N + input.additional, nucRadius, true),
         N + input.additional, 60, calc.initialGCG.maxIter, calc.initialGCG.tol,
         calc.initialGCG.steps, calc.initialGCG.cgTol, false);
 
@@ -138,131 +139,141 @@ int main(int argc, char **argv)
     double integralEnergy = 0.0;
     double HFEnergy = 0.0;
 
-    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, 0);
-
-    std::cout << "X2: " << out.x2(make_shared<IterationData>(data), grid, 'x') << std::endl;
-    std::cout << "Y2: " << out.x2(make_shared<IterationData>(data), grid, 'y') << std::endl;
-    std::cout << "Z2: " << out.x2(make_shared<IterationData>(data), grid, 'z') << std::endl;
-
-    double mu = 0.1;
-    int hfIter = 0;
-    for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
-    {
-      int maxIterGCGHF = calc.hf.gcg.maxIter;
-
-      cout << "HF iteration: " << hfIter << endl;
-
-      std::cout << "Neutrons " << std::endl;
-      vector<shared_ptr<Potential>> pots;
-      pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::N,
-                                          make_shared<IterationData>(data)));
-      pots.push_back(make_shared<NonLocalKineticPotential>(
-          make_shared<IterationData>(data), NucleonType::N));
-      pots.push_back(make_shared<LocalKineticPotential>(
-          make_shared<IterationData>(data), NucleonType::N));
-      if (input.spinOrbit)
-        pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-                                             NucleonType::N));
-      if(mu != 0.0)
-          pots.push_back(make_shared<QuadrupoleConstraint>(mu));
-
-      Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
-
-      auto newNeutronsEigenpair = gcgm_complex_no_B_lock(
-          skyrmeHam.buildMatrix(), neutronsEigenpair.first, N + input.additional,
-          35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
-          1.0e-4 / (calc.initialGCG.nev), false);
-
-      
-      pair<MatrixXcd, VectorXd> newProtonsEigenpair;
-      if (input.useCoulomb || N != Z)
-      {
-        pots.clear();
-        pots.push_back(make_shared<LocalKineticPotential>(
-            make_shared<IterationData>(data), NucleonType::P));
-        pots.push_back(make_shared<NonLocalKineticPotential>(
-            make_shared<IterationData>(data), NucleonType::P));
-        pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
-                                            make_shared<IterationData>(data)));
-        if (input.spinOrbit)
-          pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
-                                               NucleonType::P));
-      if(mu != 0.0)
-          pots.push_back(make_shared<QuadrupoleConstraint>(mu));
-
-        std::cout << "Protons " << std::endl;
-        pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
-        Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
-
-        newProtonsEigenpair =
-            gcgm_complex_no_B_lock(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
-                                   35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
-                                   1.0e-4 / (calc.initialGCG.nev), false);
-        skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
-      }
-      else
-      {
-        newProtonsEigenpair.first =
-            newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1));
-        newProtonsEigenpair.second =
-            newNeutronsEigenpair.second(Eigen::seq(0, Z - 1));
-      }
-
-      neutronsEigenpair = newNeutronsEigenpair;
-      protonsEigenpair = newProtonsEigenpair;
-
-      Wavefunction::normalize(neutronsEigenpair.first, grid);
-      Wavefunction::normalize(protonsEigenpair.first, grid);
-
-      double newIntegralEnergy = data.totalEnergyIntegral(input.skyrme, grid) +
-                                 data.kineticEnergy(input.skyrme, grid);
-
-      double SPE =
-          0.5 * (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
-
-      integralEnergies.push_back(newIntegralEnergy);
-      double newHFEnergy = data.HFEnergy(2.0 * SPE, grid);
-      cout << "Total energy as integral: " << newIntegralEnergy << endl;
-      cout << "Total energy as HF energy: " << newHFEnergy << endl;
-
-      cout << "Direct coulomb energy: " << data.CoulombDirectEnergy(grid) << endl;
-      cout << "Slater exchange energy: " << data.SlaterCoulombEnergy(grid)
-           << endl;
-    std::cout << "X2: " << out.x2(make_shared<IterationData>(data), grid, 'x') << std::endl;
-    std::cout << "Y2: " << out.x2(make_shared<IterationData>(data), grid, 'y') << std::endl;
-    std::cout << "Z2: " << out.x2(make_shared<IterationData>(data), grid, 'z') << std::endl;
-    VectorXd rho = *(data.rhoN) + *(data.rhoP);
-    out.swapAxes(rho, 0, 2);
-  double a20 = SphericalHarmonics::massMult(2, 0, rho);
-  double a22 = SphericalHarmonics::massMult(2, 2, rho);
-  double R = 1.2 * pow(A, 1.0 / 3.0);
-  double beta = 4*M_PI*std::sqrt(a20*a20 + a22*a22)/(3*A*R*R);
-  std::cout << "Beta: " << beta << std::endl;
-
-      if (abs(newIntegralEnergy - integralEnergy) <
-              input.getCalculation().hf.energyTol &&
-          abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol)
-      {
-        break;
-      }
-      integralEnergy = newIntegralEnergy;
-      HFEnergy = newHFEnergy;
-      data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first,
-                            hfIter);
+    vector<double> mu20s;
+    for(double mu = 29.0; mu > 10.0; mu -= 2.0) {
+        mu20s.push_back(mu);
     }
-    cout << "Neutrons " << endl;
-    Wavefunction::printShells(neutronsEigenpair, grid);
-    cout << "Protons " << endl;
-    Wavefunction::printShells(protonsEigenpair, grid);
+    vector<unique_ptr<Constraint>> constraints;
+    //data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, 0, constraints);
 
-    std::chrono::steady_clock::time_point computationEnd =
-        std::chrono::steady_clock::now();
-    double cpuTime =
-        chrono::duration_cast<chrono::seconds>(computationEnd - computationBegin)
-            .count();
-    out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
-                     make_shared<IterationData>(data), input, hfIter,
-                     integralEnergies, cpuTime, grid);
+    //std::cout << "X2: " << out.x2(make_shared<IterationData>(data), grid, 'x') << std::endl;
+    //std::cout << "Y2: " << out.x2(make_shared<IterationData>(data), grid, 'y') << std::endl;
+    //std::cout << "Z2: " << out.x2(make_shared<IterationData>(data), grid, 'z') << std::endl;
+    Wavefunction::printShells(neutronsEigenpair, grid);
+
+    for(int i = 0; i < mu20s.size() +1; ++i) {
+        int hfIter = 0;
+        constraints.clear();
+        if(i >= 1) {
+            auto mu = mu20s[i-1];
+            constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
+        }
+
+        for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
+        {
+    data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first, hfIter, constraints);
+          int maxIterGCGHF = calc.hf.gcg.maxIter;
+
+          cout << "HF iteration: " << hfIter << endl;
+
+          std::cout << "Neutrons " << std::endl;
+          vector<shared_ptr<Potential>> pots;
+          pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::N,
+                                              make_shared<IterationData>(data)));
+          pots.push_back(make_shared<NonLocalKineticPotential>(
+              make_shared<IterationData>(data), NucleonType::N));
+          pots.push_back(make_shared<LocalKineticPotential>(
+              make_shared<IterationData>(data), NucleonType::N));
+          if (input.spinOrbit)
+            pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+                                                 NucleonType::N));
+
+          Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
+
+          auto newNeutronsEigenpair = gcgm_complex_no_B_lock(
+              skyrmeHam.buildMatrix(), neutronsEigenpair.first, N + input.additional,
+              35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
+              1.0e-4 / (calc.initialGCG.nev), false);
+
+          
+          pair<MatrixXcd, VectorXd> newProtonsEigenpair;
+          if (input.useCoulomb || N != Z)
+          {
+            pots.clear();
+            pots.push_back(make_shared<LocalKineticPotential>(
+                make_shared<IterationData>(data), NucleonType::P));
+            pots.push_back(make_shared<NonLocalKineticPotential>(
+                make_shared<IterationData>(data), NucleonType::P));
+            pots.push_back(make_shared<SkyrmeU>(input.skyrme, NucleonType::P,
+                                                make_shared<IterationData>(data)));
+            if (input.spinOrbit)
+              pots.push_back(make_shared<SkyrmeSO>(make_shared<IterationData>(data),
+                                                   NucleonType::P));
+
+            std::cout << "Protons " << std::endl;
+            pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
+            Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
+
+            newProtonsEigenpair =
+                gcgm_complex_no_B_lock(skyrmeHam.buildMatrix(), protonsEigenpair.first, Z,
+                                       35 + 0.01, maxIterGCGHF, calc.hf.gcg.tol, 40,
+                                       1.0e-4 / (calc.initialGCG.nev), false);
+            skyrmeHam = Hamiltonian(make_shared<Grid>(grid), pots);
+          }
+          else
+          {
+            newProtonsEigenpair.first =
+                newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1));
+            newProtonsEigenpair.second =
+                newNeutronsEigenpair.second(Eigen::seq(0, Z - 1));
+          }
+
+          neutronsEigenpair = newNeutronsEigenpair;
+          protonsEigenpair = newProtonsEigenpair;
+
+          Wavefunction::normalize(neutronsEigenpair.first, grid);
+          Wavefunction::normalize(protonsEigenpair.first, grid);
+
+          double newIntegralEnergy = data.totalEnergyIntegral(input.skyrme, grid) +
+                                     data.kineticEnergy(input.skyrme, grid);
+
+          double SPE =
+              0.5 * (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
+
+          integralEnergies.push_back(newIntegralEnergy);
+          double newHFEnergy = data.HFEnergy(2.0 * SPE, constraints);
+          cout << "Total energy as integral: " << newIntegralEnergy << endl;
+          cout << "Total energy as HF energy: " << newHFEnergy << endl;
+
+          cout << "Direct coulomb energy: " << data.CoulombDirectEnergy(grid) << endl;
+          cout << "Slater exchange energy: " << data.SlaterCoulombEnergy(grid)
+               << endl;
+        std::cout << "X2: " << out.x2(make_shared<IterationData>(data), grid, 'x') << std::endl;
+        std::cout << "Y2: " << out.x2(make_shared<IterationData>(data), grid, 'y') << std::endl;
+        std::cout << "Z2: " << out.x2(make_shared<IterationData>(data), grid, 'z') << std::endl;
+        std::cout << "RN: " << std::sqrt(data.neutronRadius()) << std::endl;
+        std::cout << "RP: " << std::sqrt(data.protonRadius()) << std::endl;
+        std::cout << "CR: " << std::sqrt(data.chargeRadius(neutronsEigenpair.first, protonsEigenpair.first, N, Z)) << std::endl;
+
+        auto [beta, gamma] = data.quadrupoleDeformation();
+
+    std::cout << "Beta: " << beta << ", Gamma: " << gamma * 180.0 / M_PI << " deg" << std::endl;
+
+          if (abs(newIntegralEnergy - integralEnergy) <
+                  input.getCalculation().hf.energyTol &&
+              abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol)
+          {
+            break;
+          }
+          integralEnergy = newIntegralEnergy;
+          HFEnergy = newHFEnergy;
+          //data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first,
+          //                      hfIter, constraints);
+        }
+        cout << "Neutrons " << endl;
+        Wavefunction::printShells(neutronsEigenpair, grid);
+        cout << "Protons " << endl;
+        Wavefunction::printShells(protonsEigenpair, grid);
+
+        std::chrono::steady_clock::time_point computationEnd =
+            std::chrono::steady_clock::now();
+        double cpuTime =
+            chrono::duration_cast<chrono::seconds>(computationEnd - computationBegin)
+                .count();
+        out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
+                         make_shared<IterationData>(data), input, hfIter,
+                         integralEnergies, cpuTime, i == 0 ? 'w' : 'a', constraints);
+      }
   }
   return 0;
   // pots.push_back(

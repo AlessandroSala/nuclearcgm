@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2025.1.3)  30 JUL 2025 12:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2025.8.30)  11 SEP 2025 17:12
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -424,15 +424,15 @@ LaTeX Warning: No \author given.
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2
 
-] (./master.toc [3])
+] (./master.toc)
 \tf@toc=\write4
 \openout4 = `master.toc'.
 
- [4]
-Chapter 1.
-[5
+ [3] [4
 
-] [6
+]
+Chapter 1.
+[5] [6
 
 ]
 Chapter 2.
@@ -444,31 +444,23 @@ Chapter 3.
 
 ]
 Chapter 4.
-[11] [12
-
-]
-Chapter 5.
-[13] [14
-
-]
-Chapter 6.
-[15] (./master.aux)
+[11] (./master.aux)
 Package rerunfilecheck Info: File `master.out' has not changed.
-(rerunfilecheck)             Checksum: 3C7B0158AB9B820D79BF5C1D1E08A698;4991.
+(rerunfilecheck)             Checksum: EF9E82A0E87250609A0FE4C70C9FBA72;2617.
  ) 
 Here is how much of TeX's memory you used:
- 12814 strings out of 476034
- 201352 string characters out of 5792865
- 1861388 words of memory out of 6000000
- 33041 multiletter control sequences out of 15000+600000
+ 12778 strings out of 476041
+ 200828 string characters out of 5793174
+ 1856388 words of memory out of 6000000
+ 33024 multiletter control sequences out of 15000+600000
  526626 words of font info for 84 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
  75i,6n,77p,363b,454s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsl10.pfb>
-Output written on master.pdf (15 pages, 88076 bytes).
+Output written on master.pdf (11 pages, 79102 bytes).
 PDF statistics:
- 277 PDF objects out of 1000 (max. 8388607)
- 247 compressed objects within 3 object streams
- 50 named destinations out of 1000 (max. 500000)
- 265 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 173 PDF objects out of 1000 (max. 8388607)
+ 148 compressed objects within 2 object streams
+ 30 named destinations out of 1000 (max. 500000)
+ 137 words of extra memory for PDF output out of 10000 (max. 10000000)
 

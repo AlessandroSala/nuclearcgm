@@ -1,36 +1,36 @@
 {
     "pairing": false,
-    "coulomb": true,
+    "coulomb": false,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
-    "outputName": "mg",
+    "outputName": "surf_c",
     "outputDirectory": "def",
     "calculation": "sp",
-    "output_lmax": 2,
+    "output_lmax": 4,
     "box": {
-        "size": 10.0,
-        "n": 30
+        "size": 12.0,
+        "n": 20
     },
     "interaction": "SLy5",
     "hf": {
-        "cycles": 70,
+        "cycles": 100,
         "energyTol": 0.0001,
         "gcg": {
             "maxIter": 10,
             "nev": 0,
-            "tol": 0.005,
+            "tol": 1e-2,
             "steps": 40,
-            "cgTol": 1e-08
+            "cgTol": 1e-7
         }
     },
     "gcg": {
-        "maxIter": 40,
+        "maxIter": 20,
         "nev": 10,
         "tol": 1e-05,
-        "cgTol": 1e-8,
-        "steps": 40
+        "cgTol": 1e-9,
+        "steps": 60
     },
     "nucleus": {
         "A": 20,

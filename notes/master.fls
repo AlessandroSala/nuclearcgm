@@ -871,10 +871,6 @@ INPUT ./chapters/hartree_fock/skyrme/functional.tex
 INPUT chapters/hartree_fock/skyrme/functional.tex
 INPUT ./chapters/hartree_fock/skyrme/functional.tex
 INPUT chapters/hartree_fock/skyrme/functional.tex
-INPUT ./chapters/hartree_fock/energy/energy.tex
-INPUT chapters/hartree_fock/energy/energy.tex
-INPUT ./chapters/hartree_fock/energy/energy.tex
-INPUT chapters/hartree_fock/energy/energy.tex
 INPUT ./chapters/hartree_fock/coulomb/coulomb.tex
 INPUT chapters/hartree_fock/coulomb/coulomb.tex
 INPUT ./chapters/hartree_fock/coulomb/coulomb.tex
