@@ -9,25 +9,25 @@
 \contentsline {subsection}{\numberline {2.2}Non linear conjugate gradient}{5}{subsection.2.2}%
 \contentsline {subsubsection}{\numberline {2.2.1}Step size}{5}{subsubsection.2.2.1}%
 \contentsline {subsubsection}{\numberline {2.2.2}Factor $\beta $}{5}{subsubsection.2.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.3}Algorithm}{5}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.3}Algorithm}{6}{subsubsection.2.2.3}%
 \contentsline {subsubsection}{\numberline {2.2.4}Stopping}{6}{subsubsection.2.2.4}%
 \contentsline {section}{\numberline {3}Finite Differences}{6}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Second order ODEs}{6}{subsection.3.1}%
 \contentsline {subsubsection}{\numberline {3.1.1}First and second derivative}{6}{subsubsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.2}Discretization}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.2}Discretization}{7}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}1D Harmonic oscillator}{7}{subsection.3.3}%
 \contentsline {subsubsection}{\numberline {3.3.1}Harmonic oscillator and equilibrium}{7}{subsubsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.4}Matrix solution}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.4}Matrix solution}{8}{subsection.3.4}%
 \contentsline {subsubsection}{\numberline {3.4.1}Harmonic oscillator applied to nuclei}{8}{subsubsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.5}Second order PDEs}{9}{subsection.3.5}%
-\contentsline {subsubsection}{\numberline {3.5.1}Indeces parametrization}{9}{subsubsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5}Second order PDEs}{8}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Indeces parametrization}{10}{subsubsection.3.5.1}%
 \contentsline {subsection}{\numberline {3.6}Spin}{10}{subsection.3.6}%
 \contentsline {subsubsection}{\numberline {3.6.1}Spin and finite differences}{10}{subsubsection.3.6.1}%
-\contentsline {subsection}{\numberline {3.7}Parametrization and discretization of the spin orbit interaction}{10}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.7}Parametrization and discretization of the spin orbit interaction}{11}{subsection.3.7}%
 \contentsline {subsection}{\numberline {3.8}Shell model}{11}{subsection.3.8}%
 \contentsline {subsubsection}{\numberline {3.8.1}Coulomb interaction}{11}{subsubsection.3.8.1}%
 \contentsline {subsection}{\numberline {3.9}Shell model calculation}{11}{subsection.3.9}%
-\contentsline {subsection}{\numberline {3.10}General Conjugate Gradient}{12}{subsection.3.10}%
+\contentsline {subsection}{\numberline {3.10}General Conjugate Gradient}{13}{subsection.3.10}%
 \contentsline {section}{\numberline {4}Deformed Woods Saxon}{13}{section.4}%
 \contentsline {section}{\numberline {5}The Hartree-Fock method}{15}{section.5}%
 \contentsline {subsection}{\numberline {5.1}Formal treatment}{15}{subsection.5.1}%
@@ -47,4 +47,5 @@
 \contentsline {section}{\numberline {6}Spherical harmonics}{22}{section.6}%
 \contentsline {paragraph}{Summarized algorithm}{23}{section*.7}%
 \contentsline {section}{\numberline {7}Comparison with hfbcs-qrpa code}{23}{section.7}%
-\contentsline {section}{\numberline {8}Appendix}{25}{section.8}%
+\contentsline {section}{\numberline {8}Energy functional}{23}{section.8}%
+\contentsline {section}{\numberline {9}Appendix}{25}{section.9}%
