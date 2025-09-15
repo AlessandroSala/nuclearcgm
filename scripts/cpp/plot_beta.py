@@ -48,7 +48,7 @@ def plot_json_data(file_path):
     plt.plot(sorted_betas, sorted_eints, 'o', label='Data', markersize=8, color='crimson', alpha=0.7)
 
     # Adding titles and labels
-    plt.title(r"$^{24}$Mg Total energy as a function of $\beta_2$", fontsize=18, fontweight='bold', pad=20)
+    plt.title(r"$^{24}$Mg total energy as a function of $\beta_2$", fontsize=18, fontweight='bold', pad=20)
     plt.xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
     plt.ylabel('E', fontsize=14, labelpad=15)
 
