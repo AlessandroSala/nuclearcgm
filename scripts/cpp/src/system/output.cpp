@@ -166,7 +166,7 @@ void Output::shellsToFile(
   //     swapAxes(rho, 1, 2);
   // }
 
-  double beta = iterationData->quadrupoleDeformation().beta;
+  auto [beta, gamma] = iterationData->quadrupoleDeformation();
   file << "Beta: " << beta << std::endl;
   file << std::endl;
 
@@ -248,6 +248,7 @@ void Output::shellsToFile(
   nlohmann::json j = {
       {"Eint", totEnInt},
       {"beta", beta},
+      {"gamma", gamma*180.0/M_PI},
       {"a", a},
       {"step", grid.get_h()},
   };

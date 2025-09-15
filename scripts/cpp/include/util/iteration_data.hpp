@@ -44,12 +44,16 @@ public:
   SkyrmeParameters params;
   InputParser input;
   double massCorr;
+  double energyDiff;
+  double constraintTol = 5e-3;
+  int lastConvergedIter;
 
   void
   updateQuantities(const Eigen::MatrixXcd &neutrons,
                    const Eigen::MatrixXcd &protons, int iter,
                    const std::vector<std::unique_ptr<Constraint>> &constraints);
 
+  double constraintEnergy(const std::vector<std::unique_ptr<Constraint>> &constraints);
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
   double HFEnergy(double SPE, const std::vector<std::unique_ptr<Constraint>> &constraints);

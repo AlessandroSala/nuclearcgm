@@ -54,6 +54,8 @@ IterationData::IterationData(InputParser input) : input(input) {
   params = input.skyrme;
   int A = input.getA();
   using nuclearConstants::m;
+  energyDiff = 1.0;
+  lastConvergedIter = 0;
 
   massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
 }
@@ -173,6 +175,14 @@ double IterationData::HFEnergy(
 
   return constraintEnergy + 0.5 * (SPE + kineticEnergy(params, grid)) -
          0.5 * Erear(grid) + SlaterCoulombEnergy(grid) / 3.0;
+}
+
+double IterationData::constraintEnergy(const std::vector<std::unique_ptr<Constraint>> &constraints) {
+  double constraintEnergy = 0.0;
+  for (auto &&constraint : constraints) {
+    constraintEnergy += constraint->evaluate(this);
+  }
+  return constraintEnergy;
 }
 
 double IterationData::densityUVPIntegral(const Grid &grid) {
@@ -310,9 +320,15 @@ void IterationData::updateQuantities(
     divJJQN = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
     divJJQP = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   }
+  std::cout << "Densities updated" << std::endl;
 
-  auto smooth = [](int iter) {
-    return std::min(0.2 + 0.01 * iter, 0.5);
+  if(iter != 0 && energyDiff < constraintTol) {
+    std::cout << "Constraints tolerance reached, updating last converged iteration" << std::endl;
+    lastConvergedIter = iter;
+  }
+  auto smooth = [&](int iter) {
+
+    return std::min(0.1 + 0.01 * (double)(iter - lastConvergedIter), 0.6);
     // return 1.0/(1.0 + std::exp((-((double)iter - 15.0))/10.0));
   };
 
@@ -415,6 +431,7 @@ void IterationData::updateQuantities(
     *BN = (*BN) * (1 - mu) + newBN * mu;
     *BP = (*BP) * (1 - mu) + newBP * mu;
   }
+
 
   std::cout << "Quantities updated" << std::endl << std::endl;
 }

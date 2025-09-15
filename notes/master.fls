@@ -888,6 +888,10 @@ INPUT ./figures/stability.pdf
 INPUT figures/stability.pdf
 INPUT ./figures/stability.pdf
 INPUT ./figures/stability.pdf
+INPUT ./chapters/functional/functional.tex
+INPUT chapters/functional/functional.tex
+INPUT ./chapters/functional/functional.tex
+INPUT chapters/functional/functional.tex
 INPUT master.aux
 INPUT ./master.out
 INPUT ./master.out

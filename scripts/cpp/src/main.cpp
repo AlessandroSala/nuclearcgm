@@ -7,8 +7,15 @@
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
 #include "radius.hpp"
+#include "skyrme/axial_symmetry_constraint.hpp"
 #include "skyrme/local_coulomb_potential.hpp"
+#include "skyrme/octupole_constraint.hpp"
 #include "skyrme/quadrupole_constraint.hpp"
+#include "skyrme/x2my2_constraint.hpp"
+#include "skyrme/xcm_constraint.hpp"
+#include "skyrme/xy2_constraint.hpp"
+#include "skyrme/ycm_constraint.hpp"
+#include "skyrme/zcm_constraint.hpp"
 #include "solver.hpp"
 #include "spherical_harmonics.hpp"
 #include "spin_orbit/deformed_spin_orbit.hpp"
@@ -95,9 +102,9 @@ int main(int argc, char **argv) {
     std::vector<double> integralEnergies;
 
     vector<double> mu20s;
-    // for (double mu = 29.0; mu > 10.0; mu -= 2.0) {
-    //   mu20s.push_back(mu);
-    // }
+    for (double mu = 33.0; mu < 33.5; mu += 1.0) {
+      mu20s.push_back(mu);
+    }
     vector<unique_ptr<Constraint>> constraints;
     Wavefunction::printShells(neutronsEigenpair, grid);
 
@@ -107,8 +114,14 @@ int main(int argc, char **argv) {
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
       constraints.clear();
-      if (i >= 0) {
         auto mu = mu20s[i];
+      if (i >= 0) {
+        constraints.push_back(make_unique<XCMConstraint>(0.0));
+        constraints.push_back(make_unique<YCMConstraint>(0.0));
+        constraints.push_back(make_unique<ZCMConstraint>(0.0));
+        constraints.push_back(make_unique<OctupoleConstraint>(0.0));
+        constraints.push_back(make_unique<X2MY2Constraint>(0.0));
+        constraints.push_back(make_unique<XY2Constraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
       }
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
@@ -163,9 +176,12 @@ int main(int argc, char **argv) {
         double newHFEnergy = data.HFEnergy(2.0 * SPE, constraints);
         if (abs(newIntegralEnergy - integralEnergy) <
                 input.getCalculation().hf.energyTol &&
-            abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol) {
+            abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
+            data.constraintEnergy(constraints) <
+                input.getCalculation().hf.energyTol/100.0) {
           break;
         }
+        data.energyDiff = std::abs(newHFEnergy - HFEnergy);
         integralEnergy = newIntegralEnergy;
         HFEnergy = newHFEnergy;
         data.logData(neutronsEigenpair, protonsEigenpair, constraints);
@@ -180,9 +196,10 @@ int main(int argc, char **argv) {
       double cpuTime = chrono::duration_cast<chrono::seconds>(computationEnd -
                                                               computationBegin)
                            .count();
+      data.lastConvergedIter = 0;
       out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
                        &data, input, hfIter, integralEnergies, cpuTime,
-                       i == 0 ? 'w' : 'a', constraints);
+                       i == -1 ? 'w' : 'a', constraints);
     }
   }
   return 0;
