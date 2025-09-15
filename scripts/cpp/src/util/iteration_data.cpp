@@ -352,8 +352,8 @@ void IterationData::updateQuantities(
   for (auto &&constraint : constraints) {
     constraintField += constraint->getField(this);
   }
-  newFieldN += constraintField;
-  newFieldP += constraintField;
+  //newFieldN += constraintField;
+  //newFieldP += constraintField;
 
   Eigen::VectorXd newFieldCoul;
   if (input.useCoulomb) {
@@ -397,8 +397,8 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
-  //+UN += constraintField;
-  // UP += constraintField;
+  *UN += constraintField;
+  *UP += constraintField;
 
   if (UCoul == nullptr) {
     UCoul = std::make_shared<Eigen::VectorXd>(newFieldCoul);
