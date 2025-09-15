@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     std::vector<double> integralEnergies;
 
     vector<double> mu20s;
-    for (double mu = 33.0; mu < 33.5; mu += 1.0) {
+    for (double mu = 23.0; mu > 22.5; mu -= 1.0) {
       mu20s.push_back(mu);
     }
     vector<unique_ptr<Constraint>> constraints;
