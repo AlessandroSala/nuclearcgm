@@ -45,15 +45,12 @@ def plot_json_data(file_path):
     plt.figure(figsize=(10, 6))
 
     # Plot data points
-    plt.plot(sorted_betas, sorted_eints, 'o', label='Dati sperimentali', markersize=8, color='crimson', alpha=0.7)
-
-    # Plot the smoothed interpolation curve
-    plt.plot(x_new, y_smooth, '-', label='Curva interpolata (Spline)', color='dodgerblue', linewidth=2.5)
+    plt.plot(sorted_betas, sorted_eints, 'o', label='Data', markersize=8, color='crimson', alpha=0.7)
 
     # Adding titles and labels
-    plt.title('Dipendenza di Eint da Beta', fontsize=18, fontweight='bold', pad=20)
-    plt.xlabel('Beta', fontsize=14, labelpad=15)
-    plt.ylabel('Eint', fontsize=14, labelpad=15)
+    plt.title(r"$^{24}$Mg Total energy as a function of $\beta_2$", fontsize=18, fontweight='bold', pad=20)
+    plt.xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
+    plt.ylabel('E', fontsize=14, labelpad=15)
 
     # Add a legend and grid
     plt.legend(fontsize=12, frameon=True, shadow=True, fancybox=True)
