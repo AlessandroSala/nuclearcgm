@@ -15,5 +15,5 @@ std::pair<Eigen::MatrixXcd, Eigen::VectorXd>
 solve(const ComplexSparseMatrix &hamiltonian, GCGParameters &calc,
       const Eigen::MatrixXcd &guess);
 void skyrmeHamiltonian(std::vector<std::shared_ptr<Potential>> &pots,
-                       InputParser input, NucleonType t, IterationData data);
+                       InputParser input, NucleonType t, std::shared_ptr<IterationData> data);
 } // namespace Utilities

@@ -133,7 +133,8 @@ int main(int argc, char **argv) {
         cout << "Neutrons " << endl;
 
         vector<shared_ptr<Potential>> pots;
-        skyrmeHamiltonian(pots, input, NucleonType::N, data);
+        auto dataPtr = make_shared<IterationData>(data);
+        skyrmeHamiltonian(pots, input, NucleonType::N, dataPtr);
 
         Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
@@ -143,7 +144,7 @@ int main(int argc, char **argv) {
         pair<MatrixXcd, VectorXd> newProtonsEigenpair;
         if (input.useCoulomb || N != Z) {
           pots.clear();
-          skyrmeHamiltonian(pots, input, NucleonType::P, data);
+          skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
 
           std::cout << "Protons " << std::endl;
           pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
