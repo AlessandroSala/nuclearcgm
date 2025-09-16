@@ -40,7 +40,7 @@ Eigen::VectorXd ZCMConstraint::getField(IterationData* data) {
         //return Eigen::VectorXd::Zero(data->rhoN->rows());
         return 2.0*C*(Q22 - mu20)* O;
     }
-    double gamma = 1.0;
+    double gamma = 0.1;
 
     //if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-1) {
     if(data->energyDiff < data->constraintTol) {

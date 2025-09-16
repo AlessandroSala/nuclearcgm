@@ -33,7 +33,7 @@ Eigen::VectorXd OctupoleConstraint::getField(IterationData* data) {
         return 2.0*C*(Q20 - mu20)* O;
     }
 
-    double gamma = 1.0;
+    double gamma = 0.1;
 
     //if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
     if(data->energyDiff < data->constraintTol) {

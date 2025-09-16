@@ -332,7 +332,7 @@ void IterationData::updateQuantities(
     // return 1.0/(1.0 + std::exp((-((double)iter - 15.0))/10.0));
   };
 
-  double mu = constraints.size() != 0 ? smooth(iter) : 0.01 + 0.01 * iter;
+  double mu = constraints.size() != 0 ? 0.2 : 0.01 + 0.01 * iter;
   std::cout << "mu: " << mu << std::endl;
   Eigen::VectorXd tau = *tauN + *tauP;
   Eigen::VectorXd nabla2rho = *nabla2RhoN + *nabla2RhoP;
