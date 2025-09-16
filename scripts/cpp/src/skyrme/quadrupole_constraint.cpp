@@ -44,24 +44,26 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData* data) {
         return 2.0*C*(Q20 - mu20)* O;
     }
 
-    double gamma = 1.0;
+    double gamma = 0.1;
 
     //if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
-    if(data->energyDiff < data->constraintTol) {
+    //if(data->energyDiff < data->constraintTol) {
         std::cout << "Updated lambda Q20, previous: " << lambda ;
         lambda += gamma*2.0*C*(Q20 - mu20);
         std::cout << ", new: " << lambda << std::endl;
-    }
+    //}
     double mu = mu20 - lambda/(2.0*C); 
     double alpha = lambda + 2.0*C*(Q20 - mu20);
 
     double residual = (Q20 - mu20);
 
     residuals.push_back(residual);
+    std::cout << "New residual: " << residuals.back();
 
-    for(int i = 0; i < residuals.size(); ++i) {
-        std::cout << residuals[i] << ", ";
-    }
+    //for(int i = 0; i < residuals.size(); ++i) {
+    //    std::cout << residuals[i] << ", ";
+    //}
+
     std::cout << std::endl;
 
 

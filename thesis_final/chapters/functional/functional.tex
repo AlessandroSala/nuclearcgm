@@ -1,0 +1,28 @@
+\chapter{Energy functional}
+Now that the theoretical and numerical framework is clear, we can investigate a plausible nucleonic interaction, which in the present work, takes the form of the Skyrme interaction.
+\\It was first proposed by Tony Skyrme in 1958 \cite{SKYRME1958615} as a zero range force between nucleons, and has been used successfully as the building block of nuclear structure.
+\\Nowadays, the standard form is slightly enriched to be more general \cite{CHABANAT1997710}. It comprises a two-body interaction, which reads
+\begin{align}
+v^{(2)}(\mathbf{r}_1, \mathbf{r}_2) &= t_0 \left(1 + x_0 P_\sigma \right) \delta(\mathbf{r}) \\
+&\quad + \frac{1}{2} t_1 \left(1 + x_1 P_\sigma \right) \left[ \mathbf{P}'^2 \delta(\mathbf{r}) + \delta(\mathbf{r}) \mathbf{P}^2 \right] \\
+&\quad + t_2 \left(1 + x_2 P_\sigma \right) \mathbf{P}' \cdot \delta(\mathbf{r}) \mathbf{P} \\
+&\quad + \frac{1}{6} t_3 \left(1 + x_3 P_\sigma \right) \left[ \rho(\mathbf{R}) \right]^\sigma \delta(\mathbf{r}) \\
+&\quad + i W_0 \boldsymbol{\sigma}\cdot \left[ \mathbf{P}' \times \delta(\mathbf{r}) \mathbf{P} \right]
+\end{align}
+Where 
+\begin{align*}
+\\\mathbf{r} &= \mathbf{r}_1 - \mathbf{r}_2
+\\\mathbf{R} &= \frac{\mathbf{r}_1+\mathbf{r}_2}{2}
+\\\mathbf{P} &= \frac{-i(\nabla_1 - \nabla_2)}{2}
+\\\boldsymbol{\sigma} &= \boldsymbol{\sigma}_1 + \boldsymbol{\sigma}_2
+\\\mathbf{P}_\sigma &= \frac{(1+\boldsymbol{\sigma}_1\cdot\boldsymbol{\sigma}_2)}{2}
+\end{align*}
+Primed operators refer to the complex conjugate acting on the left.
+\\This formulation respects all symmetries required of a non relativistic nuclear interaction (Galilean boost, particle exchange, translation, rotation, parity, time inversion and translation).
+And a three-body interaction, which reads
+\begin{equation}
+\frac 1 6 t_3 \left(1 + x_3 P_\sigma \right) \left[ \rho(\mathbf{R}) \right]^\sigma \delta(\mathbf{r}) 
+\end{equation}
+
+
+

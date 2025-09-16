@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     std::vector<double> integralEnergies;
 
     vector<double> mu20s;
-    for (double mu = 23.0; mu > 22.5; mu -= 1.0) {
+    for (double mu = 20.0; mu > -20; mu -= 5.0) {
       mu20s.push_back(mu);
     }
     vector<unique_ptr<Constraint>> constraints;
@@ -155,9 +155,9 @@ int main(int argc, char **argv) {
 
         } else {
           newProtonsEigenpair.first =
-              newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1));
+              newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1+input.additional));
           newProtonsEigenpair.second =
-              newNeutronsEigenpair.second(Eigen::seq(0, Z - 1));
+              newNeutronsEigenpair.second(Eigen::seq(0, Z - 1+input.additional));
         }
 
         neutronsEigenpair = newNeutronsEigenpair;

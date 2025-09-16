@@ -25,6 +25,8 @@ find_eigenpair_constrained(const Eigen::SparseMatrix<double> &A,
  * @param B Matrice reale SPD che definisce il prodotto scalare.
  */
 void b_modified_gram_schmidt_complex(ComplexDenseMatrix &V,
+                                     const ComplexSparseMatrix &B);
+void b_modified_gram_schmidt_complex(ComplexDenseMatrix &V,
                                      const RealSparseMatrix &B);
 void b_modified_gram_schmidt_complex_no_B(ComplexDenseMatrix &V);
 /**

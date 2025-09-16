@@ -3,8 +3,8 @@
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "additional": 0,
-    "outputName": "surf_c_f",
+    "additional": 4,
+    "outputName": "surf_mg_b_more",
     "outputDirectory": "def",
     "calculation": "sp",
     "output_lmax": 4,
@@ -14,10 +14,10 @@
     },
     "interaction": "SLy5",
     "hf": {
-        "cycles": 400,
+        "cycles": 800,
         "energyTol": 0.0001,
         "gcg": {
-            "maxIter": 14,
+            "maxIter": 2,
             "nev": 0,
             "tol": 1e-3,
             "steps": 40,

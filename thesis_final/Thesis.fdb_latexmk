@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex Thesis"] 1757949521.09939 "Thesis.aux" "Thesis.bbl" "Thesis" 1757949523.07624 0
-  "./Thesis_bibliography.bib" 1757942054 5726 447bb013760e39ce15b74338e1237c50 ""
+["bibtex Thesis"] 1758017449.16562 "Thesis.aux" "Thesis.bbl" "Thesis" 1758017549.22704 0
+  "./Thesis_bibliography.bib" 1758016803.43821 7791 a09b3677af672c99107b930279d9c5cc ""
   "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/abbrvnat.bst" 1233624470 26532 66bed5cc59495faaa3f9ae9af9fa5e42 ""
-  "Thesis.aux" 1757949522.66981 10681 8b7af99ade482aa0124381e2c1ae5a07 "pdflatex"
+  "Thesis.aux" 1758017549.04492 11106 72bdb9e5e49d6090e486f6f74a29797d "pdflatex"
   (generated)
   "Thesis.bbl"
   "Thesis.blg"
   (rewritten before read)
-["pdflatex"] 1757949521.2012 "/home/ale/dev/nuclearcgm/thesis_final/Thesis.tex" "Thesis.pdf" "Thesis" 1757949523.07646 0
-  "/home/ale/dev/nuclearcgm/thesis_final/Thesis.tex" 1757942054 22131 9302d2f06b427ee4073a77580b74edc5 ""
+["pdflatex"] 1758017548.20667 "/home/ale/dev/nuclearcgm/thesis_final/Thesis.tex" "Thesis.pdf" "Thesis" 1758017549.22719 0
+  "/home/ale/dev/nuclearcgm/thesis_final/Thesis.tex" 1758014674.20123 22174 2c212b489c4b555aa808d22e21820fce ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -51,7 +51,9 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb" 1248133631 35469 70d41d2b9ea31d5d813066df7c99281c ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb" 1248133631 36912 b448ef9ad9d7228ec3c6e71005136d55 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1248133631 32722 d7379af29a190c3f453aba36302ff5a9 ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb" 1248133631 32726 0a1aea6fcd6468ee2cf64d891f5c43c8 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb" 1248133631 32626 4f5c1b83753b1dd3a97d1b399a005b4b ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb" 1215737283 140176 d4962f948b4cc0adf4d3dde77a128c95 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfcc1200.pfb" 1215737283 108594 1a08a22405bc37650b977f219cc3597d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb" 1215737283 164227 3df942b4ff2124425d8fb1b6d3e01c7a ""
@@ -251,13 +253,14 @@
   "Images/02_ING_IND_INFORMAZIONE_COL_POSITIVO.eps" 1757942054 1016894 87cec33dc4ce62619be8e2b6e306843d ""
   "Images/logo_polimi_scritta.eps" 1757942054 851182 73fa6c65cfe88ff9598974316a20e5ab ""
   "Images/logo_polimi_scritta2.eps" 1757942054 754430 9860ece4ba41443ed879bfe62565a0ff ""
-  "Thesis.aux" 1757949522.66981 10681 8b7af99ade482aa0124381e2c1ae5a07 "pdflatex"
-  "Thesis.bbl" 1757949521.1898 1266 32dc576d8d243e65c401ca3aefc2e4dd "bibtex Thesis"
-  "Thesis.lof" 1757949522.67281 553 576288579d6c0c2bfd85e09d8eefa9b7 "pdflatex"
-  "Thesis.lot" 1757949522.67281 466 36eb64d7e09694a16cd1d452cdf012fa "pdflatex"
-  "Thesis.out" 1757949522.67181 3419 2884f0e0be17bfaf6710ace867c61549 "pdflatex"
-  "Thesis.tex" 1757942054 22131 9302d2f06b427ee4073a77580b74edc5 ""
-  "Thesis.toc" 1757949522.67281 2077 28e6eb66627a3e373590c06a841bb7df "pdflatex"
+  "Thesis.aux" 1758017549.04492 11106 72bdb9e5e49d6090e486f6f74a29797d "pdflatex"
+  "Thesis.bbl" 1758017449.20629 2106 d0da870595677afcef21fca081de6093 "bibtex Thesis"
+  "Thesis.lof" 1758017549.04592 573 eb6e30451c55c75fe361de03d3e63322 "pdflatex"
+  "Thesis.lot" 1758017549.04592 486 84fc3cf294c2c65ee34ddbd562de5bc3 "pdflatex"
+  "Thesis.out" 1758017549.04592 3552 48b60568c53cb2517fa92629485cfaa1 "pdflatex"
+  "Thesis.tex" 1758014674.20123 22174 2c212b489c4b555aa808d22e21820fce ""
+  "Thesis.toc" 1758017549.04592 2153 e67ff4c201dde6ab4c5d0269e578d095 "pdflatex"
+  "chapters/functional/functional.tex" 1758017547.95291 1895 53ee37ba6cb574228fbfec294f02e553 ""
   (generated)
   "Thesis.aux"
   "Thesis.lof"
