@@ -47,10 +47,6 @@ public:
   double energyDiff;
   double constraintTol = 5e-3;
   int lastConvergedIter;
-  int m_max = 8;
-  double eps_reg = 1e-8;
-  double tol_singularity = 1e-12;
-  double frac_max = 0.1;
 
   void
   updateQuantities(const Eigen::MatrixXcd &neutrons,
