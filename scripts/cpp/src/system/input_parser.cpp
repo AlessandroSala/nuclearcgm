@@ -17,6 +17,11 @@ InputParser::InputParser(std::string inputFile)
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
 
+  log.clear();
+  for (auto &&entry : data["log"])
+  {
+    log.push_back(entry);
+  }
   nlohmann::json interactionData = nlohmann::json::parse(
       std::ifstream("interactions/" + interaction + ".json"));
 
