@@ -78,6 +78,7 @@ public:
   WoodsSaxonParameters getWS();
   WSSpinOrbitParameters getWSSO();
   std::string outputDirectory;
+  std::vector<std::string> log;
 
   SkyrmeParameters skyrme;
 

@@ -35,7 +35,8 @@
 #include <skyrme/skyrme_u.hpp>
 #include <vector>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   using namespace std;
   using namespace Eigen;
   using namespace nuclearConstants;
@@ -45,7 +46,8 @@ int main(int argc, char **argv) {
 
   using recursive_directory_iterator =
       std::filesystem::recursive_directory_iterator;
-  for (const auto &dirEntry : recursive_directory_iterator("input/exec")) {
+  for (const auto &dirEntry : recursive_directory_iterator("input/exec"))
+  {
     cout << "Reading input from " << dirEntry.path() << endl;
     InputParser input(dirEntry.path().string());
     Output out("output/" + input.outputDirectory);
@@ -70,7 +72,8 @@ int main(int argc, char **argv) {
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
         WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa));
-    if (input.spinOrbit) {
+    if (input.spinOrbit)
+    {
       pots.push_back(make_shared<DeformedSpinOrbitPotential>(WSSO.V0, radius,
                                                              WS.diffusivity));
     }
@@ -85,12 +88,17 @@ int main(int argc, char **argv) {
     std::cout << neutronsEigenpair.second << std::endl;
 
     pair<MatrixXcd, VectorXd> protonsEigenpair;
-    if (N > Z) {
+    if (N > Z)
+    {
       protonsEigenpair.second = neutronsEigenpair.second;
       protonsEigenpair.first = neutronsEigenpair.first(all, seq(0, Z - 1));
-    } else if (N < Z) {
+    }
+    else if (N < Z)
+    {
       throw std::runtime_error("Protons cannot be smaller than neutrons");
-    } else {
+    }
+    else
+    {
       protonsEigenpair = neutronsEigenpair;
     }
 
@@ -100,22 +108,27 @@ int main(int argc, char **argv) {
     IterationData data(input);
 
     std::vector<double> integralEnergies;
+    std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    for (double mu = 20.0; mu > -20; mu -= 5.0) {
+    for (double mu = 20.0; mu > -20; mu -= 5.0)
+    {
       mu20s.push_back(mu);
     }
     vector<unique_ptr<Constraint>> constraints;
     Wavefunction::printShells(neutronsEigenpair, grid);
+    std::cout << "Start HF" << std::endl;
 
-    for (int i = -1; i < (int)mu20s.size(); ++i) {
+    for (int i = -1; i < (int)mu20s.size(); ++i)
+    {
       int hfIter = 0;
 
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
       constraints.clear();
-        auto mu = mu20s[i];
-      if (i >= 0) {
+      auto mu = mu20s[i];
+      if (i >= 0)
+      {
         constraints.push_back(make_unique<XCMConstraint>(0.0));
         constraints.push_back(make_unique<YCMConstraint>(0.0));
         constraints.push_back(make_unique<ZCMConstraint>(0.0));
@@ -124,7 +137,8 @@ int main(int argc, char **argv) {
         constraints.push_back(make_unique<XY2Constraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
       }
-      for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
+      for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
+      {
         data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first,
                               hfIter, constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
@@ -142,7 +156,8 @@ int main(int argc, char **argv) {
                                           neutronsEigenpair.first);
 
         pair<MatrixXcd, VectorXd> newProtonsEigenpair;
-        if (input.useCoulomb || N != Z) {
+        if (input.useCoulomb || N != Z)
+        {
           pots.clear();
           skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
 
@@ -152,12 +167,13 @@ int main(int argc, char **argv) {
 
           newProtonsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
                                       protonsEigenpair.first);
-
-        } else {
+        }
+        else
+        {
           newProtonsEigenpair.first =
-              newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1+input.additional));
+              newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1 + input.additional));
           newProtonsEigenpair.second =
-              newNeutronsEigenpair.second(Eigen::seq(0, Z - 1+input.additional));
+              newNeutronsEigenpair.second(Eigen::seq(0, Z - 1 + input.additional));
         }
 
         neutronsEigenpair = newNeutronsEigenpair;
@@ -175,11 +191,13 @@ int main(int argc, char **argv) {
 
         integralEnergies.push_back(newIntegralEnergy);
         double newHFEnergy = data.HFEnergy(2.0 * SPE, constraints);
+        HFEnergies.push_back(newHFEnergy);
         if (abs(newIntegralEnergy - integralEnergy) <
                 input.getCalculation().hf.energyTol &&
             abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
             data.constraintEnergy(constraints) <
-                input.getCalculation().hf.energyTol/100.0) {
+                input.getCalculation().hf.energyTol / 100.0)
+        {
           break;
         }
         data.energyDiff = std::abs(newHFEnergy - HFEnergy);
@@ -199,7 +217,7 @@ int main(int argc, char **argv) {
                            .count();
       data.lastConvergedIter = 0;
       out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
-                       &data, input, hfIter, integralEnergies, cpuTime,
+                       &data, input, hfIter, integralEnergies, HFEnergies, cpuTime,
                        i == -1 ? 'w' : 'a', constraints);
     }
   }

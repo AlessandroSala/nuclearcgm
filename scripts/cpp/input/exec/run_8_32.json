@@ -1,11 +1,12 @@
-{ "pairing": false,
+{
+    "pairing": false,
     "coulomb": true,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
-    "outputName": "surf_mg_b_more",
-    "outputDirectory": "def",
+    "outputName": "O16",
+    "outputDirectory": "num_en_p",
     "calculation": "sp",
     "output_lmax": 4,
     "box": {
@@ -17,7 +18,7 @@
         "cycles": 800,
         "energyTol": 0.0001,
         "gcg": {
-            "maxIter": 2,
+            "maxIter": 1,
             "nev": 0,
             "tol": 1e-3,
             "steps": 40,
@@ -45,5 +46,9 @@
             "R": 1.21
         },
         "kappa": 0.86
-    }
+    },
+    "log": [
+        "tot_energies",
+        "hf_energies"
+    ]
 }
