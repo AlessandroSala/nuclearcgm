@@ -4,28 +4,13 @@
 \contentsline {chapter}{Contents\markboth {\MakeUppercase []{Contents}}{\MakeUppercase []{Contents}}}{v}{chapter*.6}%
 \vspace {2em}
 \contentsline {chapter}{\numberline {1}Energy functional}{1}{chapter.1}%
-\contentsline {chapter}{Introduction}{5}{chapter*.17}%
-\contentsline {chapter}{\numberline {2}Chapter one}{7}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Sections and subsections}{7}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Equations}{7}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Figures, Tables and Algorithms}{8}{section.2.3}%
-\contentsline {subsection}{\numberline {2.3.1}Figures}{8}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}Tables}{9}{subsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.3.3}Algorithms}{10}{subsection.2.3.3}%
-\contentsline {section}{\numberline {2.4}Theorems, propositions and lists}{11}{section.2.4}%
-\contentsline {subsection}{\numberline {2.4.1}Theorems}{11}{subsection.2.4.1}%
-\contentsline {subsection}{\numberline {2.4.2}Propositions}{11}{subsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.4.3}Lists}{11}{subsection.2.4.3}%
-\contentsline {section}{\numberline {2.5}Use of copyrighted material}{11}{section.2.5}%
-\contentsline {section}{\numberline {2.6}Plagiarism}{11}{section.2.6}%
-\contentsline {section}{\numberline {2.7}Bibliography and citations}{12}{section.2.7}%
-\contentsline {chapter}{\numberline {3}Conclusions and future developments}{13}{chapter.3}%
+\contentsline {section}{\numberline {1.1}Skyrme force and functional}{1}{section.1.1}%
 \vspace {2em}
-\contentsline {chapter}{Bibliography\markboth {\MakeUppercase []{Bibliography}}{\MakeUppercase []{Bibliography}}}{15}{chapter*.29}%
+\contentsline {chapter}{Bibliography\markboth {\MakeUppercase []{Bibliography}}{\MakeUppercase []{Bibliography}}}{5}{chapter*.18}%
 \vspace {2em}
-\contentsline {chapter}{\numberline {A}Appendix A}{17}{appendix.A}%
-\contentsline {chapter}{\numberline {B}Appendix B}{19}{appendix.B}%
-\contentsline {chapter}{List of Figures}{21}{appendix*.33}%
-\contentsline {chapter}{List of Tables}{23}{appendix*.35}%
-\contentsline {chapter}{List of Symbols}{25}{appendix*.37}%
-\contentsline {chapter}{Acknowledgements}{27}{appendix*.40}%
+\contentsline {chapter}{\numberline {A}Appendix A}{7}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Appendix B}{9}{appendix.B}%
+\contentsline {chapter}{List of Figures}{11}{appendix*.22}%
+\contentsline {chapter}{List of Tables}{13}{appendix*.24}%
+\contentsline {chapter}{List of Symbols}{15}{appendix*.26}%
+\contentsline {chapter}{Acknowledgements}{17}{appendix*.29}%

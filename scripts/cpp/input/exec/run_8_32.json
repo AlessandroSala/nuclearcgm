@@ -1,16 +1,16 @@
 { "pairing": false,
-    "coulomb": false,
+    "coulomb": true,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "additional": 4,
+    "additional": 0,
     "outputName": "surf_mg_b_more",
     "outputDirectory": "def",
     "calculation": "sp",
     "output_lmax": 4,
     "box": {
         "size": 12.0,
-        "n": 20
+        "n": 60
     },
     "interaction": "SLy5",
     "hf": {
@@ -28,12 +28,12 @@
         "maxIter": 20,
         "nev": 10,
         "tol": 1e-05,
-        "cgTol": 1e-9,
-        "steps": 60
+        "cgTol": 1e-7,
+        "steps": 20
     },
     "nucleus": {
-        "A": 24,
-        "Z": 12
+        "A": 16,
+        "Z": 8
     },
     "woods_saxon": {
         "V0": 55.5,
