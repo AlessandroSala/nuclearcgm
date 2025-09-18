@@ -79,6 +79,7 @@ public:
   WSSpinOrbitParameters getWSSO();
   std::string outputDirectory;
   std::vector<std::string> log;
+  double initialBeta;
 
   SkyrmeParameters skyrme;
 

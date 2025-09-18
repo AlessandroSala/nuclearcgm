@@ -68,7 +68,8 @@ int main(int argc, char **argv)
     std::pair<ComplexDenseMatrix, DenseVector> eigenpair;
     vector<shared_ptr<Potential>> pots;
 
-    Radius radius(0.00, WS.r0, A);
+    std::cout << "Initial beta: " << input.initialBeta << std::endl;
+    Radius radius(input.initialBeta, WS.r0, A);
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
         WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa));
@@ -111,10 +112,10 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    for (double mu = 20.0; mu > -20; mu -= 5.0)
-    {
-      mu20s.push_back(mu);
-    }
+    // for (double mu = 20.0; mu > -20; mu -= 5.0)
+    //{
+    //   mu20s.push_back(mu);
+    // }
     vector<unique_ptr<Constraint>> constraints;
     Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;
@@ -126,15 +127,15 @@ int main(int argc, char **argv)
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
       constraints.clear();
-      auto mu = mu20s[i];
       if (i >= 0)
       {
+        auto mu = mu20s[i];
         constraints.push_back(make_unique<XCMConstraint>(0.0));
         constraints.push_back(make_unique<YCMConstraint>(0.0));
         constraints.push_back(make_unique<ZCMConstraint>(0.0));
-        constraints.push_back(make_unique<OctupoleConstraint>(0.0));
         constraints.push_back(make_unique<X2MY2Constraint>(0.0));
         constraints.push_back(make_unique<XY2Constraint>(0.0));
+        constraints.push_back(make_unique<OctupoleConstraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
       }
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
@@ -162,7 +163,6 @@ int main(int argc, char **argv)
           skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
 
           std::cout << "Protons " << std::endl;
-          pots.push_back(make_shared<LocalCoulombPotential>(data.UCoul));
           Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
           newProtonsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
       data.lastConvergedIter = 0;
       out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
                        &data, input, hfIter, integralEnergies, HFEnergies, cpuTime,
-                       i == -1 ? 'w' : 'a', constraints);
+                       'a', constraints);
     }
   }
   return 0;

@@ -260,22 +260,42 @@ void Output::shellsToFile(
 
   if (contains(input.log, "tot_energies"))
   {
-    file << "=== Integrated Energies ===" << std::endl;
+    std::ofstream totEnFile(folder + "/" + input.getOutputName() + "_tot_energies.csv", fileMode);
     for (int i = 0; i < energies.size(); ++i)
     {
       double e = energies[i];
-      file << i << ":  " << e << std::endl;
+      totEnFile << std::setprecision(16) << e << std::endl;
+    }
+    totEnFile.close();
+  }
+  if (contains(input.log, "hf_energies"))
+  {
+    std::ofstream hfEnFile(folder + "/" + input.getOutputName() + "_hf_energies.csv", fileMode);
+    for (int i = 0; i < HFEnergies.size(); ++i)
+    {
+      double e = HFEnergies[i];
+      hfEnFile << std::setprecision(16) << e << std::endl;
+    }
+    hfEnFile.close();
+  }
+  if (contains(input.log, "tot_energies_errors"))
+  {
+    file << "=== Integrated Energies Changes ===" << std::endl;
+    for (int i = 0; i < energies.size() - 1; ++i)
+    {
+      double err = std::abs(energies[i + 1] / energies[i] - 1.0);
+      file << err << std::endl;
     }
     file << std::endl;
     file << std::endl;
   }
-  if (contains(input.log, "hf_energies"))
+  if (contains(input.log, "hf_energies_errors"))
   {
-    file << "=== HF Energies ===" << std::endl;
-    for (int i = 0; i < HFEnergies.size(); ++i)
+    file << "=== HF Energies Changes ===" << std::endl;
+    for (int i = 0; i < HFEnergies.size() - 1; ++i)
     {
-      double e = HFEnergies[i];
-      file << i << ":  " << e << std::endl;
+      double err = std::abs(HFEnergies[i + 1] / HFEnergies[i] - 1.0);
+      file << err << std::endl;
     }
     file << std::endl;
     file << std::endl;
