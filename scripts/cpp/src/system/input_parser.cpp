@@ -16,11 +16,15 @@ InputParser::InputParser(std::string inputFile)
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
+  initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
 
   log.clear();
-  for (auto &&entry : data["log"])
+  if (data.contains("log"))
   {
-    log.push_back(entry);
+    for (auto &&entry : data["log"])
+    {
+      log.push_back(entry);
+    }
   }
   nlohmann::json interactionData = nlohmann::json::parse(
       std::ifstream("interactions/" + interaction + ".json"));
