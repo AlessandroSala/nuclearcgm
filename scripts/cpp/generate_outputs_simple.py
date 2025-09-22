@@ -44,17 +44,21 @@ def generate_configs(base_config_path, output_dir, param_path, values, title_pat
 
 
 if __name__ == "__main__":
-    inputs = [0]
+    inputs = np.linspace(7, 9, 3)
     print(inputs)
     for i in inputs:
-        base_config = "input/exec/i4.json"
-        output_folder = "input/exec"
+        base_config = "input/input" + str(int(i)) + ".json"
+        output_folder = "input/stability"
 
         param_path = ["box", "n"]
 
         title_path = ["outputName"]
 
-        values = np.arange(30, 80, 10)
+        step_sizes = np.linspace(0.5, 0.7, 3)
+
+        values = i / step_sizes
+        values = 2*np.floor(values)
+        values = values.astype(np.int32)
         # Genera i file di configurazione
         generate_configs(
             base_config,
@@ -62,5 +66,5 @@ if __name__ == "__main__":
             param_path=param_path,
             values=values,
             title_path=title_path,
-            title_prefix=("step_n" + str(int(i)))
+            title_prefix=("run_" + str(int(i)))
         )

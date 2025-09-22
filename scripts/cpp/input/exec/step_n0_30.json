@@ -5,36 +5,37 @@
     "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
-    "outputName": "t3",
-    "outputDirectory": "conv_inner_tol_O16",
+    "outputName": "ca40",
+    "outputDirectory": "junk",
     "calculation": "sp",
     "output_lmax": 4,
+    "initialBeta": 0.1,
     "box": {
-        "size": 9.0,
-        "n": 40
+        "size": 15.0,
+        "n": 50
     },
     "interaction": "SLy5",
     "hf": {
         "cycles": 80,
-        "energyTol": 1e-8,
+        "energyTol": 1e-05,
         "gcg": {
-            "maxIter": 2,
+            "maxIter": 1,
             "nev": 0,
-            "tol": 1e-3,
+            "tol": 0.001,
             "steps": 80,
-            "cgTol": 1e-3
+            "cgTol": 0.001
         }
     },
     "gcg": {
         "maxIter": 20,
         "nev": 10,
         "tol": 1e-05,
-        "cgTol": 1e-7,
+        "cgTol": 1e-07,
         "steps": 20
     },
     "nucleus": {
-        "A": 16,
-        "Z": 8
+        "A": 40,
+        "Z": 20
     },
     "woods_saxon": {
         "V0": 55.5,
@@ -50,5 +51,6 @@
     "log": [
         "tot_energies",
         "hf_energies"
-    ]
+    ],
+    "step": "step_n0_30"
 }

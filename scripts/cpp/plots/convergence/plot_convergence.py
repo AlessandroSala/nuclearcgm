@@ -69,7 +69,7 @@ for i, (f1, f2) in enumerate(file_pairs):
     ax.set_yscale("log")
     #ax.set_title(f"Pair {i+1}")
     ax.grid(True, which="major", ls="--", alpha=0.7)
-    ax.legend(fontsize="small")
+    ax.legend(fontsize="small", title = f"{i+1} Inverse power step" + ("" if i == 0 else "s"))
 
 # Remove unused subplots if any
 for j in range(i+1, len(axes)):
