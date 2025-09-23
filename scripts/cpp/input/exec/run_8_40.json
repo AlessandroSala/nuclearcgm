@@ -5,8 +5,8 @@
     "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
-    "outputName": "run_8_40",
-    "outputDirectory": "stability",
+    "outputName": "8_40_iso",
+    "outputDirectory": "junk",
     "calculation": "sp",
     "output_lmax": 0,
     "initialBeta": 0.0,
@@ -31,7 +31,7 @@
         "nev": 10,
         "tol": 1e-05,
         "cgTol": 1e-07,
-        "steps": 20
+        "steps": 40
     },
     "nucleus": {
         "A": 16,
