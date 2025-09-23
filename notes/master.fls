@@ -883,11 +883,6 @@ INPUT ./chapters/hartree_fock/benchmark/benchmark.tex
 INPUT chapters/hartree_fock/benchmark/benchmark.tex
 INPUT ./chapters/hartree_fock/benchmark/benchmark.tex
 INPUT chapters/hartree_fock/benchmark/benchmark.tex
-INPUT ./figures/stability.pdf
-INPUT ./figures/stability.pdf
-INPUT figures/stability.pdf
-INPUT ./figures/stability.pdf
-INPUT ./figures/stability.pdf
 INPUT ./chapters/functional/functional.tex
 INPUT chapters/functional/functional.tex
 INPUT ./chapters/functional/functional.tex

@@ -49,13 +49,13 @@ plt.figure(figsize=(6, 6))
 hm = sns.heatmap(
     pivot_table,
     cmap="RdYlGn_r",
-    cbar_kws={'label': r"$E_{\mathrm{int}} / E_{\mathrm{ref}}\ [\%]$"},
-    annot_kws={"color": "#111111"},
+    cbar_kws={'label': r"Relative error [-]"},
+    annot_kws={"color": "#222222"},
     fmt=".6f",
     annot = True
 )
 hm.set_yticklabels([f"{y:.2f}" for y in pivot_table.index])
-plt.xlabel("Box size [-a, a] [fm]")
+plt.xlabel("Box size [fm]")
 plt.ylabel("Step size [fm]")
 plt.title("Stability map $^{16}$O")
 plt.tight_layout()

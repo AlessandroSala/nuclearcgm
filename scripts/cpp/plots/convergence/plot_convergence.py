@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 
-folder = "O16"
+folder = "MG24"
 # List of file pairs
 file_pairs = [
     (f"{folder}/inn1_hf_energies.csv", f"{folder}/inn1_tot_energies.csv"),
