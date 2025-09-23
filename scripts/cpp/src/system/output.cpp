@@ -176,7 +176,7 @@ void Output::shellsToFile(
   file << "RP: " << std::sqrt(iterationData->protonRadius()) << " fm"
        << std::endl;
   file << "CR: "
-       << std::sqrt(iterationData->chargeRadius(neutrons, protons, N, Z))
+       << std::sqrt(iterationData->chargeRadius(neutronShells.first, protonShells.first, N, Z))
        << " fm" << std::endl;
 
   file << std::endl;
