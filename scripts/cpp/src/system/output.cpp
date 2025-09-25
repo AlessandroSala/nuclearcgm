@@ -11,10 +11,25 @@
 #include <cassert> // Per assert
 #include <utility> // Per std::swap
 #include <algorithm>
+#include <regex>
 
 bool contains(const std::vector<std::string> &vec, const std::string &str)
 {
   return std::find(vec.begin(), vec.end(), str) != vec.end();
+}
+int find_multipoles_number(const std::vector<std::string> &arr)
+{
+  std::regex pattern(R"(multipoles_(\d+))"); // capture the number
+  std::smatch match;
+
+  for (const auto &s : arr)
+  {
+    if (std::regex_match(s, match, pattern))
+    {
+      return std::stoi(match[1]); // return the captured number
+    }
+  }
+  return -1; // not found
 }
 void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2)
 {
@@ -248,15 +263,22 @@ void Output::shellsToFile(
   using namespace SphericalHarmonics;
   file << "=== Multipole moments ===" << std::endl;
 
-  for (int l = 0; l <= input.get_json()["output_lmax"]; ++l)
+  int l_max = find_multipoles_number(input.log);
+  std::cout << "LMax: " << l_max << std::endl;
+  if (l_max > 0)
   {
-    file << "l: " << l << std::endl;
-    for (int m = -l; m <= l; ++m)
+    for (int l = 0; l <= std::min(l_max, 5); ++l)
     {
-      file << l << ", " << m << ": " << Q(l, m, rho) << std::endl;
+      file << "l: " << l << std::endl;
+      for (int m = -l; m <= l; ++m)
+      {
+        file << l << ", " << m << ": " << Q(l, m, rho) << std::endl;
+      }
+      file << std::endl;
     }
-    file << std::endl;
   }
+  for (const auto &s : input.log)
+    std::cout << s << std::endl;
 
   if (contains(input.log, "tot_energies"))
   {
@@ -301,7 +323,12 @@ void Output::shellsToFile(
     file << std::endl;
   }
 
-  matrixToFile("density.csv", rho);
+  if (contains(input.log, "density"))
+    matrixToFile("density.csv", rho);
+  if (contains(input.log, "density_n"))
+    matrixToFile("density_n.csv", *iterationData->rhoN);
+  if (contains(input.log, "density_p"))
+    matrixToFile("density_p.csv", *iterationData->rhoP);
 
   // JSON output
   nlohmann::json j = {
