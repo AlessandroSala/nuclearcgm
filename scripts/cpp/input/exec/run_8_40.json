@@ -1,18 +1,17 @@
 {
+    "interaction": "SLy5",
     "pairing": false,
-    "coulomb": true,
+    "coulomb": false,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
     "outputName": "kinetic",
     "outputDirectory": "o16_real_final",
-    "calculation": "sp",
-    "output_lmax": 0,
     "initialBeta": 0.0,
     "box": {
-        "size": 11,
-        "n": 70
+        "size": 9,
+        "n": 10
     },
     "nucleus": {
         "A": 16,
@@ -20,9 +19,9 @@
     },
     "log": [
         "tot_energies",
-        "hf_energies"
+        "hf_energies",
+        "multipoles_2"
     ],
-    "interaction": "SLy5",
     "hf": {
         "cycles": 100,
         "energyTol": 1e-05,
