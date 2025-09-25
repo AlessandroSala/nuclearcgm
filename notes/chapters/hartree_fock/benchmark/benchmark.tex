@@ -181,10 +181,10 @@ All the calculations are carried out using SLy5 parameters.
     \midrule
     && GCG & hfbcs\_qrpa & $\Delta\%$ \\
     \midrule
-    $E_{\text{TOT}}$& [MeV] & -128.424 & -482.700 & \num{1.87e-2} \\
-    $\expval{ r^2_n}^{1/2}$ &[fm] & 2.6581 & 3.6433 & \num{1.50e-2}\\
-    $\expval{ r^2_p}^{1/2}$ &[fm] & 2.6832 & 3.6979 & \num{1.49e-2}\\
-    $\expval{ r^2_{ch}}^{1/2}$ &[fm] & 2.7806 & 3.7682 & \num{1.08e-2}\\
+    $E_{\text{TOT}}$& [MeV] & -482.805 & -482.700 & \num{1.87e-2} \\
+    $\expval{ r^2_n}^{1/2}$ &[fm] & 3.6422 & 3.6433 & \num{1.50e-2}\\
+    $\expval{ r^2_p}^{1/2}$ &[fm] & 3.6968 & 3.6979 & \num{1.49e-2}\\
+    $\expval{ r^2_{ch}}^{1/2}$ &[fm] & 3.7722 & 3.7682 & \num{1.08e-2}\\
     \midrule
     \addlinespace[1.3em]
     \multicolumn{5}{c}{\textbf{Neutron energy levels}}\\
@@ -192,13 +192,13 @@ All the calculations are carried out using SLy5 parameters.
     \midrule
     && GCG & hfbcs\_qrpa & $\Delta\%$ \\
     \midrule
-    1s$_{1/2}$ &[MeV] & -36.142 & -54.260 & \num{1.38e-2}\\
-    1p$_{3/2}$ &[MeV] & -20.613 & -41.562 & \num{9.70e-3}\\
-    1p$_{1/2}$ &[MeV] & -14.426 & -39.611 & \num{1.38e-2}\\
-    1d$_{5/2}$ &[MeV] & -14.426 & -28.530 & \num{1.38e-2}\\
-    2s$_{1/2}$ &[MeV] & -14.426 & -23.545 & \num{1.38e-2}\\
-    1d$_{3/2}$ &[MeV] & -14.426 & -23.361 & \num{1.38e-2}\\
-    1f$_{7/2}$ &[MeV] & -14.426 & -16.018 & \num{1.38e-2}\\
+    1s$_{1/2}$ &[MeV] & -54.277 & -54.260 & \num{1.38e-2}\\
+    1p$_{3/2}$ &[MeV] & -41.571 & -41.562 & \num{9.70e-3}\\
+    1p$_{1/2}$ &[MeV] & -39.613 & -39.611 & \num{1.38e-2}\\
+    1d$_{5/2}$ &[MeV] & -28.536 & -28.530 & \num{1.38e-2}\\
+    2s$_{1/2}$ &[MeV] & -23.539 & -23.545 & \num{1.38e-2}\\
+    1d$_{3/2}$ &[MeV] & -23.367 & -23.361 & \num{1.38e-2}\\
+    1f$_{7/2}$ &[MeV] & -16.019 & -16.018 & \num{1.38e-2}\\
     \midrule
     \addlinespace[1.3em]
     \multicolumn{5}{c}{\textbf{Proton energy levels}}\\
@@ -206,13 +206,77 @@ All the calculations are carried out using SLy5 parameters.
     \midrule
     && GCG & hfbcs\_qrpa & $\Delta\%$ \\
     \midrule
-    1s$_{1/2}$ &[MeV] & -36.142 & -43.740 & \num{1.38e-2}\\
-    1p$_{3/2}$ &[MeV] & -20.613 & -31.555 & \num{9.70e-3}\\
-    1p$_{1/2}$ &[MeV] & -14.426 & -29.545 & \num{1.38e-2}\\
-    1d$_{5/2}$ &[MeV] & -14.426 & -19.016 & \num{1.38e-2}\\
-    2s$_{1/2}$ &[MeV] & -14.426 & -14.012 & \num{1.38e-2}\\
-    1d$_{3/2}$ &[MeV] & -14.426 & -13.887 & \num{1.38e-2}\\
-    1f$_{7/2}$ &[MeV] & -14.426 & -6.935 & \num{1.38e-2}\\
+    1s$_{1/2}$ &[MeV] & -43.754 & -43.740 & \num{1.38e-2}\\
+    1p$_{3/2}$ &[MeV] & -31.561 & -31.555 & \num{9.70e-3}\\
+    1p$_{1/2}$ &[MeV] & -29.545 & -29.545 & \num{1.38e-2}\\
+    1d$_{5/2}$ &[MeV] & -19.017 & -19.016 & \num{1.38e-2}\\
+    2s$_{1/2}$ &[MeV] & -14.004 & -14.012 & \num{1.38e-2}\\
+    1d$_{3/2}$ &[MeV] & -13.891 & -13.887 & \num{1.38e-2}\\
+    1f$_{7/2}$ &[MeV] & -6.934 & -6.935 & \num{1.38e-2}\\
     \bottomrule
   \end{tabular}
 \end{table}
+
+\begin{table}[ht]
+  \centering
+  \caption{$^{90}$Zr Including spin-gradient terms, spin-orbit interaction, and Coulomb field}
+  \label{tab:compare_all_zr90}
+  \begin{tabular}{lrccc}
+    \multicolumn{5}{c}{\textbf{Physical quantities}}\\
+    \addlinespace[0.3em]
+    \midrule
+    && GCG & hfbcs\_qrpa & $\Delta\%$ \\
+    \midrule
+    $E_{\text{TOT}}$& [MeV] & -783.587 & -783.325 & \num{1.87e-2} \\
+    $\expval{ r^2_n}^{1/2}$ &[fm] & 4.2854 & 4.2872 & \num{1.50e-2}\\
+    $\expval{ r^2_p}^{1/2}$ &[fm] & 4.2196 & 4.2212 & \num{1.49e-2}\\
+    $\expval{ r^2_{ch}}^{1/2}$ &[fm] & 4.2767 & 4.2704 & \num{1.08e-2}\\
+    \midrule
+    \addlinespace[1.3em]
+    \multicolumn{5}{c}{\textbf{Neutron energy levels}}\\
+    \addlinespace[0.3em]
+    \midrule
+    && GCG & hfbcs\_qrpa & $\Delta\%$ \\
+    \midrule
+    1s$_{1/2}$ &[MeV] & -55.636 & -55.615 & \num{1.38e-2}\\
+    1p$_{3/2}$ &[MeV] & -45.324 & -45.309 & \num{9.70e-3}\\
+    1p$_{1/2}$ &[MeV] & -44.172 & -44.160 & \num{1.38e-2}\\
+    1d$_{5/2}$ &[MeV] & -34.148 & -34.137 & \num{1.38e-2}\\
+    2s$_{1/2}$ &[MeV] & -31.393 & -31.391 & \num{1.38e-2}\\
+    1d$_{3/2}$ &[MeV] & -29.802 & -29.797 & \num{1.38e-2}\\
+    1f$_{7/2}$ &[MeV] & -22.755 & -22.748 & \num{1.38e-2}\\
+    2p$_{3/2}$ &[MeV] & -17.837 & -17.840 & \num{1.38e-2}\\
+    1f$_{5/2}$ &[MeV] & -17.568 & -17.563 & \num{1.38e-2}\\
+    2p$_{1/2}$ &[MeV] & -15.729 & -15.723 & \num{1.38e-2}\\
+    1g$_{9/2}$ &[MeV] & -11.586 & -11.580 & \num{1.38e-2}\\
+    \midrule
+    \addlinespace[1.3em]
+    \multicolumn{5}{c}{\textbf{Proton energy levels}}\\
+    \addlinespace[0.3em]
+    \midrule
+    && GCG & hfbcs\_qrpa & $\Delta\%$ \\
+    \midrule
+    1s$_{1/2}$ &[MeV] & -44.973 & -44.956 & \num{1.38e-2}\\
+    1p$_{3/2}$ &[MeV] & -36.347 & -36.336 & \num{9.70e-3}\\
+    1p$_{1/2}$ &[MeV] & -34.121 & -34.115 & \num{1.38e-2}\\
+    1d$_{5/2}$ &[MeV] & -26.766 & -26.759 & \num{1.38e-2}\\
+    2s$_{1/2}$ &[MeV] & -22.175 & -22.178 & \num{1.38e-2}\\
+    1d$_{3/2}$ &[MeV] & -21.216 & -21.214 & \num{1.38e-2}\\
+    1f$_{7/2}$ &[MeV] & -16.722 & -16.718 & \num{1.38e-2}\\
+    2p$_{3/2}$ &[MeV] & -10.239 & -10.236 & \num{1.38e-2}\\
+    1f$_{5/2}$ &[MeV] & -9.613 &  -9.618 & \num{1.38e-2}\\
+    2p$_{1/2}$ &[MeV] & -8.108 &  -8.104 & \num{1.38e-2}\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+

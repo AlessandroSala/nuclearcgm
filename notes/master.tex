@@ -313,35 +313,7 @@ And the problem will be reduced to
 \input{chapters/hartree_fock/introduction/hartree_fock_introduction.tex}
 \input{chapters/hartree_fock/skyrme/skyrme.tex}
 \input{chapters/hartree_fock/benchmark/benchmark.tex}
-\input{chapters/functional/functional.tex}
 
-\newpage
-\newpage
-\section{Appendix}
-\begin{align}
-    \mathcal H &= \mathcal K + \mathcal V 
-    \\&= \mathcal K + \mathcal H_0 + \mathcal H_3 + \mathcal H_\text{eff}+\mathcal H_\text{fin}+\mathcal H_\text{so} + \mathcal H_\text{sg} + \mathcal H_\text{coul}
-    \\T &= \int \mathcal K d^3r= \int \frac{\hbar^2}{2m}\tau(\mathbf r) d^3r
-    \\E_\text{int} &= \int \mathcal{V} d^3r
-    \\E_1 &= T + E_\text{int}
-    \\E_2 &= \frac 1 2 (T + \sum_\alpha \varepsilon_\alpha ) + E_\text{int} - \frac 1 2 \sum_q \int U_q  \rho_q d^3r
-\end{align}
-
-
-
-\begin{equation}
-    -\frac{\hbar ^ 2}{2m}\nabla ^ 2 \psi + V(\mathbf r) \psi = E \psi
-\end{equation}
-\begin{align}
-    &\pdv{\psi}{x}\rightarrow \frac{\psi_{i-2} - 8\psi_{i-1} + 8\psi_{i+1} - \psi_{i+2}}{12h_x}
-    \\&\pdv[2]{\psi }{x}\rightarrow \frac{-\psi_{i-2} + 16\psi_{i-1} -30 \psi_{i} + 16\psi_{i+1} - \psi_{i+2}}{12h_x^2}
-\end{align}
-\begin{align}
-    M_{i j k s, i' j' k' s'} \psi_{i'j'k's'} = E\psi_{ijks}
-\end{align}
-\begin{align}
-    M_{ab}\psi_b = E\psi_a
-\end{align}
 
 
 \end{document}
