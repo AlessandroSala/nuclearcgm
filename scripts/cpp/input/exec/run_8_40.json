@@ -1,8 +1,8 @@
 {
     "pairing": false,
-    "coulomb": false,
-    "Jterms": false,
-    "spinOrbit": false,
+    "coulomb": true,
+    "Jterms": true,
+    "spinOrbit": true,
     "COMCorrection": true,
     "additional": 0,
     "outputName": "kinetic",
@@ -11,9 +11,17 @@
     "output_lmax": 0,
     "initialBeta": 0.0,
     "box": {
-        "size": 9,
-        "n": 60
+        "size": 11,
+        "n": 70
     },
+    "nucleus": {
+        "A": 16,
+        "Z": 8
+    },
+    "log": [
+        "tot_energies",
+        "hf_energies"
+    ],
     "interaction": "SLy5",
     "hf": {
         "cycles": 100,
@@ -33,10 +41,6 @@
         "cgTol": 1e-07,
         "steps": 40
     },
-    "nucleus": {
-        "A": 16,
-        "Z": 8
-    },
     "woods_saxon": {
         "V0": 55.5,
         "r0": 1.21,
@@ -47,9 +51,5 @@
             "R": 1.21
         },
         "kappa": 0.86
-    },
-    "log": [
-        "tot_energies",
-        "hf_energies"
-    ]
+    }
 }

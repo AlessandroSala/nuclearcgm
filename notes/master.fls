@@ -883,10 +883,6 @@ INPUT ./chapters/hartree_fock/benchmark/benchmark.tex
 INPUT chapters/hartree_fock/benchmark/benchmark.tex
 INPUT ./chapters/hartree_fock/benchmark/benchmark.tex
 INPUT chapters/hartree_fock/benchmark/benchmark.tex
-INPUT ./chapters/functional/functional.tex
-INPUT chapters/functional/functional.tex
-INPUT ./chapters/functional/functional.tex
-INPUT chapters/functional/functional.tex
 INPUT master.aux
 INPUT ./master.out
 INPUT ./master.out
