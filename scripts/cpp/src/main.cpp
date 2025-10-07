@@ -62,6 +62,9 @@ int main(int argc, char **argv)
     int Z = input.getZ();
     int N = A - Z;
 
+    int orbitalsN = N + input.pairingParameters.additionalStates;
+    int orbitalsP = Z + input.pairingParameters.additionalStates;
+
     auto WS = input.getWS();
     auto WSSO = input.getWSSO();
 
@@ -83,7 +86,7 @@ int main(int argc, char **argv)
 
     double nucRadius = pow(A, 0.3333333) * 1.27;
     auto guess =
-        harmonic_oscillator_guess(grid, N + input.additional, nucRadius, true);
+        harmonic_oscillator_guess(grid, orbitalsN, nucRadius, true);
     pair<MatrixXcd, VectorXd> neutronsEigenpair =
         solve(initialWS.build_matrix5p(), calc.initialGCG, guess);
     std::cout << neutronsEigenpair.second << std::endl;
@@ -92,7 +95,7 @@ int main(int argc, char **argv)
     if (N > Z)
     {
       protonsEigenpair.second = neutronsEigenpair.second;
-      protonsEigenpair.first = neutronsEigenpair.first(all, seq(0, Z - 1));
+      protonsEigenpair.first = neutronsEigenpair.first.leftCols(orbitalsP);
     }
     else if (N < Z)
     {
@@ -154,7 +157,7 @@ int main(int argc, char **argv)
         Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
         auto newNeutronsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
-                                          neutronsEigenpair.first);
+                                          neutronsEigenpair.first, orbitalsN);
 
         pair<MatrixXcd, VectorXd> newProtonsEigenpair;
         if (input.useCoulomb || N != Z)
@@ -166,14 +169,14 @@ int main(int argc, char **argv)
           Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
           newProtonsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
-                                      protonsEigenpair.first);
+                                      protonsEigenpair.first, orbitalsP);
         }
         else
         {
           newProtonsEigenpair.first =
-              newNeutronsEigenpair.first(Eigen::all, Eigen::seq(0, Z - 1 + input.additional));
+              newNeutronsEigenpair.first.leftCols(orbitalsP);
           newProtonsEigenpair.second =
-              newNeutronsEigenpair.second(Eigen::seq(0, Z - 1 + input.additional));
+              newNeutronsEigenpair.second.head(orbitalsP);
         }
 
         neutronsEigenpair = newNeutronsEigenpair;
@@ -186,11 +189,11 @@ int main(int argc, char **argv)
             data.totalEnergyIntegral(input.skyrme, grid) +
             data.kineticEnergy(input.skyrme, grid);
 
-        double SPE = 0.5 * (neutronsEigenpair.second.sum() +
-                            protonsEigenpair.second.sum());
+        double SPE = (neutronsEigenpair.second.sum() +
+                      protonsEigenpair.second.sum());
 
         integralEnergies.push_back(newIntegralEnergy);
-        double newHFEnergy = data.HFEnergy(2.0 * SPE, constraints);
+        double newHFEnergy = data.HFEnergy(SPE, constraints);
         HFEnergies.push_back(newHFEnergy);
         if (abs(newIntegralEnergy - integralEnergy) <
                 input.getCalculation().hf.energyTol &&

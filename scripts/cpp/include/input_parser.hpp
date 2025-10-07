@@ -53,6 +53,12 @@ typedef struct
   double diff;
 } WSSpinOrbitParameters;
 
+typedef struct
+{
+  double window;
+  int additionalStates;
+} PairingParameters;
+
 /**
  * @brief Gathers the objects related to a calculation.
  */
@@ -73,13 +79,13 @@ public:
   Calculation getCalculation();
   std::string getOutputName();
   nlohmann::json getWoodsSaxon();
-  int additional;
   bool pairing, spinOrbit, COMCorr;
   WoodsSaxonParameters getWS();
   WSSpinOrbitParameters getWSSO();
   std::string outputDirectory;
   std::vector<std::string> log;
   double initialBeta;
+  PairingParameters pairingParameters;
 
   SkyrmeParameters skyrme;
 
