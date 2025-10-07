@@ -1,21 +1,23 @@
 {
+    "pairing": {
+        "window": 10.0,
+        "additionalStates": 20
+    },
     "interaction": "SLy5",
-    "pairing": false,
     "coulomb": false,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "additional": 0,
     "outputName": "kinetic",
     "outputDirectory": "o16_real_final",
-    "initialBeta": 0.0,
+    "initialBeta": 0.4,
     "box": {
         "size": 9,
-        "n": 10
+        "n": 20
     },
     "nucleus": {
-        "A": 16,
-        "Z": 8
+        "A": 20,
+        "Z": 10
     },
     "log": [
         "tot_energies",
@@ -34,7 +36,7 @@
         }
     },
     "gcg": {
-        "maxIter": 20,
+        "maxIter": 10,
         "nev": 10,
         "tol": 1e-05,
         "cgTol": 1e-07,

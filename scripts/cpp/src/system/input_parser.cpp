@@ -11,8 +11,17 @@ InputParser::InputParser(std::string inputFile)
   useCoulomb = data["coulomb"];
   useJ = data["Jterms"];
   std::string interaction = data["interaction"];
-  additional = data["additional"];
-  pairing = data["pairing"];
+  pairing = data.contains("pairing");
+  if (pairing)
+  {
+    auto pairingData = data["pairing"];
+    pairingParameters = PairingParameters{pairingData["window"],
+                                          pairingData["additionalStates"]};
+  }
+  else
+  {
+    pairingParameters = PairingParameters{0, 0};
+  }
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
