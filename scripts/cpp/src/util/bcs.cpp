@@ -121,21 +121,20 @@ namespace BCS
         if (num_pairs == 0)
             return {};
 
-        // Use oldDelta from previous HF step if available, else initialize
+        // Initialize Delta
         VectorXd Delta = (oldDelta.size() == num_pairs) ? oldDelta : VectorXd::Constant(num_pairs, initDelta);
 
-        // Use oldLambda if available, otherwise estimate
+        // Initialize lambda estimate
         double lambda = (oldLambda == oldLambda) ? oldLambda : eps_pairs(A / 2);
 
-        // --- Mixing and stability parameters ---
-        double mixDelta = 0.5;     // Simple linear mixing for Delta
-        int lambdaBisections = 60; // Bisection iterations for lambda
-
         VectorXd kappa(num_pairs);
-        // double lambda;
+
+        // Iteration parameters
+        int lambdaBisections = 60;
+
         for (int iter = 0; iter < maxIter; ++iter)
         {
-            // 1) Solve for lambda to enforce particle number N = A with the CURRENT Delta
+            // 1) Solve for lambda to enforce particle number N = A with the current Delta
             auto compute_N = [&](double lam) -> double
             {
                 double Nsum = 0.0;
@@ -151,7 +150,7 @@ namespace BCS
                 return Nsum;
             };
 
-            // Robustly bracket and solve for lambda using bisection
+            // --- Find lambda via bisection ---
             double lamLo = eps_pairs.minCoeff() - 2 * Ecut;
             double lamHi = eps_pairs.maxCoeff() + 2 * Ecut;
             for (int b = 0; b < lambdaBisections; ++b)
@@ -164,20 +163,19 @@ namespace BCS
             }
             lambda = 0.5 * (lamLo + lamHi);
 
-            // 2) *** CORRECTED LOGIC ***
-            // NOW that we have the correct lambda, compute the corresponding kappa, u, v
+            // 2) Compute kappa = u*v for the current lambda and Delta
             for (int p = 0; p < num_pairs; ++p)
             {
                 double xi = eps_pairs(p) - lambda;
                 double Ei = std::sqrt(xi * xi + Delta(p) * Delta(p));
                 if (Ei < EPS_SMALL)
                     Ei = EPS_SMALL;
-                double vp2 = std::max(0.0, std::min(1.0, 0.5 * (1.0 - xi / Ei)));
+                double vp2 = 0.5 * (1.0 - xi / Ei);
                 kappa(p) = std::sqrt(vp2 * (1.0 - vp2));
             }
 
-            // 3) Build the smooth cutoff factors centered on the new lambda
-            VectorXd f = VectorXd::Ones(num_pairs);
+            // 3) Smooth cutoff centered around lambda
+            VectorXd f(num_pairs);
             for (int p = 0; p < num_pairs; ++p)
             {
                 double arg = (abs(eps_pairs(p) - lambda) - Ecut) / smoothWidth;
@@ -187,36 +185,29 @@ namespace BCS
                     f(p) = 1.0 / (1.0 + std::exp(arg));
             }
 
-            // 4) Compute new Delta using the weighted gap equation
+            // 4) Build new Delta from gap equation (no mixing)
             VectorXd DeltaNew = VectorXd::Zero(num_pairs);
             for (int p = 0; p < num_pairs; ++p)
             {
                 if (f(p) < EPS_SMALL)
-                    continue; // Skip states outside the window
+                    continue;
 
                 double sum = 0.0;
                 for (int q = 0; q < num_pairs; ++q)
-                {
-                    // The term in the sum is f_p * G_pq * f_q * kappa_q
-                    // This is a common and valid prescription
                     sum += f(p) * G_pairing(p, q) * f(q) * kappa(q);
-                }
+
                 DeltaNew(p) = -sum;
             }
 
-            // 5) Mix Delta for stability and check for convergence
-            VectorXd DeltaMixed = (1.0 - mixDelta) * Delta + mixDelta * DeltaNew;
-            double dnorm = (DeltaMixed - Delta).norm();
-            Delta = DeltaMixed;
+            // 5) Convergence check
+            double dnorm = (DeltaNew - Delta).norm();
+            Delta = DeltaNew;
 
             if (dnorm < tol)
-            {
-                break; // Converged
-            }
-        } // end of BCS iteration loop
+                break;
+        }
 
-        // 6) *** FINAL STEP ***
-        // Calculate final occupations based on the converged Delta and lambda
+        // 6) Final occupations
         VectorXd final_v2(num_pairs), final_u2(num_pairs);
         for (int p = 0; p < num_pairs; ++p)
         {
@@ -224,19 +215,16 @@ namespace BCS
             double Ei = std::sqrt(xi * xi + Delta(p) * Delta(p));
             if (Ei < EPS_SMALL)
                 Ei = EPS_SMALL;
-            double vp2 = std::max(0.0, std::min(1.0, 0.5 * (1.0 - xi / Ei)));
+            double vp2 = 0.5 * (1.0 - xi / Ei);
             final_v2(p) = vp2;
             final_u2(p) = 1.0 - vp2;
         }
 
-        // Note: The final smoothing step from your original code was removed.
-        // Damping between HF iterations should be done by mixing the v^2 occupations
-        // in the main HF loop, not by altering the converged BCS result here.
-
-        double final_Epair = -Delta.dot(kappa); // Pairing energy calculation
+        double final_Epair = -Delta.dot(kappa);
 
         return {final_u2, final_v2, Delta, eps_pairs.array() * final_v2.array(), lambda, final_Epair};
     }
+
     BCSResult BCSiter(const MatrixXcd &phi, const VectorXd &eps,
                       int A, PairingParameters params, NucleonType t, const VectorXd &oldDelta, double oldLambda)
     {
