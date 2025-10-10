@@ -12,15 +12,15 @@
         "n": 20
     },
     "nucleus": {
-        "A": 24,
-        "Z": 12
+        "A": 20,
+        "Z": 10
     },
     "pairing": {
-        "window": 0.1,
-        "additionalStates": 8,
+        "window": 5.0,
+        "additionalStates": 10,
         "alpha": 0.0,
-        "V0N": -500.0,
-        "V0P": -500.0
+        "V0N": -300.0,
+        "V0P": -300.0
     },
     "log": [
         "tot_energies",
@@ -31,7 +31,7 @@
         "cycles": 300,
         "energyTol": 1e-05,
         "gcg": {
-            "maxIter": 3,
+            "maxIter": 2,
             "nev": 0,
             "tol": 0.001,
             "steps": 80,

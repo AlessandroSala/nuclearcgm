@@ -25,6 +25,8 @@ public:
   std::shared_ptr<Eigen::VectorXd> rhoP;
   std::shared_ptr<Eigen::VectorXd> tauN;
   std::shared_ptr<Eigen::VectorXd> tauP;
+  std::shared_ptr<Eigen::VectorXd> divJvecN;
+  std::shared_ptr<Eigen::VectorXd> divJvecP;
   std::shared_ptr<Eigen::MatrixX3d> nablaRhoN;
   std::shared_ptr<Eigen::MatrixX3d> nablaRhoP;
   std::shared_ptr<Eigen::MatrixX3d> spinN;
@@ -39,6 +41,7 @@ public:
   std::shared_ptr<Eigen::VectorXcd> divJP;
   std::shared_ptr<Eigen::VectorXd> UN;
   std::shared_ptr<Eigen::VectorXd> UP;
+  std::shared_ptr<Eigen::VectorXd> UConstr;
   std::shared_ptr<Eigen::MatrixX3d> BN;
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;

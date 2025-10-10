@@ -60,6 +60,8 @@ IterationData::IterationData(InputParser input) : input(input)
   lastConvergedIter = 0;
 
   massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
+
+  std::cout << "Created IterationData" << std::endl;
 }
 
 double IterationData::protonRadius()
@@ -284,7 +286,8 @@ void IterationData::updateQuantities(
 
   int N = A - Z;
 
-  double mu = constraints.size() == 0 ? std::min(0.01 + 0.01 * iter, 0.5) : 0.2;
+  // double mu = constraints.size() == 0 ? std::min(0.01 + 0.01 * iter, 0.5) : 0.2;
+  double mu = constraints.size() == 0 ? 0.25 : 0.05;
   std::cout << "mu: " << mu << std::endl;
 
   if (!input.pairing)
@@ -309,7 +312,7 @@ void IterationData::updateQuantities(
         .u2 = u2N,
         .v2 = v2N,
         .Delta = Eigen::VectorXd::Zero(N),
-        .qpEnergies = Eigen::VectorXd::Zero(N),
+        .qpEnergies = v2N.cwiseProduct(neutronsPair.second),
         .lambda = 0.0,
         .Epair = 0.0,
     };
@@ -317,7 +320,7 @@ void IterationData::updateQuantities(
         .u2 = u2P,
         .v2 = v2P,
         .Delta = Eigen::VectorXd::Zero(Z),
-        .qpEnergies = Eigen::VectorXd::Zero(Z),
+        .qpEnergies = v2P.cwiseProduct(protonsPair.second),
         .lambda = 0.0,
         .Epair = 0.0,
     };
@@ -332,12 +335,8 @@ void IterationData::updateQuantities(
     }
     else
     {
-      auto newBcsN = BCS::BCSiter(neutronsPair.first, neutronsPair.second, N, input.pairingParameters, NucleonType::N, bcsN.Delta, bcsN.lambda);
-      auto newBcsP = BCS::BCSiter(protonsPair.first, protonsPair.second, Z, input.pairingParameters, NucleonType::P, bcsN.Delta, bcsN.lambda);
-      // bcsN = mixBCS(bcsN, newBcsN, 0.3);
-      // bcsP = mixBCS(bcsP, newBcsP, 0.3);
-      bcsN = newBcsN;
-      bcsP = newBcsP;
+      bcsN = mixBCS(bcsN, BCS::BCSiter(neutronsPair.first, neutronsPair.second, N, input.pairingParameters, NucleonType::N, bcsN.Delta, bcsN.lambda), 1.0);
+      bcsP = mixBCS(bcsP, BCS::BCSiter(protonsPair.first, protonsPair.second, Z, input.pairingParameters, NucleonType::P, bcsP.Delta, bcsP.lambda), 1.0);
     }
   }
   std::cout << "N particle number: " << bcsN.v2.sum() << std::endl;
@@ -345,14 +344,15 @@ void IterationData::updateQuantities(
 
   Eigen::MatrixXcd neutrons, protons;
 
-  neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2);
-  protons = colwiseMatVecMult(protonsPair.first, bcsP.v2);
+  neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2.array().pow(0.5));
+  protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().pow(0.5));
 
-  rhoN =
-      std::make_shared<Eigen::VectorXd>(Wavefunction::density(neutrons, grid));
-  rhoP =
-      std::make_shared<Eigen::VectorXd>(Wavefunction::density(protons, grid));
+  rhoN = rhoN == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::density(neutrons, grid))
+                         : std::make_shared<Eigen::VectorXd>((*rhoN) * (1.0 - mu) + Wavefunction::density(neutrons, grid) * mu);
+  rhoP = rhoP == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::density(protons, grid))
+                         : std::make_shared<Eigen::VectorXd>((*rhoP) * (1.0 - mu) + Wavefunction::density(protons, grid) * mu);
   Eigen::VectorXd rho = (*rhoN) + (*rhoP);
+  std::cout << "Integrated density: " << Operators::integral(rho, grid) << std::endl;
 
   nablaRhoN =
       std::make_shared<Eigen::MatrixX3d>(Operators::gradNoSpin(*rhoN, grid));
@@ -360,10 +360,10 @@ void IterationData::updateQuantities(
       std::make_shared<Eigen::MatrixX3d>(Operators::gradNoSpin(*rhoP, grid));
   Eigen::MatrixX3d nablaRho = (*nablaRhoN) + (*nablaRhoP);
 
-  tauN = std::make_shared<Eigen::VectorXd>(
-      Wavefunction::kineticDensity(neutrons, grid));
-  tauP = std::make_shared<Eigen::VectorXd>(
-      Wavefunction::kineticDensity(protons, grid));
+  tauN = tauN == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::kineticDensity(neutrons, grid))
+                         : std::make_shared<Eigen::VectorXd>((*tauN) * (1.0 - mu) + Wavefunction::kineticDensity(neutrons, grid) * mu);
+  tauP = tauP == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::kineticDensity(protons, grid))
+                         : std::make_shared<Eigen::VectorXd>((*tauP) * (1.0 - mu) + Wavefunction::kineticDensity(protons, grid) * mu);
 
   nabla2RhoN =
       std::make_shared<Eigen::VectorXd>(Operators::lapNoSpin(*rhoN, grid));
@@ -372,30 +372,30 @@ void IterationData::updateQuantities(
 
   using std::isnan;
 
-  Eigen::VectorXd divJvecN =
-      Eigen::VectorXd::Zero(grid.get_total_spatial_points());
-  Eigen::VectorXd divJvecP =
-      Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   JvecN = std::make_shared<Eigen::MatrixX3d>(
       Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3));
   JvecP = std::make_shared<Eigen::MatrixX3d>(
       Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3));
 
-  JN = std::make_shared<Real2Tensor>(Wavefunction::soDensity(neutrons, grid));
-  JP = std::make_shared<Real2Tensor>(Wavefunction::soDensity(protons, grid));
+  JN = JN == nullptr ? std::make_shared<Real2Tensor>(Wavefunction::soDensity(neutrons, grid))
+                     : std::make_shared<Real2Tensor>((*JN) * (1.0 - mu) + Wavefunction::soDensity(neutrons, grid) * mu);
+  JP = JP == nullptr ? std::make_shared<Real2Tensor>(Wavefunction::soDensity(protons, grid))
+                     : std::make_shared<Real2Tensor>((*JP) * (1.0 - mu) + Wavefunction::soDensity(protons, grid) * mu);
 
   JvecN = std::make_shared<Eigen::MatrixX3d>(Operators::leviCivita(*JN));
   JvecP = std::make_shared<Eigen::MatrixX3d>(Operators::leviCivita(*JP));
 
-  divJvecN = Wavefunction::divJ(neutrons, grid);
-  divJvecP = Wavefunction::divJ(protons, grid);
+  divJvecN = divJvecN == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::divJ(neutrons, grid))
+                                 : std::make_shared<Eigen::VectorXd>((*divJvecN) * (1.0 - mu) + Wavefunction::divJ(neutrons, grid) * mu);
+  divJvecP = divJvecP == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::divJ(protons, grid))
+                                 : std::make_shared<Eigen::VectorXd>((*divJvecP) * (1.0 - mu) + Wavefunction::divJ(protons, grid) * mu);
 
   Eigen::VectorXd divJJQN;
   Eigen::VectorXd divJJQP;
   if (input.spinOrbit)
   {
-    divJJQN = divJvecN + divJvecN + divJvecP;
-    divJJQP = divJvecP + divJvecN + divJvecP;
+    divJJQN = *divJvecN + *divJvecN + *divJvecP;
+    divJJQP = *divJvecP + *divJvecN + *divJvecP;
   }
   else
   {
@@ -414,6 +414,8 @@ void IterationData::updateQuantities(
     return std::min(0.1 + 0.01 * (double)(iter - lastConvergedIter), 0.6);
     // return 1.0/(1.0 + std::exp((-((double)iter - 15.0))/10.0));
   };
+  // reset for fields
+  mu = 1.0;
 
   // TODO: dare una sistemata a sta roba
   Eigen::VectorXd tau = *tauN + *tauP;
@@ -492,8 +494,16 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
-  *UN += constraintField;
-  *UP += constraintField;
+  if (UConstr == nullptr)
+  {
+    UConstr = std::make_shared<Eigen::VectorXd>(constraintField);
+  }
+  else
+  {
+    *UConstr = (*UConstr) * (1 - mu) + constraintField * mu;
+  }
+  *UN += *UConstr;
+  *UP += *UConstr;
 
   if (UCoul == nullptr)
   {

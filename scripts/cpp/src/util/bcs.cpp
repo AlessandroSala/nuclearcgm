@@ -119,9 +119,14 @@ namespace BCS
             return {}; // empty
 
         // Initialize Delta: prefer oldDelta if provided and same size
+        double G_avg = G_pairing.diagonal().mean();
+
+        initDelta = std::max(0.1, 0.5 * G_avg); // Adaptive initial gap
+
         VectorXd Delta = VectorXd::Constant(num_pairs, initDelta);
         if (oldDelta.size() == num_pairs)
         {
+            std::cout << "Initializing to guess delta" << std::endl;
             Delta = oldDelta;
         }
 
@@ -150,6 +155,7 @@ namespace BCS
                 double Nsum = 0.0;
                 for (int p = 0; p < num_pairs; ++p)
                 {
+
                     double xi = eps_pairs(p) - lam;
                     double Ei = std::sqrt(xi * xi + Delta(p) * Delta(p));
                     if (Ei < EPS_SMALL)
@@ -159,7 +165,6 @@ namespace BCS
                 }
                 return Nsum;
             };
-
             // bracket lambda
             double lamLo = eps_pairs.minCoeff() - 4.0 * window - 10.0;
             double lamHi = eps_pairs.maxCoeff() + 4.0 * window + 10.0;
@@ -284,7 +289,7 @@ namespace BCS
         // Optional smoothing with the provided oldDelta/oldLambda (kept but smaller mixing)
         if (oldDelta.size() == num_pairs)
         {
-            double finalMix = 0.8;
+            double finalMix = 0.25;
             lambda = (1.0 - finalMix) * oldLambda + finalMix * lambda;
             Delta = (1.0 - finalMix) * oldDelta + finalMix * Delta;
             // recompute v/u/kappa after smoothing
@@ -333,6 +338,7 @@ namespace BCS
         double Epair = -0.5 * kappa.dot(Delta);
 
         std::cout << "Converged Lambda: " << lambda << ", Avg gap: " << avgGap << ", Epair: " << Epair << std::endl;
+        std::cout << "Delta: " << Delta.transpose() << std::endl;
 
         return {final_u2, final_v2, Delta, eps_pairs.array() * final_v2.array(), lambda, Epair};
     }
@@ -351,6 +357,7 @@ namespace BCS
         unique_pairs.reserve(M / 2);
         std::vector<int> state_to_pair_map(M);
         std::vector<bool> visited(M, false);
+        VectorXd oldDeltaUnique(M / 2);
 
         for (int i = 0; i < M; ++i)
         {
@@ -363,6 +370,7 @@ namespace BCS
                 {
                     int pair_index = unique_pairs.size();
                     unique_pairs.push_back(i); // Add the first state of the pair
+                    oldDeltaUnique(pair_index) = oldDelta(i);
 
                     state_to_pair_map[i] = pair_index;
                     state_to_pair_map[partner] = pair_index;
@@ -402,7 +410,7 @@ namespace BCS
             }
         }
 
-        std::cout << v2_full.transpose() << std::endl;
+        // std::cout << v2_full.transpose() << std::endl;
 
         BCSResult final_results = {u2_full, v2_full, Delta_full, eps.array() * v2_full.array(), pair_results.lambda, pair_results.Epair};
         return final_results;
