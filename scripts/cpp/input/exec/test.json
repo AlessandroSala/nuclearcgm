@@ -1,23 +1,26 @@
 {
-    "pairing": {
-        "window": 10.0,
-        "additionalStates": 20
-    },
     "interaction": "SLy5",
     "coulomb": false,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "outputName": "kinetic",
-    "outputDirectory": "o16_real_final",
-    "initialBeta": 0.4,
+    "outputName": "mg",
+    "outputDirectory": "def_pairing",
+    "initialBeta": 0.1,
     "box": {
-        "size": 9,
+        "size": 10,
         "n": 20
     },
     "nucleus": {
-        "A": 20,
-        "Z": 10
+        "A": 24,
+        "Z": 12
+    },
+    "pairing": {
+        "window": 0.1,
+        "additionalStates": 8,
+        "alpha": 0.0,
+        "V0N": -500.0,
+        "V0P": -500.0
     },
     "log": [
         "tot_energies",
@@ -25,10 +28,10 @@
         "multipoles_2"
     ],
     "hf": {
-        "cycles": 100,
+        "cycles": 300,
         "energyTol": 1e-05,
         "gcg": {
-            "maxIter": 1,
+            "maxIter": 3,
             "nev": 0,
             "tol": 0.001,
             "steps": 80,

@@ -6,32 +6,32 @@
 #include <cmath>
 #include "spherical_harmonics.hpp"
 
+QuadrupoleDeformation IterationData::quadrupoleDeformation()
+{
 
-QuadrupoleDeformation IterationData::quadrupoleDeformation() {
+  Eigen::VectorXd rho = *rhoP + *rhoN;
+  int A = input.getA();
+  double a20 = SphericalHarmonics::massMult(2, 0, rho);
+  double a22 = SphericalHarmonics::massMult(2, 2, rho);
+  double R = 1.2 * pow(A, 1.0 / 3.0);
 
-    Eigen::VectorXd rho = *rhoP + *rhoN;
-    int A = input.getA();
-    double a20 = SphericalHarmonics::massMult(2, 0, rho);
-    double a22 = SphericalHarmonics::massMult(2, 2,rho);
-    double R = 1.2 * pow(A, 1.0 / 3.0);
+  double gamma = atan2(a22, a20);
 
-    double gamma = atan2(a22, a20);
+  double beta = 4 * M_PI * std::sqrt(a20 * a20 + a22 * a22) / (3 * A * R * R);
 
-    double beta = 4*M_PI*std::sqrt(a20*a20 + a22*a22)/(3*A*R*R);
+  if (axis2Exp('x') > axis2Exp('z'))
+  {
+    beta = -beta;
+  }
 
-    if(axis2Exp('x') > axis2Exp('z')) {
-        beta = -beta;
-    }
-
-
-    return {beta, gamma};
+  return {beta, gamma};
 }
 
-double IterationData::axis2Exp(char dir) {
+double IterationData::axis2Exp(char dir)
+{
 
-
-Eigen::VectorXd rho = *rhoP + *rhoN;
-auto grid = *Grid::getInstance();
+  Eigen::VectorXd rho = *rhoP + *rhoN;
+  auto grid = *Grid::getInstance();
   int n = grid.get_n();
   double res = 0.0;
   for (int i = 0; i < grid.get_n(); ++i)
@@ -62,8 +62,8 @@ auto grid = *Grid::getInstance();
   return res / rho.sum();
 }
 
-
-double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid) {
+double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid)
+{
 
   double t0 = params.t0;
   double t3 = params.t3;
@@ -85,7 +85,8 @@ double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid) {
   return integral(Eigen::VectorXd(energy0), grid);
 }
 
-double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid) {
+double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid)
+{
   Eigen::VectorXd energy1 =
       Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   double t0 = params.t0;
@@ -105,7 +106,8 @@ double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid) {
   return integral(energy1, grid);
 }
 
-double IterationData::C0TauEnergy(SkyrmeParameters params, const Grid &grid) {
+double IterationData::C0TauEnergy(SkyrmeParameters params, const Grid &grid)
+{
 
   double t1 = params.t1;
   double t2 = params.t2;
@@ -123,7 +125,8 @@ double IterationData::C0TauEnergy(SkyrmeParameters params, const Grid &grid) {
   return integral(energy0c, grid);
 }
 
-double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid) {
+double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid)
+{
 
   double t1 = params.t1;
   double t2 = params.t2;
@@ -144,7 +147,8 @@ double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid) {
 
 // SUS !
 double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
-                                        const Grid &grid) {
+                                        const Grid &grid)
+{
   double t1 = params.t1;
   double t2 = params.t2;
   double x1 = params.x1;
@@ -174,9 +178,9 @@ double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
   return integral(energy0c, grid);
 }
 
-
 double IterationData::C1nabla2RhoEnergy(SkyrmeParameters params,
-                                        const Grid &grid) {
+                                        const Grid &grid)
+{
   double t1 = params.t1;
   double t2 = params.t2;
   double x1 = params.x1;
@@ -193,7 +197,8 @@ double IterationData::C1nabla2RhoEnergy(SkyrmeParameters params,
   return integral(energy1c, grid);
 }
 
-double IterationData::CoulombDirectEnergy(const Grid &grid) {
+double IterationData::CoulombDirectEnergy(const Grid &grid)
+{
 
   double res = 0.0;
   double h = grid.get_h();
@@ -207,33 +212,10 @@ double IterationData::CoulombDirectEnergy(const Grid &grid) {
 
   return 0.5 *
          Operators::integral((VectorXd)(rhoP->array() * UCDir.array()), grid);
-  // #pragma omp parallel for collapse(6) reduction(+ : res)
-  //   for (int i = 0; i < n; ++i) {
-  //     for (int j = 0; j < n; ++j) {
-  //       for (int k = 0; k < n; ++k) {
-  //         for (int ii = 0; ii < n; ++ii) {
-  //           for (int jj = 0; jj < n; ++jj) {
-  //             for (int kk = 0; kk < n; ++kk) {
-  //               int iNS = grid.idxNoSpin(ii, jj, kk);
-  //               int iNSP = grid.idxNoSpin(i, j, k);
-  //               double val = (*rhoP)(iNS);
-  //               double valP = (*rhoP)(iNSP);
-  //               if (ii == i && jj == j && kk == k) {
-  //                 res += valP * val * h * h * 1.939285;
-  //               } else {
-  //                 res += valP * val /
-  //                        (sqrt((ii - i) * (ii - i) + (jj - j) * (jj - j) +
-  //                              (kk - k) * (kk - k)));
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
 }
 
-double IterationData::SlaterCoulombEnergy(const Grid &grid) {
+double IterationData::SlaterCoulombEnergy(const Grid &grid)
+{
   using Eigen::VectorXd;
   using nuclearConstants::e2;
   using Operators::integral;
@@ -249,7 +231,8 @@ double IterationData::SlaterCoulombEnergy(const Grid &grid) {
   return integral(func, grid);
 }
 
-double IterationData::Hso(SkyrmeParameters params, const Grid &grid) {
+double IterationData::Hso(SkyrmeParameters params, const Grid &grid)
+{
   double W0 = params.W0;
   using Operators::dot;
 
@@ -263,7 +246,8 @@ double IterationData::Hso(SkyrmeParameters params, const Grid &grid) {
   return Operators::integral(func, grid);
 }
 
-double IterationData::Hsg(SkyrmeParameters params, const Grid &grid) {
+double IterationData::Hsg(SkyrmeParameters params, const Grid &grid)
+{
   if (!input.useJ)
     return 0.0;
   double t0 = params.t0, t1 = params.t1, t2 = params.t2;

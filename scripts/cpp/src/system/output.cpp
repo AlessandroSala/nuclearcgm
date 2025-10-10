@@ -330,17 +330,26 @@ void Output::shellsToFile(
   if (contains(input.log, "density_p"))
     matrixToFile("density_p.csv", *iterationData->rhoP);
 
+  double constraintsEnergy = 0.0;
+  for (auto &&constraint : constraints)
+  {
+    constraintsEnergy += constraint->evaluate(iterationData);
+  }
   // JSON output
   nlohmann::json j = {
-      {"Eint", totEnInt},
       {"beta", beta},
+      {"Eint", totEnInt},
+      {"EpairN", iterationData->bcsN.Epair},
+      {"EpairP", iterationData->bcsP.Epair},
       {"gamma", gamma * 180.0 / M_PI},
       {"a", a},
+      {"iter", iterations},
+      {"constraints_energy", constraintsEnergy},
       {"step", grid.get_h()},
   };
   auto json =
       std::ofstream(folder + "/" + input.getOutputName() + ".json", fileMode);
-  json << j << std::endl;
+  json << j << "," << std::endl;
   json.close();
 
   file.close();

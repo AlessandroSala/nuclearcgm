@@ -16,16 +16,22 @@ InputParser::InputParser(std::string inputFile)
   {
     auto pairingData = data["pairing"];
     pairingParameters = PairingParameters{pairingData["window"],
-                                          pairingData["additionalStates"]};
+                                          pairingData["additionalStates"],
+                                          pairingData["V0N"],
+                                          pairingData["V0P"],
+                                          pairingData["alpha"]};
   }
   else
   {
-    pairingParameters = PairingParameters{0, 0};
+    pairingParameters = PairingParameters{0, 0, 0, 0, 0};
   }
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
   initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
+
+  A = data["nucleus"]["A"];
+  Z = data["nucleus"]["Z"];
 
   log.clear();
   if (data.contains("log"))
@@ -57,9 +63,12 @@ Grid InputParser::get_grid()
   return Grid(data["box"]["n"], data["box"]["size"]);
 }
 
-int InputParser::getA() { return data["nucleus"]["A"]; }
+int InputParser::getA()
+{
+  return A;
+}
 
-int InputParser::getZ() { return data["nucleus"]["Z"]; }
+int InputParser::getZ() { return Z; }
 
 WoodsSaxonParameters InputParser::getWS()
 {
