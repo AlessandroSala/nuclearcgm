@@ -3,18 +3,21 @@
 #include "types.hpp"
 #include <Eigen/Dense>
 #include <memory>
+#include "util/bcs.hpp"
 
 class InputParser;
 class Constraint;
 class Grid;
 class EffectiveMass;
 
-typedef struct QuadrupoleDeformation {
+typedef struct QuadrupoleDeformation
+{
   double beta;
   double gamma;
 } QuadrupoleDeformation;
 
-class IterationData {
+class IterationData
+{
 public:
   std::shared_ptr<EffectiveMass> massN;
   std::shared_ptr<EffectiveMass> massP;
@@ -39,8 +42,11 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> BN;
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;
+
   Eigen::VectorXd UCDir;
 
+  BCS::BCSResult bcsN;
+  BCS::BCSResult bcsP;
   SkyrmeParameters params;
   InputParser input;
   double massCorr;
@@ -49,8 +55,9 @@ public:
   int lastConvergedIter;
 
   void
-  updateQuantities(const Eigen::MatrixXcd &neutrons,
-                   const Eigen::MatrixXcd &protons, int iter,
+  updateQuantities(const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsEigenpair,
+                   const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsEigenpair,
+                   int iter,
                    const std::vector<std::unique_ptr<Constraint>> &constraints);
 
   double constraintEnergy(const std::vector<std::unique_ptr<Constraint>> &constraints);
@@ -90,7 +97,7 @@ public:
                       int N, int Z);
   void
   logData(const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsEigenpair,
-          const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsEigenpair, 
+          const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsEigenpair,
           const std::vector<std::unique_ptr<Constraint>> &constraints);
 
   IterationData(InputParser input);

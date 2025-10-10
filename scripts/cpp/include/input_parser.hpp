@@ -57,6 +57,9 @@ typedef struct
 {
   double window;
   int additionalStates;
+  double V0N;
+  double V0P;
+  double alpha;
 } PairingParameters;
 
 /**
@@ -70,6 +73,7 @@ public:
    */
   InputParser(std::string inputFile);
   nlohmann::json get_json();
+  int A, Z;
   Grid get_grid();
   int getA();
   int getZ();

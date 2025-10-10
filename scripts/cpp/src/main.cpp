@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     pair<MatrixXcd, VectorXd> protonsEigenpair;
     if (N > Z)
     {
-      protonsEigenpair.second = neutronsEigenpair.second;
+      protonsEigenpair.second = neutronsEigenpair.second.head(orbitalsP);
       protonsEigenpair.first = neutronsEigenpair.first.leftCols(orbitalsP);
     }
     else if (N < Z)
@@ -115,10 +115,10 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    // for (double mu = 20.0; mu > -20; mu -= 5.0)
-    //{
-    //   mu20s.push_back(mu);
-    // }
+    for (double mu = 30.0; mu > -20; mu -= 3.0)
+    {
+      mu20s.push_back(mu);
+    }
     vector<unique_ptr<Constraint>> constraints;
     Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;
@@ -140,10 +140,11 @@ int main(int argc, char **argv)
         constraints.push_back(make_unique<XY2Constraint>(0.0));
         constraints.push_back(make_unique<OctupoleConstraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
+        data = IterationData(input);
       }
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
       {
-        data.updateQuantities(neutronsEigenpair.first, protonsEigenpair.first,
+        data.updateQuantities(neutronsEigenpair, protonsEigenpair,
                               hfIter, constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
 
@@ -193,13 +194,13 @@ int main(int argc, char **argv)
                       protonsEigenpair.second.sum());
 
         integralEnergies.push_back(newIntegralEnergy);
-        double newHFEnergy = data.HFEnergy(SPE, constraints);
+        // double newHFEnergy = data.HFEnergy(SPE, constraints);
+        double newHFEnergy = 0.0;
         HFEnergies.push_back(newHFEnergy);
-        if (abs(newIntegralEnergy - integralEnergy) <
-                input.getCalculation().hf.energyTol &&
+        if (abs(newIntegralEnergy - integralEnergy) < input.getCalculation().hf.energyTol &&
             abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
-            data.constraintEnergy(constraints) <
-                input.getCalculation().hf.energyTol / 100.0)
+            abs(data.constraintEnergy(constraints)) <
+                input.getCalculation().hf.energyTol / 10.0)
         {
           break;
         }
