@@ -50,7 +50,7 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
         return 2.0 * C * (Q20 - mu20) * O;
     }
 
-    double gamma = 0.02;
+    double gamma = 0.08;
 
     // if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
     // if(data->energyDiff < data->constraintTol) {

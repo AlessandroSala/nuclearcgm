@@ -115,12 +115,12 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    for (double mu = 30.0; mu > -20; mu -= 3.0)
+    for (double mu = 18.0; mu > -20; mu -= 3.0)
     {
       mu20s.push_back(mu);
     }
     vector<unique_ptr<Constraint>> constraints;
-    Wavefunction::printShells(neutronsEigenpair, grid);
+    // Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;
 
     for (int i = -1; i < (int)mu20s.size(); ++i)
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
         if (abs(newIntegralEnergy - integralEnergy) < input.getCalculation().hf.energyTol &&
             abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
             abs(data.constraintEnergy(constraints)) <
-                input.getCalculation().hf.energyTol / 10.0)
+                input.getCalculation().hf.energyTol)
         {
           break;
         }
