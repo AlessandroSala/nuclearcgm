@@ -67,20 +67,22 @@ def plot_json_data(file_path):
     if epair_sum is not None:
         ax1.plot(sorted_betas, sorted_epair_sum, 'o', color='teal', label='-Epair', alpha=0.7)
         ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
-        ax1.set_ylabel(r'$- E_\text{pair}$', fontsize=13)
-        ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
+        ax1.set_ylabel(r'$- E_\text{pair} (MeV)$', fontsize=13)
+        #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
         ax1.set_ylim(min(sorted_epair_sum) -0.5, max(sorted_epair_sum) + 1)
         ax1.grid(True, linestyle='--', linewidth=0.5)
+        ax1.set_title(r"$^{24}$Mg", fontsize=18, fontweight='bold', pad=20)
+        ax1.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
 
     # Bottom plot: Eint
     ax2.plot(sorted_betas, sorted_eints, 'o', color='crimson', label='Eint data', alpha=0.7)
     ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
-    ax2.set_title(r"$^{24}$Mg total energy as a function of $\beta_2$", fontsize=18, fontweight='bold', pad=20)
     ax2.set_xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
-    ax2.set_ylabel('Eint', fontsize=13)
-    ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
+    ax2.set_ylabel('E (MeV)', fontsize=13)
+    #ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
     ax2.set_ylim(min(sorted_eints)-0.5, max(sorted_eints) + 5)
     ax2.grid(True, linestyle='--', linewidth=0.5)
+    ax2.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
 
     # Clean layout
     plt.tight_layout()
@@ -89,4 +91,4 @@ def plot_json_data(file_path):
 
 # Example usage
 if __name__ == '__main__':
-    plot_json_data('output/def_pairing/mg.json')
+    plot_json_data('output/def_pairing_save/mg.json')
