@@ -1,26 +1,26 @@
 {
     "interaction": "SLy5",
     "coulomb": false,
-    "Jterms": true,
+    "Jterms": false,
     "spinOrbit": true,
     "COMCorrection": true,
     "outputName": "mg",
     "outputDirectory": "def_pairing",
-    "initialBeta": 0.1,
+    "initialBeta": 0.4,
     "box": {
         "size": 10,
         "n": 20
     },
     "nucleus": {
-        "A": 20,
-        "Z": 10
+        "A": 24,
+        "Z": 12
     },
     "pairing": {
         "window": 5.0,
-        "additionalStates": 10,
+        "additionalStates": 8,
         "alpha": 0.0,
-        "V0N": -300.0,
-        "V0P": -300.0
+        "V0N": -400.0,
+        "V0P": -400.0
     },
     "log": [
         "tot_energies",
@@ -28,10 +28,10 @@
         "multipoles_2"
     ],
     "hf": {
-        "cycles": 300,
-        "energyTol": 1e-05,
+        "cycles": 100,
+        "energyTol": 1e-04,
         "gcg": {
-            "maxIter": 2,
+            "maxIter": 1,
             "nev": 0,
             "tol": 0.001,
             "steps": 80,

@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     std::cout << neutronsEigenpair.second << std::endl;
 
     pair<MatrixXcd, VectorXd> protonsEigenpair;
-    if (N > Z)
+    if (N >= Z)
     {
       protonsEigenpair.second = neutronsEigenpair.second.head(orbitalsP);
       protonsEigenpair.first = neutronsEigenpair.first.leftCols(orbitalsP);
@@ -100,10 +100,6 @@ int main(int argc, char **argv)
     else if (N < Z)
     {
       throw std::runtime_error("Protons cannot be smaller than neutrons");
-    }
-    else
-    {
-      protonsEigenpair = neutronsEigenpair;
     }
 
     Wavefunction::normalize(neutronsEigenpair.first, grid);
@@ -115,7 +111,7 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    for (double mu = 18.0; mu > -20; mu -= 3.0)
+    for (double mu = 30.0; mu > -14; mu -= 4.0)
     {
       mu20s.push_back(mu);
     }
@@ -140,7 +136,7 @@ int main(int argc, char **argv)
         constraints.push_back(make_unique<XY2Constraint>(0.0));
         constraints.push_back(make_unique<OctupoleConstraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
-        data = IterationData(input);
+        data.UConstr = nullptr;
       }
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
       {

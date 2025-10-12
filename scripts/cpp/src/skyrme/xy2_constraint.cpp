@@ -5,7 +5,7 @@
 #include "util/iteration_data.hpp"
 #include "operators/integral_operators.hpp"
 
-XY2Constraint::XY2Constraint(double mu20) : mu20(mu20), C(0.01), lambda(0.0), firstIter(true)
+XY2Constraint::XY2Constraint(double mu20) : mu20(mu20), C(0.005), lambda(0.0), firstIter(true)
 {
   residuals.clear();
 }
@@ -47,7 +47,7 @@ Eigen::VectorXd XY2Constraint::getField(IterationData *data)
     // return Eigen::VectorXd::Zero(data->rhoN->rows());
     return 2.0 * C * (Q22 - mu20) * O;
   }
-  double gamma = 0.02;
+  double gamma = 0.2;
 
   // if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
   // if(data->energyDiff < data->constraintTol) {

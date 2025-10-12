@@ -139,6 +139,8 @@ double IterationData::totalEnergyIntegral(SkyrmeParameters params,
 
   double energy_Hsg = input.useJ ? Hsg(params, grid) : 0.0;
 
+  std::cout << "C0RhoEnergy: " << energy_C0Rho << ", C1RhoEnergy: " << energy_C1Rho << ", C0nabla2RhoEnergy: " << energy_C0nabla2Rho << ", C1nabla2RhoEnergy: " << energy_C1nabla2Rho << ", C0TauEnergy: " << energy_C0Tau << ", C1TauEnergy: " << energy_C1Tau << ", CoulombDirectEnergy: " << energy_CoulombDirect << ", Hso: " << energy_Hso << ", Hsg: " << energy_Hsg << std::endl;
+
   return energy_C0Rho + energy_C1Rho + energy_C0nabla2Rho + energy_C1nabla2Rho +
          energy_C0Tau + energy_C1Tau + energy_CoulombDirect + bcsN.Epair + bcsP.Epair +
          SlaterCoulombEnergy(grid) + energy_Hso + energy_Hsg;
@@ -286,8 +288,7 @@ void IterationData::updateQuantities(
 
   int N = A - Z;
 
-  // double mu = constraints.size() == 0 ? std::min(0.01 + 0.01 * iter, 0.5) : 0.2;
-  double mu = constraints.size() == 0 ? 0.25 : 0.05;
+  double mu = constraints.size() > 0 ? 0.1 : std::min(0.05 + 0.01 * iter, 0.4);
   std::cout << "mu: " << mu << std::endl;
 
   if (!input.pairing)
@@ -330,8 +331,8 @@ void IterationData::updateQuantities(
     if (UN == nullptr)
     {
       Eigen::VectorXd tmpOldDelta(1);
-      bcsN = BCS::BCSiter(neutronsPair.first, neutronsPair.second, N, input.pairingParameters, NucleonType::N, tmpOldDelta, 0.0);
-      bcsP = BCS::BCSiter(protonsPair.first, protonsPair.second, Z, input.pairingParameters, NucleonType::P, tmpOldDelta, 0.0);
+      bcsN = BCS::BCSiter(neutronsPair.first, neutronsPair.second, N, input.pairingParameters, NucleonType::N, tmpOldDelta, 0.5 * (neutronsPair.second(N - 1) + neutronsPair.second(N)));
+      bcsP = BCS::BCSiter(protonsPair.first, protonsPair.second, Z, input.pairingParameters, NucleonType::P, tmpOldDelta, 0.5 * (protonsPair.second(Z - 1) + protonsPair.second(Z)));
     }
     else
     {
@@ -344,8 +345,8 @@ void IterationData::updateQuantities(
 
   Eigen::MatrixXcd neutrons, protons;
 
-  neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2.array().pow(0.5));
-  protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().pow(0.5));
+  neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2.array().sqrt());
+  protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().sqrt());
 
   rhoN = rhoN == nullptr ? std::make_shared<Eigen::VectorXd>(Wavefunction::density(neutrons, grid))
                          : std::make_shared<Eigen::VectorXd>((*rhoN) * (1.0 - mu) + Wavefunction::density(neutrons, grid) * mu);
@@ -494,13 +495,14 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
+  double muConst = 0.8;
   if (UConstr == nullptr)
   {
     UConstr = std::make_shared<Eigen::VectorXd>(constraintField);
   }
   else
   {
-    *UConstr = (*UConstr) * (1 - mu) + constraintField * mu;
+    *UConstr = (*UConstr) * (1 - muConst) + constraintField * muConst;
   }
   *UN += *UConstr;
   *UP += *UConstr;
