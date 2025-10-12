@@ -5,12 +5,12 @@ from scipy.interpolate import make_interp_spline
 
 def plot_json_data(file_path):
     """
-    Reads a JSON file, extracts 'Eint' and 'Beta' data, and plots them.
-    The function also fits a smooth curve to the data points.
-
-    Args:
-        file_path (str): The path to the JSON file.
+    Reads a JSON file, extracts 'Eint', 'EpairN', 'EpairP', and 'beta' data,
+    and plots two stacked graphs:
+      - Top: -(EpairN + EpairP) vs beta
+      - Bottom: Eint vs beta
     """
+
     try:
         with open(file_path, 'r') as f:
             data = json.load(f)
@@ -21,62 +21,72 @@ def plot_json_data(file_path):
         print(f"Error: The file at {file_path} is not a valid JSON.")
         return
 
-    # Extract Eint and Beta values from the list of dictionaries
-    betas = [item['beta'] for item in data]
-    eints = [item['Eint'] for item in data]
+    # Extract Beta, Eint, EpairN, EpairP
+    betas = [item['beta'] for item in data if 'beta' in item]
+    eints = [item['Eint'] for item in data if 'Eint' in item]
+    epairNs = [item['EpairN'] for item in data if 'EpairN' in item]
+    epairPs = [item['EpairP'] for item in data if 'EpairP' in item]
 
-    # Check if we have data to plot
     if not betas or not eints:
-        print("Error: The JSON file does not contain 'Eint' or 'Beta' data.")
+        print("Error: The JSON file does not contain 'Eint' or 'beta' data.")
         return
+    if not epairNs or not epairPs:
+        print("Warning: The JSON file does not contain both 'EpairN' and 'EpairP' data. Only plotting Eint.")
+        epair_sum = None
+    else:
+        epair_sum = - (np.array(epairNs) + np.array(epairPs))  # negative sum
 
-    # Sort data based on Beta for correct interpolation
-    sorted_data = sorted(zip(betas, eints))
-    sorted_betas = np.array([item[0] for item in sorted_data])
-    sorted_eints = np.array([item[1] for item in sorted_data])
+    # Sort data by Beta
+    if epair_sum is not None:
+        sorted_data = sorted(zip(betas, eints, epair_sum))
+        sorted_betas = np.array([b for b, _, _ in sorted_data])
+        sorted_eints = np.array([e for _, e, _ in sorted_data])
+        sorted_epair_sum = np.array([p for _, _, p in sorted_data])
+    else:
+        sorted_data = sorted(zip(betas, eints))
+        sorted_betas = np.array([b for b, _ in sorted_data])
+        sorted_eints = np.array([e for _, e in sorted_data])
 
-    # Create a smooth interpolation curve
+    # Create interpolation for Eint
     x_new = np.linspace(sorted_betas.min(), sorted_betas.max(), 500)
-    spline = make_interp_spline(sorted_betas, sorted_eints, k=3)  # k=3 for a cubic spline
-    y_smooth = spline(x_new)
+    eint_spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
+    y_eint_smooth = eint_spline(x_new)
 
-    # Plotting the data
+    if epair_sum is not None:
+        epair_spline = make_interp_spline(sorted_betas, sorted_epair_sum, k=3)
+        y_epair_smooth = epair_spline(x_new)
+
+    # Create stacked plots
     plt.style.use('seaborn-v0_8-whitegrid')
-    plt.figure(figsize=(10, 6))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8),
+                                   gridspec_kw={'height_ratios': [1, 2]},
+                                   sharex=True)
 
-    # Plot data points
-    plt.plot(sorted_betas, sorted_eints, 'o', label='Data', markersize=8, color='crimson', alpha=0.7)
+    fontsize = 12
+    # Top plot: -(EpairN + EpairP)
+    if epair_sum is not None:
+        ax1.plot(sorted_betas, sorted_epair_sum, 'o', color='teal', label='-Epair', alpha=0.7)
+        ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
+        ax1.set_ylabel(r'$- E_\text{pair}$', fontsize=13)
+        ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
+        ax1.set_ylim(min(sorted_epair_sum) -0.5, max(sorted_epair_sum) + 1)
+        ax1.grid(True, linestyle='--', linewidth=0.5)
 
-    # Adding titles and labels
-    plt.title(r"$^{24}$Mg total energy as a function of $\beta_2$", fontsize=18, fontweight='bold', pad=20)
-    plt.xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
-    plt.ylabel('E', fontsize=14, labelpad=15)
+    # Bottom plot: Eint
+    ax2.plot(sorted_betas, sorted_eints, 'o', color='crimson', label='Eint data', alpha=0.7)
+    ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
+    ax2.set_title(r"$^{24}$Mg total energy as a function of $\beta_2$", fontsize=18, fontweight='bold', pad=20)
+    ax2.set_xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
+    ax2.set_ylabel('Eint', fontsize=13)
+    ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
+    ax2.set_ylim(min(sorted_eints)-0.5, max(sorted_eints) + 5)
+    ax2.grid(True, linestyle='--', linewidth=0.5)
 
-    # Add a legend and grid
-    plt.legend(fontsize=12, frameon=True, shadow=True, fancybox=True)
-
-    # Customize the ticks
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
-
-    # Add annotations for a cleaner look
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-
-    # Make the plot layout tight
+    # Clean layout
     plt.tight_layout()
-
-    # Show the plot
     plt.show()
 
-# Example usage:
-# Assuming your JSON file is named 'data.json' and is in the same directory.
-# Example content of 'data.json':
-# [
-#     {"Eint": 10.5, "Beta": 1.1},
-#     {"Eint": 12.3, "Beta": 1.5},
-#     {"Eint": 15.0, "Beta": 2.0},
-#     {"Eint": 18.2, "Beta": 2.5},
-#     {"Eint": 22.0, "Beta": 3.0}
-# ]
+
+# Example usage
 if __name__ == '__main__':
-    plot_json_data('output/def/surf_beta_mg.json')
+    plot_json_data('output/def_pairing/mg.json')
