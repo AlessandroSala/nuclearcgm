@@ -12,12 +12,12 @@
         "n": 20
     },
     "nucleus": {
-        "A": 24,
-        "Z": 12
+        "A": 20,
+        "Z": 10
     },
     "pairing": {
         "window": 5.0,
-        "additionalStates": 8,
+        "additionalStates": 10,
         "alpha": 0.0,
         "V0N": -400.0,
         "V0P": -400.0

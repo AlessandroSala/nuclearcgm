@@ -58,15 +58,15 @@ def plot_json_data(file_path):
 
     # Create stacked plots
     plt.style.use('seaborn-v0_8-whitegrid')
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8),
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8),
                                    gridspec_kw={'height_ratios': [1, 2]},
                                    sharex=True)
 
     fontsize = 12
     # Top plot: -(EpairN + EpairP)
     if epair_sum is not None:
-        ax1.plot(sorted_betas, sorted_epair_sum, 'o', color='teal', label='-Epair', alpha=0.7)
-        ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
+        ax1.plot(sorted_betas, sorted_epair_sum, 'x', color='teal', label='-Epair', alpha=0.7, linestyle='--')
+        #ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
         ax1.set_ylabel(r'$- E_\text{pair} (MeV)$', fontsize=13)
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
         ax1.set_ylim(min(sorted_epair_sum) -0.5, max(sorted_epair_sum) + 1)
@@ -75,8 +75,8 @@ def plot_json_data(file_path):
         ax1.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
 
     # Bottom plot: Eint
-    ax2.plot(sorted_betas, sorted_eints, 'o', color='crimson', label='Eint data', alpha=0.7)
-    ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
+    ax2.plot(sorted_betas, sorted_eints, 'x', color='crimson', label='Eint data', alpha=0.7, linestyle='--')
+    #ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
     ax2.set_xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
     ax2.set_ylabel('E (MeV)', fontsize=13)
     #ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
@@ -91,4 +91,4 @@ def plot_json_data(file_path):
 
 # Example usage
 if __name__ == '__main__':
-    plot_json_data('output/def_pairing_save/mg.json')
+    plot_json_data('output/def_pairing_save/ne.json')

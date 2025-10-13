@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    for (double mu = 30.0; mu > -30; mu -= 4.0)
+    for (double mu = 22.0; mu < 60; mu += 3.0)
     {
       mu20s.push_back(mu);
     }

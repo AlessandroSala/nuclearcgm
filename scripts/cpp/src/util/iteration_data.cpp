@@ -291,40 +291,42 @@ void IterationData::updateQuantities(
   double mu = constraints.size() > 0 ? 0.1 : std::min(0.05 + 0.01 * iter, 0.4);
   std::cout << "mu: " << mu << std::endl;
 
+  Eigen::VectorXd v2N(neutronsPair.second.size()), u2N(neutronsPair.second.size());
+  Eigen::VectorXd v2P(protonsPair.second.size()), u2P(protonsPair.second.size());
+  v2N.setZero();
+  v2P.setZero();
+  u2N.fill(1.0);
+  u2P.fill(1.0);
+  for (int i = 0; i < N; ++i)
+  {
+    u2N(i) = 0.0;
+    v2N(i) = 1.0;
+  }
+  for (int i = 0; i < Z; ++i)
+  {
+    u2P(i) = 0.0;
+    v2P(i) = 1.0;
+  }
+  BCS::BCSResult nullBCSN = {
+      .u2 = u2N,
+      .v2 = v2N,
+      .Delta = Eigen::VectorXd::Zero(N),
+      .qpEnergies = v2N.cwiseProduct(neutronsPair.second),
+      .lambda = 0.0,
+      .Epair = 0.0,
+  };
+  BCS::BCSResult nullBCSP = {
+      .u2 = u2P,
+      .v2 = v2P,
+      .Delta = Eigen::VectorXd::Zero(Z),
+      .qpEnergies = v2P.cwiseProduct(protonsPair.second),
+      .lambda = 0.0,
+      .Epair = 0.0,
+  };
   if (!input.pairing)
   {
-    Eigen::VectorXd v2N(neutronsPair.second.size()), u2N(neutronsPair.second.size());
-    Eigen::VectorXd v2P(protonsPair.second.size()), u2P(protonsPair.second.size());
-    v2N.setZero();
-    v2P.setZero();
-    u2N.fill(1.0);
-    u2P.fill(1.0);
-    for (int i = 0; i < N; ++i)
-    {
-      u2N(i) = 0.0;
-      v2N(i) = 1.0;
-    }
-    for (int i = 0; i < Z; ++i)
-    {
-      u2P(i) = 0.0;
-      v2P(i) = 1.0;
-    }
-    bcsN = {
-        .u2 = u2N,
-        .v2 = v2N,
-        .Delta = Eigen::VectorXd::Zero(N),
-        .qpEnergies = v2N.cwiseProduct(neutronsPair.second),
-        .lambda = 0.0,
-        .Epair = 0.0,
-    };
-    bcsP = {
-        .u2 = u2P,
-        .v2 = v2P,
-        .Delta = Eigen::VectorXd::Zero(Z),
-        .qpEnergies = v2P.cwiseProduct(protonsPair.second),
-        .lambda = 0.0,
-        .Epair = 0.0,
-    };
+    bcsN = nullBCSN;
+    bcsP = nullBCSP;
   }
   else
   {
@@ -342,6 +344,12 @@ void IterationData::updateQuantities(
   }
   std::cout << "N particle number: " << bcsN.v2.sum() << std::endl;
   std::cout << "P particle number: " << bcsP.v2.sum() << std::endl;
+  if (std::isnan(bcsN.v2.sum()) || std::isnan(bcsP.v2.sum()))
+  {
+    std::cout << "WARNING: NaN particle number" << std::endl;
+    bcsN = nullBCSN;
+    bcsP = nullBCSP;
+  }
 
   Eigen::MatrixXcd neutrons, protons;
 
