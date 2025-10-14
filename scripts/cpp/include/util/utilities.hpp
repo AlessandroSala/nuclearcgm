@@ -13,6 +13,7 @@ class BCSResult;
 namespace Utilities
 {
 
+  double mu20FromBeta(double beta, double R, int A);
       std::pair<Eigen::MatrixXcd, Eigen::VectorXd>
       solve(const ComplexSparseMatrix &hamiltonian, GCGParameters &calc,
             const Eigen::MatrixXcd &guess);

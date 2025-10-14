@@ -55,9 +55,10 @@ hm = sns.heatmap(
     annot = True
 )
 hm.set_yticklabels([f"{y:.2f}" for y in pivot_table.index])
-plt.xlabel("Box size [fm]")
-plt.ylabel("Step size [fm]")
-plt.title("Stability map $^{16}$O")
+plt.xlabel("Box size [fm]", fontsize=12)
+plt.ylabel("Step size [fm]", fontsize = 12)
+#plt.title("Stability map $^{16}$O", fontsize=12)
 plt.tight_layout()
+
 plt.show()
 

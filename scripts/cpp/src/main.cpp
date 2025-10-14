@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 
     Hamiltonian initialWS(make_shared<Grid>(grid), pots);
 
-    double nucRadius = pow(A, 0.3333333) * 1.27;
+    double nucRadius = pow(A, 0.3333333) * 1.20;
     auto guess =
         harmonic_oscillator_guess(grid, orbitalsN, nucRadius, true);
     pair<MatrixXcd, VectorXd> neutronsEigenpair =
@@ -111,10 +111,19 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
-    for (double mu = 22.0; mu < 60; mu += 3.0)
+
+    if(input.calculationType == CalculationType::deformation_curve){
+      std::cout << "=== Deformation curve, beta: [" << input.deformationCurve.start << ", " << input.deformationCurve.end << "], step: " << input.deformationCurve.step << " ===" << std::endl;
+      double R0 = 1.2*pow(A, 1.0 / 3.0);
+      double startMu = Utilities::mu20FromBeta(input.deformationCurve.start, R0, A);
+      double endMu = Utilities::mu20FromBeta(input.deformationCurve.end, R0, A);
+      double stepMu = Utilities::mu20FromBeta(input.deformationCurve.step, R0, A);
+    for (double mu = startMu; mu <= endMu; mu += stepMu)
     {
       mu20s.push_back(mu);
     }
+    std::cout << "=== Deformation curve, mu: [" << startMu << ", " << endMu << "], step: " << stepMu << " ===" << std::endl;
+  }
     vector<unique_ptr<Constraint>> constraints;
     // Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;

@@ -37,11 +37,14 @@ for i, f in enumerate(files):
     plt.plot(iterations, y, label=label, linewidth=2)
 
 # Labels and legend
-plt.xlabel("Iteration number", fontsize=12)
+plt.xlabel("Iteration number [-]", fontsize=12)
 plt.ylabel(r"Relative error [-]", fontsize=12)
 plt.yscale("log")
-plt.legend(title="CG tolerance")
+plt.legend(title="CG tolerance", fontsize = 12, title_fontsize = 12)
 plt.grid(True, linestyle="--", alpha=0.5, which="both")
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+
 
 plt.tight_layout()
 plt.show()
