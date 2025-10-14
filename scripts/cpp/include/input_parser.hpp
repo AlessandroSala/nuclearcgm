@@ -5,6 +5,18 @@
 
 class Grid;
 
+typedef enum CalculationType {
+  deformation_curve,
+  ground_state
+} CalculationType;
+
+typedef struct DeformationCurve
+{
+  double start;
+  double end;
+  double step;
+} DeformationCurve;
+
 typedef struct GCGParameters
 {
   int nev;
@@ -92,6 +104,8 @@ public:
   PairingParameters pairingParameters;
 
   SkyrmeParameters skyrme;
+  CalculationType calculationType;
+  DeformationCurve deformationCurve;
 
 private:
   nlohmann::json data;

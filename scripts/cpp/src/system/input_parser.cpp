@@ -28,7 +28,18 @@ InputParser::InputParser(std::string inputFile)
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
-  initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
+  calculationType = data.contains("deformation") ? CalculationType::deformation_curve
+                                                : CalculationType::ground_state;
+  if(calculationType == CalculationType::deformation_curve)
+  {
+    deformationCurve = DeformationCurve{data["deformation"]["start"],
+                                        data["deformation"]["end"],
+                                        data["deformation"]["step"]};
+    initialBeta = deformationCurve.start;
+  }
+  else {
+    initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
+  }
 
   A = data["nucleus"]["A"];
   Z = data["nucleus"]["Z"];

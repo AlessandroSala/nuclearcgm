@@ -71,7 +71,7 @@ def plot_json_data(file_path):
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
         ax1.set_ylim(min(sorted_epair_sum) -0.5, max(sorted_epair_sum) + 1)
         ax1.grid(True, linestyle='--', linewidth=0.5)
-        ax1.set_title(r"$^{24}$Mg", fontsize=18, fontweight='bold', pad=20)
+        ax1.set_title(r"$^{20}$Ne", fontsize=18, fontweight='bold', pad=20)
         ax1.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
 
     # Bottom plot: Eint
@@ -91,4 +91,4 @@ def plot_json_data(file_path):
 
 # Example usage
 if __name__ == '__main__':
-    plot_json_data('output/def_pairing_save/ne.json')
+    plot_json_data('output/def_pairing_save/mg.json')

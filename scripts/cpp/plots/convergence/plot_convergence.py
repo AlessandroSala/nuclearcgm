@@ -69,13 +69,13 @@ for i, (f1, f2) in enumerate(file_pairs):
     ax.set_yscale("log")
     #ax.set_title(f"Pair {i+1}")
     ax.grid(True, which="major", ls="--", alpha=0.7)
-    ax.legend(fontsize="small", title = f"{i+1} Inverse power step" + ("" if i == 0 else "s"))
+    ax.legend(fontsize=10, title_fontsize=10, title = f"{i+1} Inverse power step" + ("" if i == 0 else "s"))
 
 # Remove unused subplots if any
 for j in range(i+1, len(axes)):
     fig.delaxes(axes[j])
 
-fig.text(0.5, 0.09, "Iteration Number", ha="center")
-fig.text(0.09, 0.5, "Relative error [-]", va="center", rotation="vertical")
-plt.tight_layout(rect=[0.1, 0.1, 0.9, 0.9])
+fig.text(0.5, 0.01, "Iteration Number [-]", ha="center", fontsize = 12)
+fig.text(0.01, 0.5, "Relative error [-]", va="center", rotation="vertical", fontsize = 12)
+plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.98])
 plt.show()

@@ -51,3 +51,6 @@ void Utilities::skyrmeHamiltonian(std::vector<std::shared_ptr<Potential>> &pots,
     pots.push_back(make_shared<LocalCoulombPotential>(data->UCoul));
   }
 }
+double Utilities::mu20FromBeta(double beta, double R, int A) {
+  return beta * 3 * A * R * R / 4 / M_PI;
+}
