@@ -29,15 +29,16 @@ InputParser::InputParser(std::string inputFile)
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
   calculationType = data.contains("deformation") ? CalculationType::deformation_curve
-                                                : CalculationType::ground_state;
-  if(calculationType == CalculationType::deformation_curve)
+                                                 : CalculationType::ground_state;
+  if (calculationType == CalculationType::deformation_curve)
   {
     deformationCurve = DeformationCurve{data["deformation"]["start"],
                                         data["deformation"]["end"],
                                         data["deformation"]["step"]};
-    initialBeta = deformationCurve.start;
+    initialBeta = data["deformation"].contains("guess") ? data["deformation"]["guess"].get<double>() : deformationCurve.start * 1;
   }
-  else {
+  else
+  {
     initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
   }
 

@@ -54,6 +54,7 @@ hm = sns.heatmap(
     fmt=".6f",
     annot = True
 )
+
 hm.set_yticklabels([f"{y:.2f}" for y in pivot_table.index])
 plt.xlabel("Box size [fm]", fontsize=12)
 plt.ylabel("Step size [fm]", fontsize = 12)

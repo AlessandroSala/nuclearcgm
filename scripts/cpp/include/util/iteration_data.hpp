@@ -91,10 +91,12 @@ public:
   double SlaterCoulombEnergy(const Grid &grid);
 
   QuadrupoleDeformation quadrupoleDeformation();
+  double betaRealRadius();
 
   double axis2Exp(char dir);
 
   double protonRadius();
+  double radius();
   double neutronRadius();
   double chargeRadius(const Eigen::MatrixXcd psiN, const Eigen::MatrixXcd psiP,
                       int N, int Z);

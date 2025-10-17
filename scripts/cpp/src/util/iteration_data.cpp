@@ -49,6 +49,8 @@ void IterationData::logData(
 
   std::cout << "Beta: " << beta << ", Gamma: " << gamma * 180.0 / M_PI << " deg"
             << std::endl;
+  std::cout << "Beta w/ real radius: " << betaRealRadius() << ", Gamma: " << gamma * 180.0 / M_PI << " deg"
+            << std::endl;
 }
 
 IterationData::IterationData(InputParser input) : input(input)
@@ -87,6 +89,18 @@ double IterationData::neutronRadius()
   return integral(f, grid) / integral(*rhoN, grid);
 }
 
+double IterationData::radius()
+{
+
+  auto grid = *Grid::getInstance();
+  auto pos = Fields::position();
+  using Eigen::VectorXd;
+  using Operators::integral;
+  VectorXd rho = *rhoN + *rhoP;
+  VectorXd f = pos.array().pow(2) * rho.array();
+
+  return integral(f, grid) / integral(rho, grid);
+}
 double IterationData::chargeRadius(const Eigen::MatrixXcd psiN,
                                    const Eigen::MatrixXcd psiP, int N, int Z)
 {

@@ -111,31 +111,50 @@ int main(int argc, char **argv)
     std::vector<double> HFEnergies;
 
     vector<double> mu20s;
+    mu20s.clear();
+    std::cout << input.calculationType << std::endl;
 
-    if(input.calculationType == CalculationType::deformation_curve){
+    if (input.calculationType == CalculationType::deformation_curve)
+    {
       std::cout << "=== Deformation curve, beta: [" << input.deformationCurve.start << ", " << input.deformationCurve.end << "], step: " << input.deformationCurve.step << " ===" << std::endl;
-      double R0 = 1.2*pow(A, 1.0 / 3.0);
+      double R0 = 1.2 * pow(A, 1.0 / 3.0);
       double startMu = Utilities::mu20FromBeta(input.deformationCurve.start, R0, A);
       double endMu = Utilities::mu20FromBeta(input.deformationCurve.end, R0, A);
       double stepMu = Utilities::mu20FromBeta(input.deformationCurve.step, R0, A);
-    for (double mu = startMu; mu <= endMu; mu += stepMu)
-    {
-      mu20s.push_back(mu);
+      if(startMu < endMu) {
+      for (double mu = startMu; mu <= endMu; mu += stepMu)
+      {
+        mu20s.push_back(mu);
+      }
+      }
+      else {
+      for (double mu = startMu; mu >= endMu; mu -= stepMu)
+      {
+        mu20s.push_back(mu);
+      }
+      }
+      std::cout << "=== Deformation curve, mu: [" << startMu << ", " << endMu << "], step: " << stepMu << " ===" << std::endl;
+      std::cout << mu20s.size() << " calculations to be done" << std::endl;
     }
-    std::cout << "=== Deformation curve, mu: [" << startMu << ", " << endMu << "], step: " << stepMu << " ===" << std::endl;
-  }
+    else
+    {
+      std::cout << "=== Ground state ===" << std::endl;
+    }
     vector<unique_ptr<Constraint>> constraints;
     // Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;
 
+    // i=-1 to guarantee a first gs iteration if calculation is not deformation curve
     for (int i = -1; i < (int)mu20s.size(); ++i)
     {
+      if (i == -1)
+        i = 0;
       int hfIter = 0;
 
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
       constraints.clear();
-      if (i >= 0)
+      if ((int)mu20s.size() != 0)
       {
         auto mu = mu20s[i];
         constraints.push_back(make_unique<XCMConstraint>(0.0));
@@ -145,7 +164,6 @@ int main(int argc, char **argv)
         constraints.push_back(make_unique<XY2Constraint>(0.0));
         constraints.push_back(make_unique<OctupoleConstraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
-        data.UConstr = nullptr;
       }
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
       {
