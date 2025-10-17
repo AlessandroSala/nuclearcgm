@@ -25,6 +25,7 @@ def plot_json_data(file_path):
     # Extract Beta, Eint, EpairN, EpairP
     betas = [item['betaReal'] for item in data if 'betaReal' in item]
     eints = [item['Eint'] for item in data if 'Eint' in item]
+    econst = [item['constraints_energy'] for item in data if 'constraints_energy' in item]
     epairNs = [item['EpairN'] for item in data if 'EpairN' in item]
     epairPs = [item['EpairP'] for item in data if 'EpairP' in item]
 
@@ -69,7 +70,7 @@ def plot_json_data(file_path):
     if epair_sum is not None and show_pairing:
         ax1.plot(sorted_betas, sorted_epair_sum, color='teal', label='-Epair', alpha=0.7, linestyle='-')
         #ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
-        ax1.set_ylabel(r'$- E_\text{pair} (MeV)$', fontsize=13)
+        ax1.set_ylabel(r'$- E_\text{pair} [MeV]$', fontsize=13)
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
         ax1.set_ylim(min(sorted_epair_sum) -0.5, max(sorted_epair_sum) + 1)
         ax1.grid(True, linestyle='--', linewidth=0.5)
@@ -85,7 +86,18 @@ def plot_json_data(file_path):
     ax2.set_ylim(min(sorted_eints)-0.5, max(sorted_eints) + 1)
     ax2.grid(True, linestyle='--', linewidth=0.5)
     ax2.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
+    emin_idx = np.argmin(sorted_eints)
+    emin = sorted_eints[emin_idx]
+    bmin = sorted_betas[emin_idx]
 
+# Add small legend box
+    ax2.text(0.6, 0.95,
+             fr"$E_{{min}} = {emin:.2f}$ MeV" "\n" fr"$\beta_2 = {bmin:.3f}$",
+             transform=ax2.transAxes,
+             fontsize=11,
+             verticalalignment='top',
+             horizontalalignment='left',
+             bbox=dict(boxstyle='round,pad=0.5', fc='white', ec='gray', alpha=0.8))
     # Clean layout
     plt.tight_layout()
     plt.show()

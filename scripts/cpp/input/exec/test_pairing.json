@@ -6,6 +6,7 @@
     "COMCorrection": true,
     "outputName": "test",
     "outputDirectory": "test_curve_mg",
+    "initialBeta": 0.5,
     "box": {
         "size": 10.0,
         "n": 30
