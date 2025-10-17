@@ -14,6 +14,7 @@ def plot_json_data(file_path):
     try:
         with open(file_path, 'r') as f:
             data = json.load(f)
+            data = data["data"]
     except FileNotFoundError:
         print(f"Error: The file at {file_path} was not found.")
         return
@@ -22,7 +23,7 @@ def plot_json_data(file_path):
         return
 
     # Extract Beta, Eint, EpairN, EpairP
-    betas = [item['beta'] for item in data if 'beta' in item]
+    betas = [item['betaReal'] for item in data if 'betaReal' in item]
     eints = [item['Eint'] for item in data if 'Eint' in item]
     epairNs = [item['EpairN'] for item in data if 'EpairN' in item]
     epairPs = [item['EpairP'] for item in data if 'EpairP' in item]
@@ -49,23 +50,24 @@ def plot_json_data(file_path):
 
     # Create interpolation for Eint
     x_new = np.linspace(sorted_betas.min(), sorted_betas.max(), 500)
-    eint_spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
-    y_eint_smooth = eint_spline(x_new)
-
-    if epair_sum is not None:
-        epair_spline = make_interp_spline(sorted_betas, sorted_epair_sum, k=3)
-        y_epair_smooth = epair_spline(x_new)
+    #eint_spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
+    #y_eint_smooth = eint_spline(x_new)
 
     # Create stacked plots
-    plt.style.use('seaborn-v0_8-whitegrid')
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8),
-                                   gridspec_kw={'height_ratios': [1, 2]},
-                                   sharex=True)
+    plt.style.use('seaborn-v0_8-ticks')
+    show_pairing = False
+
+    if show_pairing:
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8),
+                                       gridspec_kw={'height_ratios': [1, 2]},
+                                       sharex=True)
+    else:
+        fig, ax2 = plt.subplots(1, 1, figsize=(6, 6), sharex = True)
 
     fontsize = 12
     # Top plot: -(EpairN + EpairP)
-    if epair_sum is not None:
-        ax1.plot(sorted_betas, sorted_epair_sum, 'x', color='teal', label='-Epair', alpha=0.7, linestyle='--')
+    if epair_sum is not None and show_pairing:
+        ax1.plot(sorted_betas, sorted_epair_sum, color='teal', label='-Epair', alpha=0.7, linestyle='-')
         #ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
         ax1.set_ylabel(r'$- E_\text{pair} (MeV)$', fontsize=13)
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
@@ -75,12 +77,12 @@ def plot_json_data(file_path):
         ax1.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
 
     # Bottom plot: Eint
-    ax2.plot(sorted_betas, sorted_eints, 'x', color='crimson', label='Eint data', alpha=0.7, linestyle='--')
+    ax2.plot(sorted_betas, sorted_eints, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
     #ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
     ax2.set_xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
     ax2.set_ylabel('E (MeV)', fontsize=13)
     #ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
-    ax2.set_ylim(min(sorted_eints)-0.5, max(sorted_eints) + 5)
+    ax2.set_ylim(min(sorted_eints)-0.5, max(sorted_eints) + 1)
     ax2.grid(True, linestyle='--', linewidth=0.5)
     ax2.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
 
@@ -91,4 +93,5 @@ def plot_json_data(file_path):
 
 # Example usage
 if __name__ == '__main__':
-    plot_json_data('output/def_pairing_save/mg.json')
+    #plot_json_data('output/def_pairing_save/mg.json')
+    plot_json_data('output/test_curve_mg/test.json')

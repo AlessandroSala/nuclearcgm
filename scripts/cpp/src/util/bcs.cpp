@@ -274,7 +274,7 @@ namespace BCS
 
         // Final kappa for pairing energy
         kappa = final_u2.array().sqrt() * final_v2.array().sqrt();
-        double Epair = -0.5 * kappa.dot(Delta);
+        double Epair = - kappa.dot(Delta);
         return {final_u2, final_v2, Delta, eps_pairs.array() * final_v2.array(), lambda, Epair};
     }
 

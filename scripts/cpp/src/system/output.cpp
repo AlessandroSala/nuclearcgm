@@ -205,7 +205,9 @@ void Output::shellsToFile(
   // }
 
   auto [beta, gamma] = iterationData->quadrupoleDeformation();
+  double betaRealRadius = iterationData->betaRealRadius();
   file << "Beta: " << beta << std::endl;
+  file << "Beta computed from real radius: " << betaRealRadius << std::endl;
   file << std::endl;
 
   double eKin = iterationData->kineticEnergy(input.skyrme, grid);
@@ -336,8 +338,9 @@ void Output::shellsToFile(
     constraintsEnergy += constraint->evaluate(iterationData);
   }
   // JSON output
-  nlohmann::json j = {
+  nlohmann::json jsonEntry = {
       {"beta", beta},
+      {"betaReal", betaRealRadius},
       {"Eint", totEnInt},
       {"EpairN", iterationData->bcsN.Epair},
       {"EpairP", iterationData->bcsP.Epair},
@@ -347,10 +350,28 @@ void Output::shellsToFile(
       {"constraints_energy", constraintsEnergy},
       {"step", grid.get_h()},
   };
-  auto json =
-      std::ofstream(folder + "/" + input.getOutputName() + ".json", fileMode);
-  json << j << "," << std::endl;
-  json.close();
+  nlohmann::json jsonOutput;
+  std::ifstream jsonReader(folder + "/" + input.getOutputName() + ".json");
+  if(jsonReader.good()) {
+    try {
+      jsonReader >> jsonOutput;
+    } catch (const std::exception &e) {
+      std::cout << "Error parsing JSON" << std::endl;
+      jsonOutput = nlohmann::json::object();
+    }
+  } else {
+    jsonOutput = nlohmann::json::object();
+  }
+
+  if(!jsonOutput.contains("data") || !jsonOutput["data"].is_array()) {
+    jsonOutput["data"] = nlohmann::json::array();
+  }
+  jsonOutput["data"].push_back(jsonEntry);
+
+  auto jsonOutputFile =
+      std::ofstream(folder + "/" + input.getOutputName() + ".json");
+  jsonOutputFile << jsonOutput << std::endl;
+  jsonOutputFile.close();
 
   file.close();
 }

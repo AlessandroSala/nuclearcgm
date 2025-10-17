@@ -5,7 +5,7 @@
 #include "util/iteration_data.hpp"
 #include "operators/integral_operators.hpp"
 
-QuadrupoleConstraint::QuadrupoleConstraint(double mu20) : mu20(mu20), C(0.005), lambda(0.0), firstIter(true)
+QuadrupoleConstraint::QuadrupoleConstraint(double mu20) : mu20(mu20), C(0.001), lambda(0.0), firstIter(true)
 {
     residuals.clear();
 }
@@ -50,7 +50,7 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
         return 2.0 * C * (Q20 - mu20) * O;
     }
 
-    double gamma = 0.2;
+    double gamma = 0.1;
 
     // if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
     // if(data->energyDiff < data->constraintTol) {

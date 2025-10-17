@@ -6,18 +6,37 @@
 #include <cmath>
 #include "spherical_harmonics.hpp"
 
+double IterationData::betaRealRadius()
+{
+
+  Eigen::VectorXd rho = *rhoP + *rhoN;
+  int A = input.getA();
+  double a20 = SphericalHarmonics::Q(2, 0, rho).real();
+  double beta = 4 * M_PI * a20 / (5 * A * radius());
+
+  if (axis2Exp('x') > axis2Exp('z'))
+  {
+    beta = -beta;
+  }
+
+  return beta;
+}
 QuadrupoleDeformation IterationData::quadrupoleDeformation()
 {
 
   Eigen::VectorXd rho = *rhoP + *rhoN;
   int A = input.getA();
-  double a20 = SphericalHarmonics::massMult(2, 0, rho);
-  double a22 = SphericalHarmonics::massMult(2, 2, rho);
+  int Z = input.getZ();
+  int N = A - Z;
+  double a20 = SphericalHarmonics::Q(2, 0, rho).real();
+  double a22 = SphericalHarmonics::Q(2, 2, rho).real();
   double R = 1.2 * pow(A, 1.0 / 3.0);
 
-  double gamma = atan2(a22, a20);
+  double gamma = atan2(std::sqrt(2) * a22, a20);
 
-  double beta = 4 * M_PI * std::sqrt(a20 * a20 + a22 * a22) / (3 * A * R * R);
+  double beta = 4 * M_PI * a20 / (3 * A * R * R);
+  double betaSim = 4 * M_PI * a20 / (5 * A * radius());
+  std::cout << "beta: " << beta << ", betaSim: " << betaSim << std::endl;
 
   if (axis2Exp('x') > axis2Exp('z'))
   {
