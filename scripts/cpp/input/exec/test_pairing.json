@@ -8,7 +8,8 @@
     "outputDirectory": "mg_deformation_curve_final",
     "deformation": {
       "end": 1.0,
-      "start": 0.71,
+      "start": 0.79,
+      "guess": 0.7,
       "step": 0.02
     },
     "box": {

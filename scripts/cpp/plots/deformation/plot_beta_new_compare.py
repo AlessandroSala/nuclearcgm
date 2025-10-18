@@ -79,7 +79,7 @@ def plot_json_data(file_path):
         #ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
         ax1.set_ylabel(r'$- E_\text{pair} [MeV]$', fontsize=13)
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
-        ax1.set_ylim(np.min(sorted_epair_sum) -0.5, max(sorted_epair_sum) + 5)
+        ax1.set_ylim(np.min(sorted_epair_sum) -0.5, max(sorted_epair_sum)-10 )
         ax1.grid(True, linestyle='--', linewidth=0.5)
         ax1.set_title(r"$^{20}$Ne", fontsize=18, fontweight='bold', pad=20)
         ax1.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
@@ -103,11 +103,12 @@ def plot_json_data(file_path):
     bmin_hfbtho = betas_hfbtho[emin_idx_hfbtho]
 
     marker_size = 4
-    plt.plot(bmin_hfbtho, emin_hfbtho, 'o', color='teal', markersize=marker_size)
-    plt.plot(bmin, emin, 'o', color='crimson', markersize=marker_size)
+    marker_style = 'D'
+    plt.plot(bmin_hfbtho, emin_hfbtho,marker_style, color='teal', markersize=marker_size)
+    plt.plot(bmin, emin, marker_style, color='crimson', markersize=marker_size)
 
     ax2.text(0.7, 0.95,
-             fr"HFBTHO" "\n" fr"$E_{{min}} = {emin_hfbtho:.2f}$ MeV" "\n" fr"$\beta_2 = {bmin_hfbtho:.3f}$",
+             "$\\boldsymbol{HFBTHO}$" "\n" fr"$E_{{min}} = {emin_hfbtho:.2f}$ MeV" "\n" fr"$\beta_2 = {bmin_hfbtho:.3f}$",
              transform=ax2.transAxes,
              fontsize=11,
              verticalalignment='top',
@@ -115,7 +116,7 @@ def plot_json_data(file_path):
              bbox=dict(boxstyle='round,pad=0.5', fc='white', ec='teal', alpha=0.8))
 # Add small legend box
     ax2.text(0.3, 0.95,
-             fr"GCG" "\n" fr"$E_{{min}} = {emin:.2f}$ MeV" "\n" fr"$\beta_2 = {bmin:.3f}$",
+             "$\\boldsymbol{GCG}$" "\n" fr"$E_{{min}} = {emin:.2f}$ MeV" "\n" fr"$\beta_2 = {bmin:.3f}$",
              transform=ax2.transAxes,
              fontsize=11,
              verticalalignment='top',
@@ -129,5 +130,5 @@ def plot_json_data(file_path):
 # Example usage
 if __name__ == '__main__':
     #plot_json_data('output/def_pairing_save/mg.json')
-    plot_json_data('output/test_curve_mg/test.json')
+    plot_json_data('output/mg_deformation_curve_final/test.json')
     
