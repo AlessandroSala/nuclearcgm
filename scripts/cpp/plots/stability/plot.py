@@ -51,7 +51,7 @@ hm = sns.heatmap(
     cmap="RdYlGn_r",
     cbar_kws={'label': r"Relative error [-]"},
     annot_kws={"color": "#222222"},
-    fmt=".6f",
+    fmt=".4f",
     annot = True
 )
 

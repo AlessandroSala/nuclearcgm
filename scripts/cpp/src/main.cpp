@@ -7,7 +7,6 @@
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
 #include "radius.hpp"
-#include "skyrme/axial_symmetry_constraint.hpp"
 #include "skyrme/local_coulomb_potential.hpp"
 #include "skyrme/octupole_constraint.hpp"
 #include "skyrme/quadrupole_constraint.hpp"
@@ -141,6 +140,7 @@ int main(int argc, char **argv)
       std::cout << "=== Ground state ===" << std::endl;
     }
     vector<unique_ptr<Constraint>> constraints;
+    constraints.clear();
     // Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;
 
@@ -153,8 +153,9 @@ int main(int argc, char **argv)
 
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
-      constraints.clear();
-      if ((int)mu20s.size() != 0)
+      //constraints.clear();
+      if((int)mu20s.size() != 0){
+      if ( i == 0)
       {
         auto mu = mu20s[i];
         constraints.push_back(make_unique<XCMConstraint>(0.0));
@@ -164,6 +165,10 @@ int main(int argc, char **argv)
         constraints.push_back(make_unique<XY2Constraint>(0.0));
         constraints.push_back(make_unique<OctupoleConstraint>(0.0));
         constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
+      } else {
+        //TODO: fix this, always keep quadrupole constraint last!
+        constraints.back()->target = mu20s[i];
+      }
       }
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
       {
@@ -217,7 +222,6 @@ int main(int argc, char **argv)
                       protonsEigenpair.second.sum());
 
         integralEnergies.push_back(newIntegralEnergy);
-        // double newHFEnergy = data.HFEnergy(SPE, constraints);
         double newHFEnergy = 0.0;
         HFEnergies.push_back(newHFEnergy);
         if (abs(newIntegralEnergy - integralEnergy) < input.getCalculation().hf.energyTol &&

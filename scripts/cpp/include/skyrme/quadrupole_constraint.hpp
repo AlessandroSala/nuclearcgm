@@ -5,6 +5,7 @@
 class QuadrupoleConstraint : public Constraint {
     public:
         QuadrupoleConstraint(double mu20);
+        QuadrupoleConstraint(double mu20, double lambda);
 
 
 
@@ -13,9 +14,9 @@ class QuadrupoleConstraint : public Constraint {
         double evaluate(IterationData* data) const override;
 
 
+    double target;
+    double lambda;
     private:
-        double mu20;
-        double lambda;
         double C;
         bool firstIter;
         std::vector<double> residuals;
