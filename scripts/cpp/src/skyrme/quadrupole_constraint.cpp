@@ -9,6 +9,10 @@ QuadrupoleConstraint::QuadrupoleConstraint(double mu20) : mu20(mu20), C(0.001), 
 {
     residuals.clear();
 }
+QuadrupoleConstraint::QuadrupoleConstraint(double mu20, double lambda_) : mu20(mu20), C(0.001), lambda(lambda_), firstIter(true)
+{
+    residuals.clear();
+}
 Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
 {
 
@@ -47,7 +51,8 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
     {
         firstIter = false;
         // return Eigen::VectorXd::Zero(data->rhoN->rows());
-        return 2.0 * C * (Q20 - mu20) * O;
+        double mu = mu20 - lambda / (2.0 * C);
+        return 2.0 * C * (Q20 - mu) * O;
     }
 
     double gamma = 0.15;

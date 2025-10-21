@@ -13,9 +13,9 @@ class YCMConstraint : public Constraint {
         double evaluate(IterationData* data) const override;
 
 
-    private:
-        double mu20;
+        double target;
         double lambda;
+    private:
         double C;
         bool firstIter;
         std::vector<double> residuals;

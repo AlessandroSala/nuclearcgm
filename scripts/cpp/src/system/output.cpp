@@ -236,6 +236,14 @@ void Output::shellsToFile(
   file << "C1 tau1: " << iterationData->C1TauEnergy(input.skyrme, grid)
        << " MeV" << std::endl;
   file << "E (kin): " << eKin << " MeV" << std::endl;
+  file << "E spin-orbit: " << iterationData->Hso(input.skyrme, grid) << " MeV"
+       << std::endl;
+  file << "E spin-orbit: " << iterationData->Hsg(input.skyrme, grid) << " MeV"
+       << std::endl;
+  file << "E coulomb direct: " << iterationData->CoulombDirectEnergy(grid)
+          << " MeV" << std::endl;
+  file << "E coulomb exchange: " << iterationData->SlaterCoulombEnergy(grid)
+          << " MeV" << std::endl;
   double totEnInt = eKin + skyrmeEnergy;
   file << "E_INT: " << totEnInt << " MeV" << std::endl;
 

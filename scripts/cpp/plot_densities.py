@@ -7,7 +7,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import cm
 
 name = "mg"
-density = np.genfromtxt("output/junk/density.csv")
+density = np.genfromtxt("output/mg_final/skmstar/density.csv")
 #density = np.genfromtxt("output/density.csv")
 n = 60
 n2 = n // 2
@@ -75,7 +75,7 @@ contour = plt.contourf(X, Y, mat, cmap=cmap, levels = 100, vmin = rho_min, vmax 
 #plt.colorbar(contour)
 plt.xlabel('x [fm]')
 plt.ylabel("y [fm]")
-plt.colorbar(label=f"Particle density [fm$^{-3}$]")
+plt.colorbar(label=f"Particle density [fm$^{{-3}}$]")
 limit = 7
 plt.axis([-limit, limit, -limit, limit])
 major_ticks = np.arange(-limit, limit+0.1, limit/5)
