@@ -5,12 +5,15 @@
 #include "util/iteration_data.hpp"
 #include "operators/integral_operators.hpp"
 
-QuadrupoleConstraint::QuadrupoleConstraint(double mu20) : mu20(mu20), C(0.001), lambda(0.0), firstIter(true)
+QuadrupoleConstraint::QuadrupoleConstraint(double target_) : C(0.001), lambda(0.0), firstIter(true)
 {
+  target = target_;
+
     residuals.clear();
 }
-QuadrupoleConstraint::QuadrupoleConstraint(double mu20, double lambda_) : mu20(mu20), C(0.001), lambda(lambda_), firstIter(true)
+QuadrupoleConstraint::QuadrupoleConstraint(double target_, double lambda_) : C(0.001), lambda(lambda_), firstIter(true)
 {
+  target = target_;
     residuals.clear();
 }
 Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
@@ -44,14 +47,14 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
     double Q20 = integral((Eigen::VectorXd)(O.array() * rho.array()), grid);
 
     std::cout << "q: " << Q20 << std::endl;
-    std::cout << "mu20: " << mu20 << std::endl;
+    std::cout << "target: " << target << std::endl;
 
     std::cout << "Constraint energy: " << evaluate(data) << std::endl;
     if (firstIter)
     {
         firstIter = false;
         // return Eigen::VectorXd::Zero(data->rhoN->rows());
-        double mu = mu20 - lambda / (2.0 * C);
+        double mu = target - lambda / (2.0 * C);
         return 2.0 * C * (Q20 - mu) * O;
     }
 
@@ -60,13 +63,13 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data)
     // if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
     // if(data->energyDiff < data->constraintTol) {
     std::cout << "Updated lambda Q20, previous: " << lambda;
-    lambda += gamma * 2.0 * C * (Q20 - mu20);
+    lambda += gamma * 2.0 * C * (Q20 - target);
     std::cout << ", new: " << lambda << std::endl;
     //}
-    double mu = mu20 - lambda / (2.0 * C);
-    double alpha = lambda + 2.0 * C * (Q20 - mu20);
+    double mu = target - lambda / (2.0 * C);
+    double alpha = lambda + 2.0 * C * (Q20 - target);
 
-    double residual = (Q20 - mu20);
+    double residual = (Q20 - target);
 
     residuals.push_back(residual);
     std::cout << "New residual: " << residuals.back();
@@ -103,5 +106,5 @@ double QuadrupoleConstraint::evaluate(IterationData *data) const
     Eigen::VectorXd O = 0.25 * sqrt(5 / (M_PI)) * (2.0 * z.array().pow(2) - y.array().pow(2) - x.array().pow(2));
 
     double Qc = integral((Eigen::VectorXd)(O.array() * rho.array()), grid);
-    return C * pow(Qc - mu20, 2) + lambda * (Qc - mu20);
+    return C * pow(Qc - target, 2) + lambda * (Qc - target);
 }

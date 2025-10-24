@@ -14,7 +14,6 @@ class QuadrupoleConstraint : public Constraint {
         double evaluate(IterationData* data) const override;
 
 
-    double target;
     double lambda;
     private:
         double C;

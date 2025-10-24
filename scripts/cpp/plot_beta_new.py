@@ -23,7 +23,7 @@ def plot_json_data(file_path):
         return
 
     # Extract Beta, Eint, EpairN, EpairP
-    betas = [item['betaReal'] for item in data if 'betaReal' in item]
+    betas = [item['beta'] for item in data if 'beta' in item]
     eints = [item['Eint'] for item in data if 'Eint' in item]
     econst = [item['constraints_energy'] for item in data if 'constraints_energy' in item]
     epairNs = [item['EpairN'] for item in data if 'EpairN' in item]
@@ -56,7 +56,7 @@ def plot_json_data(file_path):
 
     # Create stacked plots
     plt.style.use('seaborn-v0_8-ticks')
-    show_pairing = False
+    show_pairing = True
 
     if show_pairing:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8),
@@ -106,4 +106,4 @@ def plot_json_data(file_path):
 # Example usage
 if __name__ == '__main__':
     #plot_json_data('output/def_pairing_save/mg.json')
-    plot_json_data('output/test_curve_mg/test.json')
+    plot_json_data('output/mg_curve_pair_testing_ev/main.json')

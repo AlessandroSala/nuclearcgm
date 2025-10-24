@@ -28,19 +28,19 @@ def plot_json_data(file_path):
     epairNs = [item['EpairN'] for item in data if 'EpairN' in item]
     epairPs = [item['EpairP'] for item in data if 'EpairP' in item]
 
-    try:
-        with open('output/mg_final_curve_no_j/mg_curve_no_j.json', 'r') as f:
-            datanoJ = json.load(f)
-            datanoJ = datanoJ["data"]
-    except FileNotFoundError:
-        print(f"Error: The file at {file_path} was not found.")
-        return
-    except json.JSONDecodeError:
-        print(f"Error: The file at {file_path} is not a valid JSON.")
-        return
+#   try:
+#       with open('output/mg_final_curve_no_j/mg_curve_no_j.json', 'r') as f:
+#           datanoJ = json.load(f)
+#           datanoJ = datanoJ["data"]
+#   except FileNotFoundError:
+#       print(f"Error: The file at {file_path} was not found.")
+#       return
+#   except json.JSONDecodeError:
+#       print(f"Error: The file at {file_path} is not a valid JSON.")
+#       return
 
-    betasnoJ = [item['betaReal'] for item in datanoJ if 'betaReal' in item]
-    eintsnoJ = [item['Eint'] for item in datanoJ if 'Eint' in item]
+#   betasnoJ = [item['betaReal'] for item in datanoJ if 'betaReal' in item]
+#   eintsnoJ = [item['Eint'] for item in datanoJ if 'Eint' in item]
 
 
     energies_hfbtho = np.genfromtxt('plots/deformation/energies_hfbtho.csv')
@@ -94,7 +94,7 @@ def plot_json_data(file_path):
         #ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
         ax1.set_ylabel(r'$- E_\text{pair} [MeV]$', fontsize=13)
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
-        ax1.set_ylim(np.min(sorted_epair_sum) -0.5, max(sorted_epair_sum)-10 )
+        ax1.set_ylim(np.min(sorted_epair_sum) -0.5, 0 )
         ax1.grid(True, linestyle='--', linewidth=0.5)
         ax1.set_title(r"$^{20}$Ne", fontsize=18, fontweight='bold', pad=20)
         ax1.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
@@ -102,12 +102,12 @@ def plot_json_data(file_path):
     # Bottom plot: Eint
     ax2.plot(sorted_betas, sorted_eints, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
     ax2.plot(betas_hfbtho, energies_hfbtho, color='teal', label='E HFTHO', alpha=0.7, linestyle='-')
-    ax2.plot(betasnoJ, eintsnoJ, color='green', label='E no J', alpha=0.7, linestyle='-')
+    #ax2.plot(betasnoJ, eintsnoJ, color='green', label='E no J', alpha=0.7, linestyle='-')
     #ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
     ax2.set_xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
     ax2.set_ylabel('E (MeV)', fontsize=13)
     #ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
-    ax2.set_ylim(min(eintsnoJ)-0.5, max(sorted_eints) + 1)
+    ax2.set_ylim(min(eints)-0.5, max(energies_hfbtho) + 3)
     ax2.grid(True, linestyle='--', linewidth=0.5)
     ax2.tick_params(axis = 'both', which = 'both', labelsize = fontsize)
     emin_idx = np.argmin(sorted_eints)
@@ -117,16 +117,15 @@ def plot_json_data(file_path):
     emin_idx_hfbtho = np.argmin(energies_hfbtho)
     emin_hfbtho = energies_hfbtho[emin_idx_hfbtho]
     bmin_hfbtho = betas_hfbtho[emin_idx_hfbtho]
-    emin_idx_noJ = np.argmin(eintsnoJ)
-    emin_noJ = eintsnoJ[emin_idx_noJ]
-    bmin_noJ = betasnoJ[emin_idx_noJ]
+    #emin_idx_noJ = np.argmin(eintsnoJ)
+    #emin_noJ = eintsnoJ[emin_idx_noJ]
+    #bmin_noJ = betasnoJ[emin_idx_noJ]
 
     marker_size = 4
     marker_style = 'D'
     plt.plot(bmin_hfbtho, emin_hfbtho,marker_style, color='teal', markersize=marker_size)
     plt.plot(bmin, emin, marker_style, color='crimson', markersize=marker_size)
-    plt.plot(bmin_noJ, emin_noJ, marker_style, color='green', markersize=marker_size)
-    print("beta min GCG no j: ", bmin_noJ)
+    #plt.plot(bmin_noJ, emin_noJ, marker_style, color='green', markersize=marker_size)
 
     ax2.text(0.7, 0.95,
              "$\\boldsymbol{HFBTHO}$" "\n" fr"$E_{{min}} = {emin_hfbtho:.2f}$ MeV" "\n" fr"$\beta_2 = {bmin_hfbtho:.3f}$",
@@ -151,5 +150,5 @@ def plot_json_data(file_path):
 # Example usage
 if __name__ == '__main__':
     #plot_json_data('output/def_pairing_save/mg.json')
-    plot_json_data('output/mg_deformation_curve_final/test.json')
+    plot_json_data('output/mg_final_curve_no_j/mg_curve_no_j.json')
     

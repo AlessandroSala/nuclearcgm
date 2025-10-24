@@ -5,7 +5,7 @@
 #include "util/iteration_data.hpp"
 #include "operators/integral_operators.hpp"
 
-X2MY2Constraint::X2MY2Constraint(double mu20) : mu20(mu20), C(0.005), lambda(0.0), firstIter(true)
+X2MY2Constraint::X2MY2Constraint(double mu20) : target(mu20), C(0.005), lambda(0.0), firstIter(true)
 {
   residuals.clear();
 }
@@ -43,6 +43,7 @@ Eigen::VectorXd X2MY2Constraint::getField(IterationData *data)
   auto constraintEnergy = evaluate(data);
   std::cout << "X2mY2 Constraint energy: " << constraintEnergy << std::endl;
 
+  double mu20 = target;
   if (firstIter)
   {
     firstIter = false;
@@ -98,5 +99,6 @@ double X2MY2Constraint::evaluate(IterationData *data) const
   Eigen::VectorXd O = x.array().pow(2) - y.array().pow(2);
   double Qc = integral((VectorXd)(O.array() * rho.array()), grid);
 
+    double mu20 = target;
   return C * pow(Qc - mu20, 2) + lambda * (Qc - mu20);
 }
