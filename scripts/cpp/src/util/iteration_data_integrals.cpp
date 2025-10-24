@@ -38,11 +38,6 @@ QuadrupoleDeformation IterationData::quadrupoleDeformation()
   double betaSim = 4 * M_PI * a20 / (5 * A * radius());
   std::cout << "beta: " << beta << ", betaSim: " << betaSim << std::endl;
 
-  if (axis2Exp('x') > axis2Exp('z'))
-  {
-    beta = -beta;
-  }
-
   return {beta, gamma};
 }
 

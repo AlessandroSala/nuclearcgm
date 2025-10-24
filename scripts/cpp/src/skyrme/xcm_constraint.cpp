@@ -5,7 +5,7 @@
 #include "util/iteration_data.hpp"
 #include "operators/integral_operators.hpp"
 
-XCMConstraint::XCMConstraint(double mu20) : mu20(mu20), C(0.05), lambda(0.0), firstIter(true) {
+XCMConstraint::XCMConstraint(double mu20) : target(mu20), C(0.05), lambda(0.0), firstIter(true) {
     residuals.clear();
 }
 Eigen::VectorXd XCMConstraint::getField(IterationData* data) {
@@ -38,19 +38,19 @@ Eigen::VectorXd XCMConstraint::getField(IterationData* data) {
     if(firstIter) {
         firstIter = false;
         //return Eigen::VectorXd::Zero(data->rhoN->rows());
-        return 2.0*C*(Q22 - mu20)* O;
+        return 2.0*C*(Q22 - target)* O;
     }
     double gamma = 0.1;
 
     //if(residuals.size() > 1 && std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-1) {
     if(data->energyDiff < data->constraintTol) {
-        lambda += gamma*2.0*C*(Q22 - mu20);
+        lambda += gamma*2.0*C*(Q22 - target);
         //std::cout << "Updated lambda: " << lambda << std::endl;
     }
-    double mu = mu20 - lambda/(2.0*C); 
-    double alpha = lambda + 2.0*C*(Q22 - mu20);
+    double mu = target - lambda/(2.0*C); 
+    double alpha = lambda + 2.0*C*(Q22 - target);
 
-    double residual = (Q22 - mu20);
+    double residual = (Q22 - target);
 
     residuals.push_back(residual);
 
@@ -81,5 +81,5 @@ Eigen::VectorXd XCMConstraint::getField(IterationData* data) {
     }
     double Qc = integral((VectorXd)(O.array()*rho.array()), grid);
 
-     return  C*pow(Qc - mu20, 2) + lambda * (Qc - mu20);
+     return  C*pow(Qc - target, 2) + lambda * (Qc - target);
 }

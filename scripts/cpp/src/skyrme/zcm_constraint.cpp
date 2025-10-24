@@ -5,7 +5,7 @@
 #include "util/iteration_data.hpp"
 #include "operators/integral_operators.hpp"
 
-ZCMConstraint::ZCMConstraint(double mu20) : mu20(mu20), C(0.05), lambda(0.0), firstIter(true) {
+ZCMConstraint::ZCMConstraint(double mu20) : target(mu20), C(0.05), lambda(0.0), firstIter(true) {
     residuals.clear();
 }
 Eigen::VectorXd ZCMConstraint::getField(IterationData* data) {
@@ -35,6 +35,7 @@ Eigen::VectorXd ZCMConstraint::getField(IterationData* data) {
     auto constraintEnergy = evaluate(data);
     std::cout << "Constraint energy: " << constraintEnergy << std::endl;
 
+    double mu20 = target;
     if(firstIter) {
         firstIter = false;
         //return Eigen::VectorXd::Zero(data->rhoN->rows());
@@ -81,5 +82,7 @@ Eigen::VectorXd ZCMConstraint::getField(IterationData* data) {
     }
     double Qc = integral((VectorXd)(O.array()*rho.array()), grid);
 
+
+    double mu20 = target;
      return  C*pow(Qc - mu20, 2) + lambda * (Qc - mu20);
 }

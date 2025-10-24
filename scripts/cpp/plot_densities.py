@@ -7,9 +7,9 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import cm
 
 name = "mg"
-density = np.genfromtxt("output/mg_final/skmstar/density.csv")
+density = np.genfromtxt("output/junk/density.csv")
 #density = np.genfromtxt("output/density.csv")
-n = 60
+n = 20
 n2 = n // 2
 a = 10
 

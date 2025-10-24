@@ -517,7 +517,7 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
-  double muConst = 0.8;
+  double muConst = 0.5;
   if (UConstr == nullptr)
   {
     UConstr = std::make_shared<Eigen::VectorXd>(constraintField);
