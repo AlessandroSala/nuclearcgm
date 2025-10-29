@@ -302,7 +302,7 @@ void IterationData::updateQuantities(
 
   int N = A - Z;
 
-  double mu = constraints.size() > 0 ? 0.1 : std::min(0.05 + 0.01 * iter, 0.4);
+  double mu = constraints.size() > 0 ? 0.2 : std::min(0.05 + 0.01 * iter, 0.4);
   std::cout << "mu: " << mu << std::endl;
 
   Eigen::VectorXd v2N(neutronsPair.second.size()), u2N(neutronsPair.second.size());
@@ -337,7 +337,7 @@ void IterationData::updateQuantities(
       .lambda = 0.0,
       .Epair = 0.0,
   };
-  if (!input.pairing)
+  if (!input.pairing )
   {
     bcsN = nullBCSN;
     bcsP = nullBCSP;
@@ -517,7 +517,7 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
-  double muConst = 0.5;
+  double muConst = 0.2;
   if (UConstr == nullptr)
   {
     UConstr = std::make_shared<Eigen::VectorXd>(constraintField);

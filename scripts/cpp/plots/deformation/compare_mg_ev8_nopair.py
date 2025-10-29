@@ -43,8 +43,8 @@ def plot_json_data(file_path):
 #   eintsnoJ = [item['Eint'] for item in datanoJ if 'Eint' in item]
 
 
-    energies_hfbtho = np.genfromtxt('plots/deformation/energies_ev8.csv')
-    betas_hfbtho = np.genfromtxt('plots/deformation/betas_ev8.csv')
+    energies_hfbtho = np.genfromtxt('plots/deformation/ev8_en_nopair.csv')
+    betas_hfbtho = np.genfromtxt('plots/deformation/ev8_betas_nopair.csv')
     epairNev8 = np.genfromtxt('plots/deformation/epairN_ev8.csv')
     epairPev8 = np.genfromtxt('plots/deformation/epairP_ev8.csv')
 
@@ -82,7 +82,7 @@ def plot_json_data(file_path):
 
     # Create stacked plots
     plt.style.use('seaborn-v0_8-ticks')
-    show_pairing = True
+    show_pairing = False
 
     fontsize = 12
     # Top plot: -(EpairN + EpairP)
@@ -153,5 +153,5 @@ def plot_json_data(file_path):
 # Example usage
 if __name__ == '__main__':
     #plot_json_data('output/def_pairing_save/mg.json')
-    plot_json_data('output/mg_pair_windowboth/run.json')
+    plot_json_data('output/mg_compare_ev8_nopair/run.json')
     

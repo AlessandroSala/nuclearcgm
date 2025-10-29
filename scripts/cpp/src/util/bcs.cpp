@@ -112,7 +112,7 @@ namespace BCS
     }
 
     BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing,
-                       int A, double window, const VectorXd &oldDelta, double oldLambda, double initDelta = 0.1,
+                       int A, double window, const VectorXd &oldDelta, double oldLambda, double initDelta = 1.0,
                        double tol = 1e-10, int maxIter = 2000, double PairingPrec = 1e-10)
     {
         using std::abs;
@@ -125,13 +125,11 @@ namespace BCS
         if (num_pairs == 0)
             return {}; // empty
 
-        MatrixXd G = G_pairing;
-
-        double G_avg = G.diagonal().mean();
+        MatrixXd G = 0.5*G_pairing;
 
         VectorXd Delta = VectorXd::Constant(num_pairs, initDelta);
         std::cout << "Old Delta size: " << oldDelta.size() << ", norm: " << oldDelta.norm() << std::endl;
-        if (oldDelta.size() == num_pairs && oldDelta.norm() > 1e-2)
+        if (oldDelta.size() == num_pairs && oldDelta.maxCoeff() > 1e-3)
         {
             Delta = oldDelta;
         }
@@ -149,15 +147,17 @@ namespace BCS
         }
 
         VectorXd kappa = VectorXd::Zero(num_pairs);
-        VectorXd v = VectorXd::Zero(num_pairs);
-        VectorXd u = VectorXd::Zero(num_pairs);
 
         // --- STABILITY IMPROVEMENTS ---
-        double mixDelta = 0.3; // More conservative mixing
-        double mixLambda = 0.3;
-        double maxDeltaStepFrac = 0.8; // Smaller max step
+        double mixDelta = 0.9; // More conservative mixing
+        double mixLambda = 0.9;
+        double maxDeltaStepFrac = 0.9; // Smaller max step
 
         VectorXd window_weights(num_pairs);
+        VectorXd Eqp = VectorXd::Zero(num_pairs);
+
+        VectorXd v = VectorXd::Zero(num_pairs);
+        VectorXd u = VectorXd::Zero(num_pairs);
 
         for (int iter = 0; iter < maxIter; ++iter)
         {
@@ -165,14 +165,14 @@ namespace BCS
 
             for (int p = 0; p < num_pairs; ++p)
             {
-                window_weights(p) = 1.0 / std::sqrt(1.0 + std::exp((eps_pairs(p) - lambda - window) / window_smoothness));
+                window_weights(p) = 1.0 / (1.0 + std::exp((eps_pairs(p) - lambda - window) / window_smoothness));
+                window_weights(p) *= 1.0/(1.0 + std::exp(-(eps_pairs(p) - lambda + window) / window_smoothness));
             }
 
             // 1) Compute quasiparticle energies
-            VectorXd Eqp(num_pairs);
             for (int p = 0; p < num_pairs; ++p)
             {
-                double xi_prev = eps_pairs(p) - prevLambda;
+                double xi_prev = eps_pairs(p) - lambda;
                 Eqp(p) = std::sqrt(xi_prev * xi_prev + Delta(p) * Delta(p)*window_weights(p));
             }
 
@@ -187,12 +187,11 @@ namespace BCS
 
             double rawNewLambda = (sumInv < EPS_SMALL) ? prevLambda : (static_cast<double>(A) - sum1) / sumInv;
             lambda = mixLambda * rawNewLambda + (1.0 - mixLambda) * lambda;
-
             // 3) Recompute u, v, kappa with updated lambda
             for (int p = 0; p < num_pairs; ++p)
             {
                 double xi = eps_pairs(p) - lambda;
-                double Ei = std::sqrt(xi * xi + Delta(p) * Delta(p)*window_weights(p));
+                double Ei = Eqp(p);
                 if (Ei < EPS_SMALL)
                     Ei = EPS_SMALL;
                 double vp2 = 0.5 * (1.0 - xi / Ei);
@@ -212,22 +211,14 @@ namespace BCS
                     {
                         if (window_weights(q) > EPS_SMALL)
                         { // Only include state q if relevant
-                            sum += G(p, q) * kappa(q) * window_weights(q);
+                            //sum += G(p, q) * kappa(q) * window_weights(q);
+                            sum += G(p, q) * window_weights(q) * Delta(q) / Eqp(q);
                         }
                     }
-                    DeltaNew(p) = +sum;
+                    DeltaNew(p) = sum;
             }
 
-            // 5) Clamp per-step Delta changes
-            // for (int p = 0; p < num_pairs; ++p)
-            //{
-            //    double maxStep = maxDeltaStepFrac * std::max(0.2, std::abs(Delta(p)));
-            //    double d = DeltaNew(p) - Delta(p);
-            //    if (std::abs(d) > maxStep)
-            //    {
-            //        DeltaNew(p) = Delta(p) + std::copysign(maxStep, d);
-            //    }
-            //}
+
 
             // 6) Mix Delta for stability
             VectorXd DeltaMixed = (1.0 - mixDelta) * Delta + mixDelta * DeltaNew;
@@ -247,28 +238,35 @@ namespace BCS
             }
         }
 
-        // ... Final calculations and return statement
-        // (Your remaining code is fine)
-        // Build outputs: final v2/u2, Delta, pairing energy etc.
-        double mix = 1.0;
-        Delta = mix * Delta + (1.0 - mix) * oldDelta;
-        lambda = mix * lambda + (1.0 - mix) * oldLambda;
         VectorXd final_v2(num_pairs), final_u2(num_pairs);
-        for (int p = 0; p < num_pairs; ++p)
-        {
-            double xi = eps_pairs(p) - lambda;
-            double Ei = std::sqrt(xi * xi + Delta(p) * Delta(p)*window_weights(p));
-            if (Ei < EPS_SMALL)
-                Ei = EPS_SMALL;
-            double vp2 = 0.5 * (1.0 - xi / Ei);
-            vp2 = std::clamp(vp2, 0.0, 1.0);
-            final_v2(p) = vp2;
-            final_u2(p) = 1.0 - vp2;
+
+        for(int i = 0; i < num_pairs; ++i) {
+          window_weights(i) = 1.0 / (1.0 + std::exp((eps_pairs(i) - lambda - window) / window_smoothness));
+          window_weights(i) *= 1.0/(1.0 + std::exp(-(eps_pairs(i) - lambda + window) / window_smoothness));
+          double xi = eps_pairs(i) - lambda;
+          Eqp(i) = std::sqrt(xi * xi + Delta(i) * Delta(i)*window_weights(i));
+          double v2 = 0.5*(1-xi/(Eqp(i)));
+          v2 = std::clamp(v2, 0.0, 1.0);
+          final_v2(i) = v2;
+          final_u2(i) = 1 - final_v2(i);
         }
 
-        // Final kappa for pairing energy
         kappa = final_u2.array().sqrt() * final_v2.array().sqrt();
-        double Epair =  (kappa.array() * window_weights.array()).matrix().dot( (G * (kappa.array() * window_weights.array()).matrix()));
+        //double Epair =  (kappa.array() * window_weights.array()).matrix().dot( (G * (kappa.array() * window_weights.array()).matrix()));
+        double Epair = 0.0;
+        for (int p = 0; p < num_pairs; ++p)
+        {
+            for (int q = 0; q < num_pairs; ++q)
+            {
+                if (window_weights(q) > EPS_SMALL)
+                {
+                    //Epair += G(p, q) * window_weights(q) * Delta(q) / Eqp(p);
+                    //Epair += G(p, q) * window_weights(q) * window_weights(p) * kappa(q) * kappa(p);
+                    Epair += -0.5 * window_weights(q)*window_weights(p) * Delta(p) * Delta(q) * G(p, q) / Eqp(p)/Eqp(q);
+                }
+
+            }
+        }
         return {final_u2, final_v2, Delta, eps_pairs.array() * final_v2.array(), lambda, Epair};
     }
 

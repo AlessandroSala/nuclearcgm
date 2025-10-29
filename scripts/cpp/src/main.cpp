@@ -161,8 +161,8 @@ int main(int argc, char **argv)
           constraints.push_back(make_unique<XCMConstraint>(0.0));
           constraints.push_back(make_unique<YCMConstraint>(0.0));
           constraints.push_back(make_unique<ZCMConstraint>(0.0));
-          constraints.push_back(make_unique<X2MY2Constraint>(0.0));
-          constraints.push_back(make_unique<XY2Constraint>(0.0));
+          //constraints.push_back(make_unique<X2MY2Constraint>(0.0));
+          //constraints.push_back(make_unique<XY2Constraint>(0.0));
           constraints.push_back(make_unique<OctupoleConstraint>(0.0));
           constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
         } else {
