@@ -101,8 +101,13 @@ def plot_json_data(file_path):
     else:
         fig, ax2 = plt.subplots(1, 1, figsize=(6, 6), sharex = True)
 
+    beta_smooth = np.linspace(sorted_betas.min(), sorted_betas.max(), 200)
+    spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
+    Eint_smooth = spline(beta_smooth)
+
     # Bottom plot: Eint
-    ax2.plot(sorted_betas, sorted_eints, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
+    #ax2.plot(sorted_betas, sorted_eints, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
+    ax2.plot(beta_smooth, Eint_smooth, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
     ax2.plot(betas_hfbtho, energies_hfbtho, color='teal', label='E HFTHO', alpha=0.7, linestyle='-')
     #ax2.plot(betasnoJ, eintsnoJ, color='green', label='E no J', alpha=0.7, linestyle='-')
     #ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
