@@ -1,4 +1,5 @@
 #include "util/output.hpp"
+#include "operators/common_operators.hpp"
 #include "constraint.hpp"
 #include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
@@ -333,12 +334,35 @@ void Output::shellsToFile(
     file << std::endl;
   }
 
-  if (contains(input.log, "density"))
     matrixToFile("density.csv", rho);
-  if (contains(input.log, "density_n"))
     matrixToFile("density_n.csv", *iterationData->rhoN);
-  if (contains(input.log, "density_p"))
     matrixToFile("density_p.csv", *iterationData->rhoP);
+    matrixToFile("kinetic_n.csv", *iterationData->tauN);
+    matrixToFile("kinetic_p.csv", *iterationData->tauP);
+    Eigen::VectorXd rhoN = *iterationData->rhoN;
+    Eigen::VectorXd rhoP = *iterationData->rhoP;
+    Eigen::VectorXd tauN = *iterationData->tauN;
+    Eigen::VectorXd tauP = *iterationData->tauP;
+    Eigen::VectorXd tau = *iterationData->tauN + *iterationData->tauP;
+    Eigen::MatrixXd nablaRho = *iterationData->nablaRhoN + *iterationData->nablaRhoP;
+    Eigen::VectorXd nablaRhoMod = Operators::mod2(nablaRho);
+    Eigen::VectorXd nablaRhoNMod2 = Operators::mod2(*iterationData->nablaRhoN);
+    Eigen::VectorXd nablaRhoPMod2 = Operators::mod2(*iterationData->nablaRhoP);
+    matrixToFile("nabla2rho_n.csv", *iterationData->nablaRhoN);
+    matrixToFile("nabla2rho_p.csv", *iterationData->nablaRhoP);
+    using std::pow;
+    Eigen::VectorXd TF = 3.0 / 5.0 *pow((3*M_PI*M_PI), 2.0 / 3.0) * rho.array().pow(5.0/3.0);
+    Eigen::VectorXd TFN = 3.0 / 5.0 *pow((3*M_PI*M_PI), 2.0 / 3.0) * rhoN.array().pow(5.0/3.0);
+    Eigen::VectorXd TFP = 3.0 / 5.0 *pow((3*M_PI*M_PI), 2.0 / 3.0) * rhoP.array().pow(5.0/3.0);
+  
+  Eigen::VectorXd ones = Eigen::VectorXd::Ones(rho.rows());
+  ones.setConstant(1.0);
+  Eigen::VectorXd C = (ones.array() + ((tau.array()*rho.array() - 0.25*nablaRhoMod.array())*(rho.array()*TF.array()+1e-12).pow(-1)).pow(2)).pow(-1);
+  matrixToFile("C.csv", C);
+  Eigen::VectorXd CN = (ones.array() + ((tauN.array()*rhoN.array() - 0.25*nablaRhoNMod2.array())*(rhoN.array()*TFN.array()+1e-12).pow(-1)).pow(2)).pow(-1);
+  matrixToFile("C_n.csv", CN);
+  Eigen::VectorXd CP = (ones.array() + ((tauP.array()*rhoP.array() - 0.25*nablaRhoPMod2.array())*(rhoP.array()*TFP.array()+1e-12).pow(-1)).pow(2)).pow(-1);
+  matrixToFile("C_p.csv", CP);
 
   double constraintsEnergy = 0.0;
   for (auto &&constraint : constraints)

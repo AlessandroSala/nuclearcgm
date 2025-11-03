@@ -77,8 +77,6 @@ def plot_json_data(file_path):
 
     # Create interpolation for Eint
     x_new = np.linspace(sorted_betas.min(), sorted_betas.max(), 500)
-    #eint_spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
-    #y_eint_smooth = eint_spline(x_new)
 
     # Create stacked plots
     plt.style.use('seaborn-v0_8-ticks')
@@ -92,7 +90,6 @@ def plot_json_data(file_path):
                                        sharex=True)
         ax1.plot(sorted_betas, sorted_epair_sum, color='crimson', label='-Epair', alpha=0.7, linestyle='-')
         ax1.plot(betas_hfbtho, -(epairNev8+epairPev8), color='teal', label='-Epair', alpha=0.7, linestyle='-')
-        #ax1.plot(x_new, y_epair_smooth, '-', color='teal', linewidth=2, label='-Epair (spline)')
         ax1.set_ylabel(r'$- E_\text{pair} [MeV]$', fontsize=13)
         #ax1.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
         ax1.grid(True, linestyle='--', linewidth=0.5)
