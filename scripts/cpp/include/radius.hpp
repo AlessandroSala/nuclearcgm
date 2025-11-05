@@ -18,10 +18,10 @@ public:
 
     double getRadius(double x, double y, double z) const noexcept;
     Eigen::VectorXd getGradient(double x, double y, double z) const noexcept;
+    double r_0;
 
 private:
     int A; 
     double Beta;
-    double r_0;
 };
 

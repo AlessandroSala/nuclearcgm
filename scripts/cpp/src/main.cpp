@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     Radius radius(input.initialBeta, WS.r0, A);
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
-        WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa));
+        WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa, input.beta3));
     if (input.spinOrbit)
     {
       pots.push_back(make_shared<DeformedSpinOrbitPotential>(WSSO.V0, radius,
@@ -120,6 +120,7 @@ int main(int argc, char **argv)
       double startMu = Utilities::mu20FromBeta(input.deformationCurve.start, R0, A);
       double endMu = Utilities::mu20FromBeta(input.deformationCurve.end, R0, A);
       double stepMu = Utilities::mu20FromBeta(input.deformationCurve.step, R0, A);
+
       if(startMu < endMu) {
       for (double mu = startMu; mu <= endMu; mu += stepMu)
       {
@@ -161,8 +162,8 @@ int main(int argc, char **argv)
           constraints.push_back(make_unique<XCMConstraint>(0.0));
           constraints.push_back(make_unique<YCMConstraint>(0.0));
           constraints.push_back(make_unique<ZCMConstraint>(0.0));
-          //constraints.push_back(make_unique<X2MY2Constraint>(0.0));
-          //constraints.push_back(make_unique<XY2Constraint>(0.0));
+          constraints.push_back(make_unique<X2MY2Constraint>(0.0));
+          constraints.push_back(make_unique<XY2Constraint>(0.0));
           constraints.push_back(make_unique<OctupoleConstraint>(0.0));
           constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
         } else {

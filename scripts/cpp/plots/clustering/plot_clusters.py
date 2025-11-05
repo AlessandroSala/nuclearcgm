@@ -12,26 +12,8 @@ h = 20 / (n-1)
 print("h: ", h)
 dV = h**3
 
-rho = np.genfromtxt("output/ne20_clustering/density.csv")
-rho = rho.reshape((n, n, n))
-third = 5
-t = n // 2 - third
-
-bottom = rho[:t, :, :]*dV
-middle = rho[t:(n - t), :, :]*dV
-top = rho[(n-t):, :, :]*dV
-
-# Integrate (sum) over each section
-integral_bottom = np.sum(bottom)
-integral_middle = np.sum(middle)
-integral_top = np.sum(top)
-
-print(f"Bottom: {integral_bottom}")
-print(f"Middle: {integral_middle}")
-print(f"Top: {integral_top}")
-
-name = "mg"
 density = np.genfromtxt("output/ne20_clustering/C_n.csv")
+#density = np.genfromtxt("output/ne20_clustering/skm/density.csv")
 #density = np.genfromtxt("output/density.csv")
 n2 = n // 2
 a = 10

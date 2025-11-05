@@ -41,6 +41,7 @@ InputParser::InputParser(std::string inputFile)
   {
     initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
   }
+  beta3 = data.contains("beta3") ? data["beta3"].get<double>() : 0.0;
 
   A = data["nucleus"]["A"];
   Z = data["nucleus"]["Z"];
