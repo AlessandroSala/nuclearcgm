@@ -239,12 +239,13 @@ void Output::shellsToFile(
   file << "E (kin): " << eKin << " MeV" << std::endl;
   file << "E spin-orbit: " << iterationData->Hso(input.skyrme, grid) << " MeV"
        << std::endl;
-  file << "E spin-orbit: " << iterationData->Hsg(input.skyrme, grid) << " MeV"
+  file << "E spin-gradient: " << iterationData->Hsg(input.skyrme, grid) << " MeV"
        << std::endl;
   file << "E coulomb direct: " << iterationData->CoulombDirectEnergy(grid)
           << " MeV" << std::endl;
   file << "E coulomb exchange: " << iterationData->SlaterCoulombEnergy(grid)
           << " MeV" << std::endl;
+
   double totEnInt = eKin + skyrmeEnergy;
   file << "E_INT: " << totEnInt << " MeV" << std::endl;
 
@@ -358,11 +359,12 @@ void Output::shellsToFile(
   Eigen::VectorXd ones = Eigen::VectorXd::Ones(rho.rows());
   ones.setConstant(1.0);
   Eigen::VectorXd C = (ones.array() + ((tau.array()*rho.array() - 0.25*nablaRhoMod.array())*(rho.array()*TF.array()+1e-12).pow(-1)).pow(2)).pow(-1);
-  matrixToFile("C.csv", C);
   Eigen::VectorXd CN = (ones.array() + ((tauN.array()*rhoN.array() - 0.25*nablaRhoNMod2.array())*(rhoN.array()*TFN.array()+1e-12).pow(-1)).pow(2)).pow(-1);
-  matrixToFile("C_n.csv", CN);
   Eigen::VectorXd CP = (ones.array() + ((tauP.array()*rhoP.array() - 0.25*nablaRhoPMod2.array())*(rhoP.array()*TFP.array()+1e-12).pow(-1)).pow(2)).pow(-1);
+
   matrixToFile("C_p.csv", CP);
+  matrixToFile("C.csv", C);
+  matrixToFile("C_n.csv", CN);
 
   double constraintsEnergy = 0.0;
   for (auto &&constraint : constraints)

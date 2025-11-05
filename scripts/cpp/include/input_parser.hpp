@@ -101,6 +101,7 @@ public:
   std::string outputDirectory;
   std::vector<std::string> log;
   double initialBeta;
+  double beta3;
   PairingParameters pairingParameters;
 
   SkyrmeParameters skyrme;

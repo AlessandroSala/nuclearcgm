@@ -6,6 +6,7 @@ namespace Parameters {
     typedef struct {
         double V0;
         double beta;
+        double beta3;
         double r0;
         double diff;
         double kappa;
@@ -23,7 +24,7 @@ public:
      * @param R Nuclear radius parameter (e.g., 1.27 * A^(1/3) fm).
      * @param diff Diffuseness parameter (e.g., 0.67 fm).
      */
-    DeformedWoodsSaxonPotential(double V0, Radius radius, double diff, int A, int Z, double kappa);
+    DeformedWoodsSaxonPotential(double V0, Radius radius, double diff, int A, int Z, double kappa, double beta3);
     DeformedWoodsSaxonPotential(Parameters::WoodsSaxonParameters params, int A, int Z);
 
     /**
@@ -31,6 +32,7 @@ public:
      * Only non-zero for diagonal elements (n0 == n1).
      */
     double getValue(double x, double y, double z) const override;
+    Parameters::WoodsSaxonParameters parameters;
 
 public:
     double V0;   // Potential depth
@@ -38,5 +40,6 @@ public:
     double diff; // Diffuseness parameter
     int A, Z; //Nucleues mass, charge
     double kappa; // asymm parameter
+    double beta3;
 };
 
