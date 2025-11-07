@@ -84,21 +84,27 @@ int main(int argc, char **argv)
     Hamiltonian initialWS(make_shared<Grid>(grid), pots);
 
     double nucRadius = pow(A, 0.3333333) * 1.20;
+    int max = N > Z ? N + input.pairingParameters.additionalStates : Z + input.pairingParameters.additionalStates;
     auto guess =
-        harmonic_oscillator_guess(grid, orbitalsN, nucRadius, true);
-    pair<MatrixXcd, VectorXd> neutronsEigenpair =
+        harmonic_oscillator_guess(grid, max, nucRadius, true);
+
+    pair<MatrixXcd, VectorXd> firstEigenpair =
         solve(initialWS.build_matrix5p(), calc.initialGCG, guess);
-    std::cout << neutronsEigenpair.second << std::endl;
+    std::cout << firstEigenpair.second << std::endl;
 
     pair<MatrixXcd, VectorXd> protonsEigenpair;
+    pair<MatrixXcd, VectorXd> neutronsEigenpair;
     if (N >= Z)
     {
+      neutronsEigenpair = firstEigenpair;
       protonsEigenpair.second = neutronsEigenpair.second.head(orbitalsP);
       protonsEigenpair.first = neutronsEigenpair.first.leftCols(orbitalsP);
     }
     else if (N < Z)
     {
-      throw std::runtime_error("Protons cannot be smaller than neutrons");
+      protonsEigenpair = firstEigenpair;
+      neutronsEigenpair.second = protonsEigenpair.second.head(orbitalsN);
+      neutronsEigenpair.first = protonsEigenpair.first.leftCols(orbitalsN);
     }
 
     Wavefunction::normalize(neutronsEigenpair.first, grid);

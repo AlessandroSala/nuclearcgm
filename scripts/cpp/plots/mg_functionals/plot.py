@@ -9,7 +9,11 @@ from scipy.interpolate import make_interp_spline
 # Automatically load all JSONs in the current folder:
 files = sorted(glob.glob("*.json"))  # adjust path if needed
 
-plt.figure(figsize=(8, 6))
+plt.style.use('seaborn-v0_8-ticks')
+plt.figure(figsize=(6, 6))
+
+Emins = []
+Emax = []
 
 for filename in files:
     with open(filename, 'r') as f:
@@ -35,16 +39,20 @@ for filename in files:
     beta_min = beta_smooth[idx_min]
     Eint_min = Eint_smooth[idx_min]
 
+    Emins.append(Eint_min)
+    Emax.append(Eint_smooth[np.argmax(Eint_smooth)])
+
     # Plot
     label_name = os.path.splitext(os.path.basename(filename))[0]
     plt.plot(beta_smooth, Eint_smooth, label=f"{label_name}: β={beta_min:.3f}, E={Eint_min:.3f}")
-    plt.scatter(beta_min, Eint_min, color='k', marker='D', zorder=5)
+    plt.scatter(beta_min, Eint_min, marker='D', zorder=5, s=30)
 
-plt.xlabel("β")
-plt.ylabel("E_int")
-plt.title("E_int vs β")
-plt.legend(fontsize=8, loc="best", frameon=False)
+fontsize = 13
+plt.xlabel("$\\beta_2$", fontsize=fontsize)
+plt.ylabel("$E$", fontsize=fontsize)
+plt.legend(fontsize=10, loc="best", frameon=False)
 plt.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
+plt.ylim(min(Emins)-1, max(Emax)+5)
 plt.show()
 

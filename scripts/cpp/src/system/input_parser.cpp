@@ -62,6 +62,10 @@ InputParser::InputParser(std::string inputFile)
                             interactionData["t3"], interactionData["x0"],
                             interactionData["x1"], interactionData["x2"],
                             interactionData["x3"], interactionData["sigma"]};
+  std::cout << "Interaction: " << interaction << std::endl;
+  std::cout << "t0: " << skyrme.t0 << ", t1: " << skyrme.t1 << ", t2: " << skyrme.t2 << ", t3: " << skyrme.t3 << std::endl;
+  std::cout << "W0: " << skyrme.W0 << ", x0: " << skyrme.x0 << ", x1: " << skyrme.x1 << ", x2: " << skyrme.x2 << ", x3: " << skyrme.x3 << std::endl;
+  std::cout << "sigma: " << skyrme.sigma << std::endl;
   file.close();
 }
 
