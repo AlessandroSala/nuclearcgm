@@ -12,7 +12,7 @@ h = 20 / (n-1)
 print("h: ", h)
 dV = h**3
 
-density = np.genfromtxt("output/ne20_clustering/C_n.csv")
+density = np.genfromtxt("output/si42/sly4/C.csv")
 #density = np.genfromtxt("output/ne20_clustering/skm/density.csv")
 #density = np.genfromtxt("output/density.csv")
 n2 = n // 2
@@ -76,12 +76,12 @@ cmap = custom_jet_fade
 cmap.set_under('white')
 rho_min = np.max(mat.flatten()) / 10
 
-contour = plt.contourf(X, Y, mat, cmap=cmap, levels = 100)
+contour = plt.contourf(X, Y, mat, cmap=cmap, levels = 100, vmax = 0.9)
 #plt.colorbar(contour)
 plt.xlabel('x [fm]')
 plt.ylabel("z [fm]")
 plt.colorbar(label=f"Particle density [fm$^{{-3}}$]")
-limit = 7
+limit = 6
 plt.axis([-limit, limit, -limit, limit])
 major_ticks = np.arange(-limit, limit+0.1, limit/5)
 #plt.grid(linewidth = 0.2)

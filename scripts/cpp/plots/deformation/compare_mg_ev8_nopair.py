@@ -43,8 +43,8 @@ def plot_json_data(file_path):
 #   eintsnoJ = [item['Eint'] for item in datanoJ if 'Eint' in item]
 
 
-    energies_hfbtho = np.genfromtxt('plots/deformation/ev8_en_nopair.csv')
-    betas_hfbtho = np.genfromtxt('plots/deformation/ev8_betas_nopair.csv')
+    energies_hfbtho = np.genfromtxt('plots/deformation/ev8_en_nopair_new.csv')
+    betas_hfbtho = np.genfromtxt('plots/deformation/ev8_betas_nopair_new.csv')
     epairNev8 = np.genfromtxt('plots/deformation/epairN_ev8.csv')
     epairPev8 = np.genfromtxt('plots/deformation/epairP_ev8.csv')
 
@@ -75,6 +75,9 @@ def plot_json_data(file_path):
         sorted_betas = np.array([b for b, _ in sorted_data])
         sorted_eints = np.array([e for _, e in sorted_data])
 
+    np.savetxt('beta_20.csv', sorted_betas)
+    np.savetxt('eint_20.csv', sorted_eints)
+
     # Create interpolation for Eint
     x_new = np.linspace(sorted_betas.min(), sorted_betas.max(), 500)
     #eint_spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
@@ -102,7 +105,7 @@ def plot_json_data(file_path):
         fig, ax2 = plt.subplots(1, 1, figsize=(6, 6), sharex = True)
 
     beta_smooth = np.linspace(sorted_betas.min(), sorted_betas.max(), 200)
-    spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
+    spline = make_interp_spline(sorted_betas, sorted_eints, k=1)
     Eint_smooth = spline(beta_smooth)
 
     # Bottom plot: Eint
@@ -158,5 +161,5 @@ def plot_json_data(file_path):
 # Example usage
 if __name__ == '__main__':
     #plot_json_data('output/def_pairing_save/mg.json')
-    plot_json_data('output/mg_compare_ev8_nopair/run.json')
+    plot_json_data('output/mg_curve_ev8_noJ2/curve.json.json')
     
