@@ -3,7 +3,6 @@
 #include "guess.hpp"
 #include "hamiltonian.hpp"
 #include "input_parser.hpp"
-#include "kinetic/iso_kinetic_potential.hpp"
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
 #include "radius.hpp"

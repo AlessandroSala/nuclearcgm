@@ -1,19 +1,18 @@
 {
-    "interaction": "SLy4",
+    "interaction": "SLy5",
     "coulomb": true,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "outputName": "driplines",
-    "outputDirectory": "S28/sly4",
-    "initialBeta": 0.2,
+    "outputName": "test",
+    "outputDirectory": "time_tests",
     "box": {
-        "size": 10.0,
-        "n": 60
+        "size": 12.0,
+        "n": 30
     },
     "nucleus": {
-        "A": 28,
-        "Z": 16
+        "A": 40,
+        "Z": 20
     },
     "log": [
         "tot_energies",
@@ -23,7 +22,7 @@
     ],
     "hf": {
         "cycles": 120,
-        "energyTol": 1e-05,
+        "energyTol": 1e-06,
         "gcg": {
             "maxIter": 1,
             "nev": 0,

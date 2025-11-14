@@ -4,16 +4,15 @@
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "outputName": "driplines",
-    "outputDirectory": "S28/skm",
-    "initialBeta": 0.2,
+    "outputName": "test",
+    "outputDirectory": "time_tests",
     "box": {
-        "size": 10.0,
-        "n": 60
+        "size": 12.0,
+        "n": 40
     },
     "nucleus": {
-        "A": 28,
-        "Z": 16
+        "A": 48,
+        "Z": 20
     },
     "log": [
         "tot_energies",
