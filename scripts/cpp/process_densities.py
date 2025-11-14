@@ -42,7 +42,7 @@ for root, dirs, files in os.walk(base_dir):
 
         # Plot
         rho_min = np.max(mat.flatten()) / 10
-        plt.figure(figsize=(6, 5))
+        plt.figure(figsize=(6, 5), constrained_layout=True)
         contour = plt.contourf(X, Y, mat, cmap=cmap, levels=100, vmin=rho_min, vmax=0.18)
         plt.xlabel('x [fm]')
         plt.ylabel('y [fm]')
@@ -52,7 +52,6 @@ for root, dirs, files in os.walk(base_dir):
         major_ticks = np.arange(-limit, limit + 0.1, limit / 5)
         plt.xticks(major_ticks)
         plt.yticks(major_ticks)
-        plt.title(folder_name)
 
         # Save figure
         out_path = os.path.join("figures/clustering/", f"{folder_name}_density.pdf")

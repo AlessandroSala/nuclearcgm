@@ -1,23 +1,19 @@
 {
     "interaction": "SLy4",
     "coulomb": true,
-    "Jterms": false,
+    "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "outputName": "curve.json",
-    "outputDirectory": "mg_curve_ev8_noJ2",
-    "deformation": {
-      "start": 0.4,
-      "end": 0.92,
-      "step": 0.03
-    },
+    "outputName": "driplines",
+    "outputDirectory": "S28/sly4",
+    "initialBeta": 0.2,
     "box": {
-        "size": 9.0,
-        "n": 40
+        "size": 10.0,
+        "n": 60
     },
     "nucleus": {
-        "A": 24,
-        "Z": 12
+        "A": 28,
+        "Z": 16
     },
     "log": [
         "tot_energies",
@@ -26,7 +22,7 @@
         "density"
     ],
     "hf": {
-        "cycles": 250,
+        "cycles": 120,
         "energyTol": 1e-05,
         "gcg": {
             "maxIter": 1,

@@ -3,8 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-InputParser::InputParser(std::string inputFile)
-{
+InputParser::InputParser(std::string inputFile) {
   std::ifstream file(inputFile);
   data = nlohmann::json::parse(file);
 
@@ -12,34 +11,54 @@ InputParser::InputParser(std::string inputFile)
   useJ = data["Jterms"];
   std::string interaction = data["interaction"];
   pairing = data.contains("pairing");
-  if (pairing)
-  {
+  if (pairing) {
     auto pairingData = data["pairing"];
-    pairingParameters = PairingParameters{pairingData["window"],
-                                          pairingData["additionalStates"],
-                                          pairingData["V0N"],
-                                          pairingData["V0P"],
-                                          pairingData["alpha"]};
+    if (pairingData.contains("neutrons")) {
+      pairingParameters = PairingParameters{
+          pairingData["window"],
+          pairingData["neutrons"]["additionalStates"],
+          pairingData["protons"]["additionalStates"],
+          pairingData["neutrons"]["V0"],
+          pairingData["protons"]["V0"],
+          pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
+                                        : 0.0,
+          pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
+          pairingData["windowBoth"],
+      };
+    } else {
+      pairingParameters = PairingParameters{
+          pairingData["window"],
+          pairingData["additionalStates"],
+          pairingData["additionalStates"],
+          pairingData["V0"],
+          pairingData["V0"],
+          pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
+                                        : 0.0,
+          pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
+          pairingData["windowBoth"],
+      };
+    }
+
+  } else {
+    pairingParameters = PairingParameters{0, 0, 0, 0, 0, 0, 0, false};
   }
-  else
-  {
-    pairingParameters = PairingParameters{0, 0, 0, 0, 0};
-  }
+
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
-  calculationType = data.contains("deformation") ? CalculationType::deformation_curve
-                                                 : CalculationType::ground_state;
-  if (calculationType == CalculationType::deformation_curve)
-  {
+  calculationType = data.contains("deformation")
+                        ? CalculationType::deformation_curve
+                        : CalculationType::ground_state;
+  if (calculationType == CalculationType::deformation_curve) {
     deformationCurve = DeformationCurve{data["deformation"]["start"],
                                         data["deformation"]["end"],
                                         data["deformation"]["step"]};
-    initialBeta = data["deformation"].contains("guess") ? data["deformation"]["guess"].get<double>() : deformationCurve.start * 1;
-  }
-  else
-  {
-    initialBeta = data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
+    initialBeta = data["deformation"].contains("guess")
+                      ? data["deformation"]["guess"].get<double>()
+                      : deformationCurve.start * 1;
+  } else {
+    initialBeta =
+        data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
   }
   beta3 = data.contains("beta3") ? data["beta3"].get<double>() : 0.0;
 
@@ -47,10 +66,8 @@ InputParser::InputParser(std::string inputFile)
   Z = data["nucleus"]["Z"];
 
   log.clear();
-  if (data.contains("log"))
-  {
-    for (auto &&entry : data["log"])
-    {
+  if (data.contains("log")) {
+    for (auto &&entry : data["log"]) {
       log.push_back(entry);
     }
   }
@@ -63,8 +80,11 @@ InputParser::InputParser(std::string inputFile)
                             interactionData["x1"], interactionData["x2"],
                             interactionData["x3"], interactionData["sigma"]};
   std::cout << "Interaction: " << interaction << std::endl;
-  std::cout << "t0: " << skyrme.t0 << ", t1: " << skyrme.t1 << ", t2: " << skyrme.t2 << ", t3: " << skyrme.t3 << std::endl;
-  std::cout << "W0: " << skyrme.W0 << ", x0: " << skyrme.x0 << ", x1: " << skyrme.x1 << ", x2: " << skyrme.x2 << ", x3: " << skyrme.x3 << std::endl;
+  std::cout << "t0: " << skyrme.t0 << ", t1: " << skyrme.t1
+            << ", t2: " << skyrme.t2 << ", t3: " << skyrme.t3 << std::endl;
+  std::cout << "W0: " << skyrme.W0 << ", x0: " << skyrme.x0
+            << ", x1: " << skyrme.x1 << ", x2: " << skyrme.x2
+            << ", x3: " << skyrme.x3 << std::endl;
   std::cout << "sigma: " << skyrme.sigma << std::endl;
   file.close();
 }
@@ -75,20 +95,15 @@ std::string InputParser::getOutputName() { return data["outputName"]; }
 
 nlohmann::json InputParser::get_json() { return data; }
 
-Grid InputParser::get_grid()
-{
+Grid InputParser::get_grid() {
   return Grid(data["box"]["n"], data["box"]["size"]);
 }
 
-int InputParser::getA()
-{
-  return A;
-}
+int InputParser::getA() { return A; }
 
 int InputParser::getZ() { return Z; }
 
-WoodsSaxonParameters InputParser::getWS()
-{
+WoodsSaxonParameters InputParser::getWS() {
   return WoodsSaxonParameters{
       data["woods_saxon"]["V0"],
       data["woods_saxon"]["r0"],
@@ -97,8 +112,7 @@ WoodsSaxonParameters InputParser::getWS()
   };
 }
 
-WSSpinOrbitParameters InputParser::getWSSO()
-{
+WSSpinOrbitParameters InputParser::getWSSO() {
   return WSSpinOrbitParameters{
       data["woods_saxon"]["spin_orbit"]["V0"],
       data["woods_saxon"]["spin_orbit"]["r0"],
@@ -106,8 +120,7 @@ WSSpinOrbitParameters InputParser::getWSSO()
   };
 }
 
-Calculation InputParser::getCalculation()
-{
+Calculation InputParser::getCalculation() {
   HartreeFock hf = {
       data["hf"]["cycles"], data["hf"]["energyTol"],
       GCGParameters{data["hf"]["gcg"]["nev"], data["hf"]["gcg"]["tol"],

@@ -45,6 +45,8 @@ def plot_json_data(file_path):
 
     energies_hfbtho = np.genfromtxt('plots/deformation/ev8_en_nopair_new.csv')
     betas_hfbtho = np.genfromtxt('plots/deformation/ev8_betas_nopair_new.csv')
+    energies_hfbtho2 = np.genfromtxt('plots/deformation/ev8_en_nopair_06.csv')
+    betas_hfbtho2 = np.genfromtxt('plots/deformation/ev8_betas_nopair_06.csv')
     epairNev8 = np.genfromtxt('plots/deformation/epairN_ev8.csv')
     epairPev8 = np.genfromtxt('plots/deformation/epairP_ev8.csv')
 
@@ -52,6 +54,8 @@ def plot_json_data(file_path):
     max_beta_arg = find_nearest(betas_hfbtho, max(betas))+1
     betas_hfbtho = betas_hfbtho[min_beta_arg:max_beta_arg]
     energies_hfbtho = energies_hfbtho[min_beta_arg:max_beta_arg]
+    betas_hfbtho2 = betas_hfbtho[min_beta_arg:max_beta_arg]
+    energies_hfbtho2 = energies_hfbtho[min_beta_arg:max_beta_arg]
     epairNev8 = epairNev8[min_beta_arg:max_beta_arg]
     epairPev8 = epairPev8[min_beta_arg:max_beta_arg]
 
@@ -105,17 +109,18 @@ def plot_json_data(file_path):
         fig, ax2 = plt.subplots(1, 1, figsize=(6, 6), sharex = True)
 
     beta_smooth = np.linspace(sorted_betas.min(), sorted_betas.max(), 200)
-    spline = make_interp_spline(sorted_betas, sorted_eints, k=1)
+    spline = make_interp_spline(sorted_betas, sorted_eints, k=3)
     Eint_smooth = spline(beta_smooth)
 
     # Bottom plot: Eint
     #ax2.plot(sorted_betas, sorted_eints, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
     ax2.plot(beta_smooth, Eint_smooth, color='crimson', label='Eint data', alpha=0.7, linestyle='-')
     ax2.plot(betas_hfbtho, energies_hfbtho, color='teal', label='E HFTHO', alpha=0.7, linestyle='-')
+    #ax2.plot(betas_hfbtho2, energies_hfbtho2, color='gold', label='E HFTHO', alpha=0.7, linestyle='-')
     #ax2.plot(betasnoJ, eintsnoJ, color='green', label='E no J', alpha=0.7, linestyle='-')
     #ax2.plot(x_new, y_eint_smooth, '-', color='crimson', linewidth=2, label='Eint (spline)')
     ax2.set_xlabel(r"$\beta_2$", fontsize=14, labelpad=15)
-    ax2.set_ylabel('E (MeV)', fontsize=13)
+    ax2.set_ylabel('E [MeV]', fontsize=13)
     #ax2.legend(fontsize=fontsize, frameon=True, fancybox=True, shadow=True)
     ax2.set_ylim(min(eints)-0.5, max(energies_hfbtho) + 3)
     ax2.grid(True, linestyle='--', linewidth=0.5)
@@ -162,4 +167,4 @@ def plot_json_data(file_path):
 if __name__ == '__main__':
     #plot_json_data('output/def_pairing_save/mg.json')
     plot_json_data('output/mg_curve_ev8_noJ2/curve.json.json')
-    
+   
