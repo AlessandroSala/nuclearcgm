@@ -31,7 +31,8 @@ std::complex<double> Operators::integral(const Eigen::VectorXcd &psi,
   return res;
 }
 
-std::complex<double> Operators::integralNoSpin(const Eigen::VectorXcd &psi, const Grid &grid) {
+std::complex<double> Operators::integralNoSpin(const Eigen::VectorXcd &psi,
+                                               const Grid &grid) {
   double h = grid.get_h();
   double hhh = h * h * h;
   std::complex<double> res = 0.0;

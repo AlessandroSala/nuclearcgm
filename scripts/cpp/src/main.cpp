@@ -34,8 +34,7 @@
 #include <skyrme/skyrme_u.hpp>
 #include <vector>
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   using namespace std;
   using namespace Eigen;
   using namespace nuclearConstants;
@@ -45,8 +44,7 @@ int main(int argc, char **argv)
 
   using recursive_directory_iterator =
       std::filesystem::recursive_directory_iterator;
-  for (const auto &dirEntry : recursive_directory_iterator("input/exec"))
-  {
+  for (const auto &dirEntry : recursive_directory_iterator("input/exec")) {
     cout << "Reading input from " << dirEntry.path() << endl;
     InputParser input(dirEntry.path().string());
     Output out("output/" + input.outputDirectory);
@@ -61,8 +59,8 @@ int main(int argc, char **argv)
     int Z = input.getZ();
     int N = A - Z;
 
-    int orbitalsN = N + input.pairingParameters.additionalStates;
-    int orbitalsP = Z + input.pairingParameters.additionalStates;
+    int orbitalsN = N + input.pairingParameters.additionalStatesN;
+    int orbitalsP = Z + input.pairingParameters.additionalStatesP;
 
     auto WS = input.getWS();
     auto WSSO = input.getWSSO();
@@ -75,8 +73,7 @@ int main(int argc, char **argv)
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
         WS.V0, radius, WS.diffusivity, A, input.getZ(), WS.kappa, input.beta3));
-    if (input.spinOrbit)
-    {
+    if (input.spinOrbit) {
       pots.push_back(make_shared<DeformedSpinOrbitPotential>(WSSO.V0, radius,
                                                              WS.diffusivity));
     }
@@ -84,9 +81,8 @@ int main(int argc, char **argv)
     Hamiltonian initialWS(make_shared<Grid>(grid), pots);
 
     double nucRadius = pow(A, 0.3333333) * 1.20;
-    int max = N > Z ? N + input.pairingParameters.additionalStates : Z + input.pairingParameters.additionalStates;
-    auto guess =
-        harmonic_oscillator_guess(grid, max, nucRadius, true);
+    int max = orbitalsN > orbitalsP ? orbitalsN : orbitalsP;
+    auto guess = harmonic_oscillator_guess(grid, max, nucRadius, true);
 
     pair<MatrixXcd, VectorXd> firstEigenpair =
         solve(initialWS.build_matrix5p(), calc.initialGCG, guess);
@@ -94,14 +90,11 @@ int main(int argc, char **argv)
 
     pair<MatrixXcd, VectorXd> protonsEigenpair;
     pair<MatrixXcd, VectorXd> neutronsEigenpair;
-    if (N >= Z)
-    {
+    if (N >= Z) {
       neutronsEigenpair = firstEigenpair;
       protonsEigenpair.second = neutronsEigenpair.second.head(orbitalsP);
       protonsEigenpair.first = neutronsEigenpair.first.leftCols(orbitalsP);
-    }
-    else if (N < Z)
-    {
+    } else if (N < Z) {
       protonsEigenpair = firstEigenpair;
       neutronsEigenpair.second = protonsEigenpair.second.head(orbitalsN);
       neutronsEigenpair.first = protonsEigenpair.first.leftCols(orbitalsN);
@@ -119,31 +112,32 @@ int main(int argc, char **argv)
     mu20s.clear();
     std::cout << input.calculationType << std::endl;
 
-    if (input.calculationType == CalculationType::deformation_curve)
-    {
-      std::cout << "=== Deformation curve, beta: [" << input.deformationCurve.start << ", " << input.deformationCurve.end << "], step: " << input.deformationCurve.step << " ===" << std::endl;
+    if (input.calculationType == CalculationType::deformation_curve) {
+      std::cout << "=== Deformation curve, beta: ["
+                << input.deformationCurve.start << ", "
+                << input.deformationCurve.end
+                << "], step: " << input.deformationCurve.step
+                << " ===" << std::endl;
       double R0 = 1.2 * pow(A, 1.0 / 3.0);
-      double startMu = Utilities::mu20FromBeta(input.deformationCurve.start, R0, A);
+      double startMu =
+          Utilities::mu20FromBeta(input.deformationCurve.start, R0, A);
       double endMu = Utilities::mu20FromBeta(input.deformationCurve.end, R0, A);
-      double stepMu = Utilities::mu20FromBeta(input.deformationCurve.step, R0, A);
+      double stepMu =
+          Utilities::mu20FromBeta(input.deformationCurve.step, R0, A);
 
-      if(startMu < endMu) {
-      for (double mu = startMu; mu <= endMu; mu += stepMu)
-      {
-        mu20s.push_back(mu);
+      if (startMu < endMu) {
+        for (double mu = startMu; mu <= endMu; mu += stepMu) {
+          mu20s.push_back(mu);
+        }
+      } else {
+        for (double mu = startMu; mu >= endMu; mu -= stepMu) {
+          mu20s.push_back(mu);
+        }
       }
-      }
-      else {
-      for (double mu = startMu; mu >= endMu; mu -= stepMu)
-      {
-        mu20s.push_back(mu);
-      }
-      }
-      std::cout << "=== Deformation curve, mu: [" << startMu << ", " << endMu << "], step: " << stepMu << " ===" << std::endl;
+      std::cout << "=== Deformation curve, mu: [" << startMu << ", " << endMu
+                << "], step: " << stepMu << " ===" << std::endl;
       std::cout << mu20s.size() << " calculations to be done" << std::endl;
-    }
-    else
-    {
+    } else {
       std::cout << "=== Ground state ===" << std::endl;
     }
     vector<unique_ptr<Constraint>> constraints;
@@ -151,19 +145,18 @@ int main(int argc, char **argv)
     // Wavefunction::printShells(neutronsEigenpair, grid);
     std::cout << "Start HF" << std::endl;
 
-    // i=-1 to guarantee a first gs iteration if calculation is not deformation curve
-    for (int i = -1; i < (int)mu20s.size(); ++i)
-    {
+    // i=-1 to guarantee a first gs iteration if calculation is not deformation
+    // curve
+    for (int i = -1; i < (int)mu20s.size(); ++i) {
       if (i == -1)
         i = 0;
       int hfIter = 0;
 
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
-      //constraints.clear();
-      if((int)mu20s.size() != 0){
-        if ( i == 0)
-        {
+      // constraints.clear();
+      if ((int)mu20s.size() != 0) {
+        if (i == 0) {
           auto mu = mu20s[i];
           constraints.push_back(make_unique<XCMConstraint>(0.0));
           constraints.push_back(make_unique<YCMConstraint>(0.0));
@@ -173,15 +166,15 @@ int main(int argc, char **argv)
           constraints.push_back(make_unique<OctupoleConstraint>(0.0));
           constraints.push_back(make_unique<QuadrupoleConstraint>(mu));
         } else {
-          std::cout << "=== now using quadrupole constraint " << mu20s[i] << " ===" << std::endl;
-          //TODO: fix this, always keep quadrupole constraint last!
+          std::cout << "=== now using quadrupole constraint " << mu20s[i]
+                    << " ===" << std::endl;
+          // TODO: fix this, always keep quadrupole constraint last!
           constraints.back()->target = mu20s[i];
         }
       }
-      for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter)
-      {
-        data.updateQuantities(neutronsEigenpair, protonsEigenpair,
-                              hfIter, constraints);
+      for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
+        data.updateQuantities(neutronsEigenpair, protonsEigenpair, hfIter,
+                              constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
 
         cout << "HF iteration: " << hfIter << endl;
@@ -197,8 +190,7 @@ int main(int argc, char **argv)
                                           neutronsEigenpair.first, orbitalsN);
 
         pair<MatrixXcd, VectorXd> newProtonsEigenpair;
-        if (input.useCoulomb || N != Z)
-        {
+        if (input.useCoulomb || N != Z) {
           pots.clear();
           skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
 
@@ -207,9 +199,7 @@ int main(int argc, char **argv)
 
           newProtonsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
                                       protonsEigenpair.first, orbitalsP);
-        }
-        else
-        {
+        } else {
           newProtonsEigenpair.first =
               newNeutronsEigenpair.first.leftCols(orbitalsP);
           newProtonsEigenpair.second =
@@ -226,17 +216,17 @@ int main(int argc, char **argv)
             data.totalEnergyIntegral(input.skyrme, grid) +
             data.kineticEnergy(input.skyrme, grid);
 
-        double SPE = (neutronsEigenpair.second.sum() +
-                      protonsEigenpair.second.sum());
+        double SPE =
+            (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
 
         integralEnergies.push_back(newIntegralEnergy);
         double newHFEnergy = 0.0;
         HFEnergies.push_back(newHFEnergy);
-        if (abs(newIntegralEnergy - integralEnergy) < input.getCalculation().hf.energyTol &&
+        if (abs(newIntegralEnergy - integralEnergy) <
+                input.getCalculation().hf.energyTol &&
             abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
             abs(data.constraintEnergy(constraints)) <
-                input.getCalculation().hf.energyTol)
-        {
+                input.getCalculation().hf.energyTol) {
           break;
         }
         data.energyDiff = std::abs(newHFEnergy - HFEnergy);
@@ -256,8 +246,8 @@ int main(int argc, char **argv)
                            .count();
       data.lastConvergedIter = 0;
       out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
-                       &data, input, hfIter, integralEnergies, HFEnergies, cpuTime,
-                       'a', constraints);
+                       &data, input, hfIter, integralEnergies, HFEnergies,
+                       cpuTime, 'a', constraints);
     }
   }
   return 0;

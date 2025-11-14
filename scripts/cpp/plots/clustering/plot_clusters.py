@@ -12,16 +12,26 @@ h = 20 / (n-1)
 print("h: ", h)
 dV = h**3
 
-density = np.genfromtxt("output/si42/sly4/C.csv")
+density = np.genfromtxt("output/S28/kde33/C.csv")
 #density = np.genfromtxt("output/ne20_clustering/skm/density.csv")
 #density = np.genfromtxt("output/density.csv")
 n2 = n // 2
 a = 10
+x = np.linspace(-a, a, n)
+y = np.linspace(-a, a, n)
+z = np.linspace(-a, a, n)
+r = np.sqrt(x**2 + y**2 + z**2)
+# Create 3D grids
+X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
 
+# 3D radius
+r = np.sqrt(X**2 + Y**2 + Z**2)
 mat_or = density.reshape((n, n, n))
+mat_or[ r > 7] = 0.0
 
 #mat = mat[:, :, n // 2]
 mat = mat_or[:, :, n2]
+
 #mat = mat[n // 2, :, :]
 
 x = np.linspace(-a, a, n)
@@ -76,12 +86,12 @@ cmap = custom_jet_fade
 cmap.set_under('white')
 rho_min = np.max(mat.flatten()) / 10
 
-contour = plt.contourf(X, Y, mat, cmap=cmap, levels = 100, vmax = 0.9)
+contour = plt.contourf(X, Y, mat, cmap=cmap, levels = 100, vmax = 0.9, vmin = 0.5)
 #plt.colorbar(contour)
 plt.xlabel('x [fm]')
 plt.ylabel("z [fm]")
-plt.colorbar(label=f"Particle density [fm$^{{-3}}$]")
-limit = 6
+plt.colorbar(label=f"NLF [-]")
+limit = 8
 plt.axis([-limit, limit, -limit, limit])
 major_ticks = np.arange(-limit, limit+0.1, limit/5)
 #plt.grid(linewidth = 0.2)

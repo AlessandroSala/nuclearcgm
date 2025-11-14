@@ -10,23 +10,20 @@ typedef enum CalculationType {
   ground_state
 } CalculationType;
 
-typedef struct DeformationCurve
-{
+typedef struct DeformationCurve {
   double start;
   double end;
   double step;
 } DeformationCurve;
 
-typedef struct GCGParameters
-{
+typedef struct GCGParameters {
   int nev;
   double tol;
   int maxIter;
   int steps;
   double cgTol;
 } CGCParameters;
-typedef struct
-{
+typedef struct {
   double W0;
   double t0;
   double t1;
@@ -38,47 +35,44 @@ typedef struct
   double x3;
   double sigma;
 } SkyrmeParameters;
-typedef struct HartreeFock
-{
+typedef struct HartreeFock {
   int cycles;
   double energyTol;
   GCGParameters gcg;
 } HartreeFock;
-typedef struct
-{
+typedef struct {
   GCGParameters initialGCG;
   HartreeFock hf;
 } Calculation;
 
-typedef struct
-{
+typedef struct {
   double V0;
   double r0;
   double diffusivity;
   double kappa;
 } WoodsSaxonParameters;
 
-typedef struct
-{
+typedef struct {
   double V0;
   double r0;
   double diff;
 } WSSpinOrbitParameters;
 
-typedef struct
-{
+typedef struct {
   double window;
-  int additionalStates;
+  int additionalStatesN;
+  int additionalStatesP;
   double V0N;
   double V0P;
   double alpha;
+  double eta;
+  bool windowBoth;
 } PairingParameters;
 
 /**
  * @brief Gathers the objects related to a calculation.
  */
-class InputParser
-{
+class InputParser {
 public:
   /**
    * @param inputFile The path to the input file in the input directory.

@@ -16,7 +16,7 @@ a = 10
 mat_or = density.reshape((n, n, n))
 
 #mat = mat[:, :, n // 2]
-mat = mat_or[n2, :, :]
+mat = mat_or[:, n2, :]
 #mat = mat[n // 2, :, :]
 
 x = np.linspace(-a, a, n)
