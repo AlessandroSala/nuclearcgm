@@ -24,8 +24,10 @@ std::complex<double> SkyrmeSO::getElement5p(int i, int j, int k, int s, int i1,
   Eigen::Vector3d BP = (*data->BP).row(idx);
   Eigen::Vector3d BN = (*data->BN).row(idx);
 
+  // Spin-orbit field
   auto B = n == NucleonType::N ? BN : BP;
 
+  // Spin-orbit components
   double Wx = B(0);
   double Wy = B(1);
   double Wz = B(2);
