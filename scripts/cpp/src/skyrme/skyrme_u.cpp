@@ -33,18 +33,7 @@ std::complex<double> SkyrmeU::getElement5p(int i, int j, int k, int s, int i1,
   double x2 = params.x2, x3 = params.x3, sigma = params.sigma;
   double W0 = params.W0;
   std::complex<double> spinPart = std::complex<double>(0.0, 0.0);
-  Eigen::Vector3cd spin =
-      n == NucleonType::N ? data->spinN->row(idx) : data->spinP->row(idx);
   auto pauli = nuclearConstants::getPauli();
-
-  for (int i = 0; i < 3; ++i) {
-    SpinMatrix res = (-0.5 * t0 * pauli[i] * spin(i));
-    spinPart += res(s, s1);
-  }
-  // spinPart = std::complex<double>(0.0, 0.0);
-  if (i != i1 || j != j1 || k != k1 || s != s1) {
-    return spinPart;
-  }
 
   // Densità e derivate
   double rho_p = (*data->rhoP)(idx);

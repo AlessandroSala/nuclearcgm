@@ -53,20 +53,11 @@ void IterationData::logData(
 }
 
 IterationData::IterationData(InputParser input) : input(input) {
-  useDIIS = input.useDIIS;
   params = input.skyrme;
   int A = input.getA();
   using nuclearConstants::m;
   energyDiff = 1.0;
   lastConvergedIter = 0;
-  rhoNHistory.clear();
-  rhoPHistory.clear();
-  tauNHistory.clear();
-  tauPHistory.clear();
-  JNHistory.clear();
-  JPHistory.clear();
-  divJvecNHistory.clear();
-  divJvecPHistory.clear();
 
   massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
 
@@ -105,12 +96,7 @@ double IterationData::radius() {
 
   return integral(f, grid) / integral(rho, grid);
 }
-void IterationData::mixDensity(
-    const Eigen::MatrixXcd &newDensity,
-    std::vector<std::shared_ptr<Eigen::MatrixXcd>> history) {
-  if (!useDIIS) {
-  }
-}
+
 double IterationData::chargeRadius(const Eigen::MatrixXcd psiN,
                                    const Eigen::MatrixXcd psiP, int N, int Z) {
   auto grid = *Grid::getInstance();
