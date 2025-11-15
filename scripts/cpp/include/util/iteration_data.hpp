@@ -41,26 +41,16 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> BN;
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;
-  std::vector<std::shared_ptr<Eigen::VectorXd>> rhoNHistory;
-  std::vector<std::shared_ptr<Eigen::VectorXd>> rhoPHistory;
-  std::vector<std::shared_ptr<Eigen::VectorXd>> tauNHistory;
-  std::vector<std::shared_ptr<Eigen::VectorXd>> tauPHistory;
-  std::vector<std::shared_ptr<Real2Tensor>> JNHistory;
-  std::vector<std::shared_ptr<Real2Tensor>> JPHistory;
-  std::vector<std::shared_ptr<Eigen::VectorXd>> divJvecNHistory;
-  std::vector<std::shared_ptr<Eigen::VectorXd>> divJvecPHistory;
 
   Eigen::VectorXd UCDir;
 
   BCS::BCSResult bcsN;
   BCS::BCSResult bcsP;
-  bool useDIIS;
   SkyrmeParameters params;
   InputParser input;
   double massCorr;
   double energyDiff;
   double constraintTol = 5e-3;
-  double mu = 0.2;
   int lastConvergedIter;
 
   void mixDensity(const Eigen::MatrixXcd &newDensity,
