@@ -1,18 +1,29 @@
 {
-    "interaction": "SLy5",
+    "interaction": "SLy4",
     "coulomb": true,
-    "Jterms": true,
+    "Jterms": false,
     "spinOrbit": true,
     "COMCorrection": true,
     "outputName": "test",
     "outputDirectory": "time_tests",
+    "deformation": {
+      "start": 0.4,
+      "end": 0.4,
+      "step": 0.001
+    },
     "box": {
-        "size": 12.0,
-        "n": 30
+        "size": 9.0,
+        "n": 26
+    },
+    "pairing": {
+      "window": 5.0,
+      "windowBoth": true,
+      "V0": 550.0,
+      "additionalStates": 8
     },
     "nucleus": {
-        "A": 40,
-        "Z": 20
+        "A": 24,
+        "Z": 12
     },
     "log": [
         "tot_energies",
@@ -21,8 +32,8 @@
         "density"
     ],
     "hf": {
-        "cycles": 120,
-        "energyTol": 1e-06,
+        "cycles": 500,
+        "energyTol": 1e-05,
         "gcg": {
             "maxIter": 1,
             "nev": 0,

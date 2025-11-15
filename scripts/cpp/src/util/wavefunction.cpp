@@ -129,7 +129,7 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
           r = 1e-9;
 
         Uquad(idx) = (e2 * Z) / r;
-        Uquad(idx) += e2 * (Y20(x, y, z) * Q20 + Y22(x, y, z) * Q22) / r;
+        Uquad(idx) += e2 * (Y20(x, y, z) * Q20 + 2.0 * Y22(x, y, z) * Q22) / r;
       }
     }
   }

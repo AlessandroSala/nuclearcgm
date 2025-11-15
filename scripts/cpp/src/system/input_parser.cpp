@@ -23,7 +23,9 @@ InputParser::InputParser(std::string inputFile) {
           pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
                                         : 0.0,
           pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
-          pairingData["windowBoth"],
+          pairingData.contains("windowBoth")
+              ? pairingData["windowBoth"].get<bool>()
+              : false,
       };
     } else {
       pairingParameters = PairingParameters{
@@ -35,13 +37,17 @@ InputParser::InputParser(std::string inputFile) {
           pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
                                         : 0.0,
           pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
-          pairingData["windowBoth"],
+          pairingData.contains("windowBoth")
+              ? pairingData["windowBoth"].get<bool>()
+              : false,
       };
     }
 
   } else {
     pairingParameters = PairingParameters{0, 0, 0, 0, 0, 0, 0, false};
   }
+
+  useDIIS = data.contains("useDIIS") ? data["useDIIS"].get<bool>() : true;
 
   spinOrbit = data["spinOrbit"];
   COMCorr = data["COMCorrection"];

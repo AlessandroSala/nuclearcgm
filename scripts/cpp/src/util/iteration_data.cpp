@@ -53,11 +53,20 @@ void IterationData::logData(
 }
 
 IterationData::IterationData(InputParser input) : input(input) {
+  useDIIS = input.useDIIS;
   params = input.skyrme;
   int A = input.getA();
   using nuclearConstants::m;
   energyDiff = 1.0;
   lastConvergedIter = 0;
+  rhoNHistory.clear();
+  rhoPHistory.clear();
+  tauNHistory.clear();
+  tauPHistory.clear();
+  JNHistory.clear();
+  JPHistory.clear();
+  divJvecNHistory.clear();
+  divJvecPHistory.clear();
 
   massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
 
@@ -95,6 +104,12 @@ double IterationData::radius() {
   VectorXd f = pos.array().pow(2) * rho.array();
 
   return integral(f, grid) / integral(rho, grid);
+}
+void IterationData::mixDensity(
+    const Eigen::MatrixXcd &newDensity,
+    std::vector<std::shared_ptr<Eigen::MatrixXcd>> history) {
+  if (!useDIIS) {
+  }
 }
 double IterationData::chargeRadius(const Eigen::MatrixXcd psiN,
                                    const Eigen::MatrixXcd psiP, int N, int Z) {
@@ -160,7 +175,6 @@ double IterationData::totalEnergyIntegral(SkyrmeParameters params,
 }
 
 double IterationData::Erear(const Grid &grid) {
-
   double t0 = params.t0;
   double t3 = params.t3;
   double x0 = params.x0;
@@ -528,7 +542,7 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
-  double muConst = 0.2;
+  double muConst = 0.8;
   if (UConstr == nullptr) {
     UConstr = std::make_shared<Eigen::VectorXd>(constraintField);
   } else {
