@@ -13,13 +13,13 @@ InputParser::InputParser(std::string inputFile) {
   pairing = data.contains("pairing");
   if (pairing) {
     auto pairingData = data["pairing"];
-    if (pairingData.contains("neutrons")) {
+    if (pairingData.contains("neutron")) {
       pairingParameters = PairingParameters{
           pairingData["window"],
-          pairingData["neutrons"]["additionalStates"],
-          pairingData["protons"]["additionalStates"],
-          pairingData["neutrons"]["V0"],
-          pairingData["protons"]["V0"],
+          pairingData["neutron"]["additionalStates"],
+          pairingData["proton"]["additionalStates"],
+          pairingData["neutron"]["V0"],
+          pairingData["proton"]["V0"],
           pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
                                         : 0.0,
           pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,

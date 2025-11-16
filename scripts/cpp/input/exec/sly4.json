@@ -4,16 +4,22 @@
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "outputName": "driplines",
-    "outputDirectory": "S28/sly4",
-    "initialBeta": 0.2,
+    "outputName": "ra",
+    "outputDirectory": "test",
+    "initialBeta": 0.25,
     "box": {
-        "size": 10.0,
-        "n": 60
+        "size": 12.0,
+        "n": 30
+    },
+    "pairing": {
+      "window": 5.0,
+      "additionalStates": 18,
+      "windowBoth": true,
+      "V0": 600.0
     },
     "nucleus": {
-        "A": 28,
-        "Z": 16
+        "A": 64,
+        "Z": 32
     },
     "log": [
         "tot_energies",
@@ -33,7 +39,7 @@
         }
     },
     "gcg": {
-        "maxIter": 10,
+        "maxIter": 6,
         "nev": 10,
         "tol": 1e-05,
         "cgTol": 1e-07,
