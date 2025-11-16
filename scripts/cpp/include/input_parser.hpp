@@ -97,6 +97,7 @@ public:
   double initialBeta;
   double beta3;
   PairingParameters pairingParameters;
+  bool useDIIS;
 
   SkyrmeParameters skyrme;
   CalculationType calculationType;

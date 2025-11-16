@@ -3,7 +3,6 @@
 #include "guess.hpp"
 #include "hamiltonian.hpp"
 #include "input_parser.hpp"
-#include "kinetic/iso_kinetic_potential.hpp"
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
 #include "radius.hpp"
@@ -221,13 +220,20 @@ int main(int argc, char **argv) {
             (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
 
         integralEnergies.push_back(newIntegralEnergy);
-        double newHFEnergy = 0.0;
+        double newHFEnergy = data.HFEnergy(SPE, constraints);
+        bool constraintsConv = true;
+        std::cout << "Constraints errors: ";
+        for (auto &&constraint : constraints) {
+          std::cout << constraint->error() << ", ";
+          constraintsConv = constraintsConv && constraint->error() < 1e-3;
+        }
+        std::cout << std::endl;
         HFEnergies.push_back(newHFEnergy);
+
         if (abs(newIntegralEnergy - integralEnergy) <
                 input.getCalculation().hf.energyTol &&
             abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
-            abs(data.constraintEnergy(constraints)) <
-                input.getCalculation().hf.energyTol) {
+            constraintsConv) {
           break;
         }
         data.energyDiff = std::abs(newHFEnergy - HFEnergy);

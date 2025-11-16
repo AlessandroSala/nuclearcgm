@@ -96,6 +96,7 @@ double IterationData::radius() {
 
   return integral(f, grid) / integral(rho, grid);
 }
+
 double IterationData::chargeRadius(const Eigen::MatrixXcd psiN,
                                    const Eigen::MatrixXcd psiP, int N, int Z) {
   auto grid = *Grid::getInstance();
@@ -160,7 +161,6 @@ double IterationData::totalEnergyIntegral(SkyrmeParameters params,
 }
 
 double IterationData::Erear(const Grid &grid) {
-
   double t0 = params.t0;
   double t3 = params.t3;
   double x0 = params.x0;
@@ -528,7 +528,7 @@ void IterationData::updateQuantities(
     *UN = (*UN) * (1 - mu) + newFieldN * mu;
     *UP = (*UP) * (1 - mu) + newFieldP * mu;
   }
-  double muConst = 0.2;
+  double muConst = 0.8;
   if (UConstr == nullptr) {
     UConstr = std::make_shared<Eigen::VectorXd>(constraintField);
   } else {

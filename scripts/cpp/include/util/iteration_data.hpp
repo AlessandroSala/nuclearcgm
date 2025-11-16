@@ -1,23 +1,21 @@
 #pragma once
 #include "input_parser.hpp"
 #include "types.hpp"
+#include "util/bcs.hpp"
 #include <Eigen/Dense>
 #include <memory>
-#include "util/bcs.hpp"
 
 class InputParser;
 class Constraint;
 class Grid;
 class EffectiveMass;
 
-typedef struct QuadrupoleDeformation
-{
+typedef struct QuadrupoleDeformation {
   double beta;
   double gamma;
 } QuadrupoleDeformation;
 
-class IterationData
-{
+class IterationData {
 public:
   std::shared_ptr<EffectiveMass> massN;
   std::shared_ptr<EffectiveMass> massP;
@@ -29,8 +27,6 @@ public:
   std::shared_ptr<Eigen::VectorXd> divJvecP;
   std::shared_ptr<Eigen::MatrixX3d> nablaRhoN;
   std::shared_ptr<Eigen::MatrixX3d> nablaRhoP;
-  std::shared_ptr<Eigen::MatrixX3d> spinN;
-  std::shared_ptr<Eigen::MatrixX3d> spinP;
   std::shared_ptr<Eigen::VectorXd> nabla2RhoN;
   std::shared_ptr<Eigen::VectorXd> nabla2RhoP;
   std::shared_ptr<Real2Tensor> JN;
@@ -57,16 +53,20 @@ public:
   double constraintTol = 5e-3;
   int lastConvergedIter;
 
-  void
-  updateQuantities(const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsEigenpair,
-                   const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsEigenpair,
-                   int iter,
-                   const std::vector<std::unique_ptr<Constraint>> &constraints);
+  void mixDensity(const Eigen::MatrixXcd &newDensity,
+                  std::vector<std::shared_ptr<Eigen::MatrixXcd>> history);
 
-  double constraintEnergy(const std::vector<std::unique_ptr<Constraint>> &constraints);
+  void updateQuantities(
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsEigenpair,
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsEigenpair,
+      int iter, const std::vector<std::unique_ptr<Constraint>> &constraints);
+
+  double
+  constraintEnergy(const std::vector<std::unique_ptr<Constraint>> &constraints);
   double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
   double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
-  double HFEnergy(double SPE, const std::vector<std::unique_ptr<Constraint>> &constraints);
+  double HFEnergy(double SPE,
+                  const std::vector<std::unique_ptr<Constraint>> &constraints);
   double Erear(const Grid &grid);
 
   double C0RhoEnergy(SkyrmeParameters params, const Grid &grid);
