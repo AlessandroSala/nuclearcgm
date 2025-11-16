@@ -82,7 +82,8 @@ int main(int argc, char **argv) {
 
     double nucRadius = pow(A, 0.3333333) * 1.20;
     int max = orbitalsN > orbitalsP ? orbitalsN : orbitalsP;
-    auto guess = harmonic_oscillator_guess(grid, max, nucRadius, true);
+    auto guess = harmonic_oscillator_guess(grid, max, nucRadius,
+                                           input.initialBeta, true);
 
     pair<MatrixXcd, VectorXd> firstEigenpair =
         solve(initialWS.build_matrix5p(), calc.initialGCG, guess);
