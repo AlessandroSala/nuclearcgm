@@ -1,25 +1,18 @@
 {
-    "interaction": "SLy4",
+    "interaction": "SKMstar",
     "coulomb": true,
     "Jterms": true,
     "spinOrbit": true,
     "COMCorrection": true,
-    "outputName": "ra",
-    "outputDirectory": "test",
-    "initialBeta": 0.25,
+    "outputName": "test",
+    "outputDirectory": "time_tests",
     "box": {
         "size": 12.0,
-        "n": 30
-    },
-    "pairing": {
-      "window": 5.0,
-      "additionalStates": 18,
-      "windowBoth": true,
-      "V0": 600.0
+        "n": 40
     },
     "nucleus": {
-        "A": 64,
-        "Z": 32
+        "A": 48,
+        "Z": 20
     },
     "log": [
         "tot_energies",

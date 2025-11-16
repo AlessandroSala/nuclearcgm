@@ -1,14 +1,15 @@
 #pragma once
-#include <Eigen/Dense>
 #include "functional_term.hpp"
-class Constraint : public FunctionalTerm
-{
+#include <Eigen/Dense>
+class Constraint : public FunctionalTerm {
 public:
-    double evaluate(IterationData *data) const override;
-    virtual Eigen::VectorXd getField(IterationData *data);
-    virtual ~Constraint() = default;
-    
-    double target;
-    double lambda;
-    double gamma;
+  double evaluate(IterationData *data) const override;
+  double error() const;
+  virtual Eigen::VectorXd getField(IterationData *data);
+  virtual ~Constraint() = default;
+
+  double value;
+  double target;
+  double lambda;
+  double gamma;
 };

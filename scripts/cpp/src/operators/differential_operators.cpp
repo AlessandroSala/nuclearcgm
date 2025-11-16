@@ -216,13 +216,38 @@ double Operators::derivativeNoSpin(const Eigen::VectorXd &psi, int i, int j,
     double f0 = psi(idx(pos, pos, pos));
     double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
     return (f0 - f_1) / h;
-  } else {
+  } else if (pos == 2 || pos == n - 3) {
     // Derivata centrata a 5 punti (ordine 4)
     double f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
     double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     double f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 8.0 * f1 - 8.0 * f_1 + f_2) / (12.0 * h);
+  } else if (pos == 3 || pos == n - 4) {
+    auto f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    auto f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    auto f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    auto f0 = psi(idx(pos, pos, pos));
+    auto f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    auto f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    auto f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+
+    return (-f_3 + 9.0 * f_2 - 45.0 * f_1 + 45.0 * f1 - 9.0 * f2 + f3) /
+           (60.0 * h);
+  } else {
+    auto f_4 = psi(idx(pos - 4, pos - 4, pos - 4));
+    auto f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    auto f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    auto f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    auto f0 = psi(idx(pos, pos, pos));
+    auto f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    auto f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    auto f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    auto f4 = psi(idx(pos + 4, pos + 4, pos + 4));
+
+    return (3.0 * f_4 - 32.0 * f_3 + 168.0 * f_2 - 672.0 * f_1 + 672.0 * f1 -
+            168.0 * f2 + 32.0 * f3 - 3.0 * f4) /
+           (840.0 * h);
   }
 }
 
@@ -262,7 +287,7 @@ std::complex<double> Operators::derivativeNoSpin(const Eigen::VectorXcd &psi,
     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 8.0 * f1 - 8.0 * f_1 + f_2) / (12.0 * h);
-  } else {
+  } else if (pos == 3 || pos == n - 4) {
     std::complex<double> f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
     std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
@@ -272,6 +297,20 @@ std::complex<double> Operators::derivativeNoSpin(const Eigen::VectorXcd &psi,
     std::complex<double> f3 = psi(idx(pos + 3, pos + 3, pos + 3));
     return (-f_3 + 9.0 * f_2 - 45.0 * f_1 + 45.0 * f1 - 9.0 * f2 + f3) /
            (60.0 * h);
+  } else {
+    auto f_4 = psi(idx(pos - 4, pos - 4, pos - 4));
+    auto f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    auto f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    auto f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    auto f0 = psi(idx(pos, pos, pos));
+    auto f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    auto f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    auto f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    auto f4 = psi(idx(pos + 4, pos + 4, pos + 4));
+
+    return (3.0 * f_4 - 32.0 * f_3 + 168.0 * f_2 - 672.0 * f_1 + 672.0 * f1 -
+            168.0 * f2 + 32.0 * f3 - 3.0 * f4) /
+           (840.0 * h);
   }
 }
 
@@ -311,7 +350,7 @@ std::complex<double> Operators::derivative(const Eigen::VectorXcd &psi, int i,
     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 8.0 * f1 - 8.0 * f_1 + f_2) / (12.0 * h);
-  } else {
+  } else if (pos == 3 || pos == n - 4) {
     std::complex<double> f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
     std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
@@ -321,6 +360,20 @@ std::complex<double> Operators::derivative(const Eigen::VectorXcd &psi, int i,
     std::complex<double> f3 = psi(idx(pos + 3, pos + 3, pos + 3));
     return (-f_3 + 9.0 * f_2 - 45.0 * f_1 + 45.0 * f1 - 9.0 * f2 + f3) /
            (60.0 * h);
+  } else {
+    auto f_4 = psi(idx(pos - 4, pos - 4, pos - 4));
+    auto f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    auto f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    auto f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    auto f0 = psi(idx(pos, pos, pos));
+    auto f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    auto f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    auto f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    auto f4 = psi(idx(pos + 4, pos + 4, pos + 4));
+
+    return (3.0 * f_4 - 32.0 * f_3 + 168.0 * f_2 - 672.0 * f_1 + 672.0 * f1 -
+            168.0 * f2 + 32.0 * f3 - 3.0 * f4) /
+           (840.0 * h);
   }
 }
 
@@ -363,7 +416,7 @@ double Operators::derivative2NoSpin(const Eigen::VectorXd &psi, int i, int j,
     double f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     double f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 16.0 * f1 - 30.0 * f0 + 16.0 * f_1 - f_2) / (12.0 * h * h);
-  } else {
+  } else if (pos == 3 || pos == n - 4) {
     double f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
     double f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     double f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
@@ -374,6 +427,20 @@ double Operators::derivative2NoSpin(const Eigen::VectorXd &psi, int i, int j,
     return (2.0 * f3 - 27.0 * f2 + 270.0 * f1 + -490.0 * f0 + 270.0 * f_1 -
             27.0 * f_2 + 2.0 * f_3) /
            (180.0 * h * h);
+  } else {
+    auto f_4 = psi(idx(pos - 4, pos - 4, pos - 4));
+    auto f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    auto f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    auto f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    auto f0 = psi(idx(pos, pos, pos));
+    auto f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    auto f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    auto f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    auto f4 = psi(idx(pos + 4, pos + 4, pos + 4));
+
+    return (-9.0 * f_4 + 128.0 * f_3 - 1008.0 * f_2 + 8064.0 * f_1 -
+            14350.0 * f0 + 8064.0 * f1 - 1008.0 * f2 + 128.0 * f3 - 9.0 * f4) /
+           (5040.0 * h * h);
   }
 }
 
@@ -417,7 +484,7 @@ std::complex<double> Operators::derivative2(const Eigen::VectorXcd &psi, int i,
     std::complex<double> f1 = psi(idx(pos + 1, pos + 1, pos + 1));
     std::complex<double> f2 = psi(idx(pos + 2, pos + 2, pos + 2));
     return (-f2 + 16.0 * f1 - 30.0 * f0 + 16.0 * f_1 - f_2) / (12.0 * h * h);
-  } else {
+  } else if (pos == 3 || pos == n - 4) {
     std::complex<double> f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
     std::complex<double> f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
     std::complex<double> f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
@@ -428,5 +495,19 @@ std::complex<double> Operators::derivative2(const Eigen::VectorXcd &psi, int i,
     return (2.0 * f3 - 27.0 * f2 + 270.0 * f1 + -490.0 * f0 + 270.0 * f_1 -
             27.0 * f_2 + 2.0 * f_3) /
            (180.0 * h * h);
+  } else {
+    auto f_4 = psi(idx(pos - 4, pos - 4, pos - 4));
+    auto f_3 = psi(idx(pos - 3, pos - 3, pos - 3));
+    auto f_2 = psi(idx(pos - 2, pos - 2, pos - 2));
+    auto f_1 = psi(idx(pos - 1, pos - 1, pos - 1));
+    auto f0 = psi(idx(pos, pos, pos));
+    auto f1 = psi(idx(pos + 1, pos + 1, pos + 1));
+    auto f2 = psi(idx(pos + 2, pos + 2, pos + 2));
+    auto f3 = psi(idx(pos + 3, pos + 3, pos + 3));
+    auto f4 = psi(idx(pos + 4, pos + 4, pos + 4));
+
+    return (-9.0 * f_4 + 128.0 * f_3 - 1008.0 * f_2 + 8064.0 * f_1 -
+            14350.0 * f0 + 8064.0 * f1 - 1008.0 * f2 + 128.0 * f3 - 9.0 * f4) /
+           (5040.0 * h * h);
   }
 }
