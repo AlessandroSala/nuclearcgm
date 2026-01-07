@@ -39,9 +39,8 @@ gcgm_complex_no_B(const ComplexSparseMatrix &A,
                   int max_iter, double tolerance, int cg_steps, double cg_tol,
                   bool benchmark, int blockSize);
 
-std::pair<ComplexDenseMatrix, DenseVector>
-gcgm_complex_no_B_lock(const ComplexSparseMatrix &A,
-                       const ComplexDenseMatrix &X_initial, int nev,
-                       double shift, int max_iter, double tolerance,
-                       int cg_steps, double cg_tol, bool benchmark);
+std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
+    const ComplexSparseMatrix &A, const ComplexDenseMatrix &X_initial,
+    const ComplexDenseMatrix &ConjDir, int nev, double shift, int max_iter,
+    double tolerance, int cg_steps, double cg_tol, bool benchmark);
 Eigen::MatrixXd random_orthonormal_matrix(int n, int k);

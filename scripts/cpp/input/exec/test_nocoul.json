@@ -32,7 +32,7 @@
         }
     },
     "gcg": {
-        "maxIter": 10,
+        "maxIter": 1,
         "nev": 10,
         "tol": 1e-05,
         "cgTol": 1e-07,

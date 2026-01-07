@@ -86,7 +86,8 @@ int main(int argc, char **argv) {
                                            input.initialBeta, true);
 
     pair<MatrixXcd, VectorXd> firstEigenpair =
-        solve(initialWS.build_matrix5p(), calc.initialGCG, guess);
+        solve(initialWS.build_matrix5p(), Eigen::MatrixXcd(0, 0),
+              calc.initialGCG, guess);
     std::cout << firstEigenpair.second << std::endl;
 
     pair<MatrixXcd, VectorXd> protonsEigenpair;
@@ -149,6 +150,7 @@ int main(int argc, char **argv) {
 
     // i=-1 to guarantee a first gs iteration if calculation is not deformation
     // curve
+    Eigen::MatrixXcd ConjDirN(0, 0), ConjDirP(0, 0);
     for (int i = -1; i < (int)mu20s.size(); ++i) {
       if (i == -1)
         i = 0;
@@ -174,6 +176,8 @@ int main(int argc, char **argv) {
           constraints.back()->target = mu20s[i];
         }
       }
+      ConjDirN = Eigen::MatrixXcd(0, 0);
+      ConjDirP = Eigen::MatrixXcd(0, 0);
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
         data.updateQuantities(neutronsEigenpair, protonsEigenpair, hfIter,
                               constraints);
@@ -190,8 +194,8 @@ int main(int argc, char **argv) {
 
         auto hN = skyrmeHam.buildMatrix();
 
-        auto newNeutronsEigenpair =
-            solve(hN, calc.hf.gcg, neutronsEigenpair.first, orbitalsN);
+        auto newNeutronsEigenpair = solve(hN, ConjDirN, calc.hf.gcg,
+                                          neutronsEigenpair.first, orbitalsN);
 
         pair<MatrixXcd, VectorXd> newProtonsEigenpair;
         auto hP = hN;
@@ -204,8 +208,8 @@ int main(int argc, char **argv) {
 
           auto hP = skyrmeHam.buildMatrix();
 
-          newProtonsEigenpair =
-              solve(hP, calc.hf.gcg, protonsEigenpair.first, orbitalsP);
+          newProtonsEigenpair = solve(hP, ConjDirP, calc.hf.gcg,
+                                      protonsEigenpair.first, orbitalsP);
         } else {
           newProtonsEigenpair.first =
               newNeutronsEigenpair.first.leftCols(orbitalsP);
@@ -213,12 +217,35 @@ int main(int argc, char **argv) {
               newNeutronsEigenpair.second.head(orbitalsP);
         }
 
+        Wavefunction::normalize(newNeutronsEigenpair.first, grid);
+        Wavefunction::normalize(newProtonsEigenpair.first, grid);
+        if (hfIter > 0) {
+          MatrixXcd tmp;
+          tmp.noalias() =
+              neutronsEigenpair.first.adjoint() * newNeutronsEigenpair.first;
+
+          ConjDirN.noalias() =
+              newNeutronsEigenpair.first - neutronsEigenpair.first * tmp;
+
+          tmp.noalias() =
+              protonsEigenpair.first.adjoint() * newProtonsEigenpair.first;
+
+          ConjDirP.noalias() =
+              newProtonsEigenpair.first - protonsEigenpair.first * tmp;
+          ConjDirN.colwise().normalize();
+          ConjDirP.colwise().normalize();
+        }
         neutronsEigenpair = newNeutronsEigenpair;
         protonsEigenpair = newProtonsEigenpair;
 
-        Wavefunction::normalize(neutronsEigenpair.first, grid);
-        Wavefunction::normalize(protonsEigenpair.first, grid);
-
+        if (hfIter > 0) {
+          cout << "Neutron dispersion: "
+               << Utilities::computeDispersion(hN, neutronsEigenpair.first)
+               << endl;
+          cout << "Proton dispersion: "
+               << Utilities::computeDispersion(hP, protonsEigenpair.first)
+               << endl;
+        }
         double newIntegralEnergy =
             data.totalEnergyIntegral(input.skyrme, grid) +
             data.kineticEnergy(input.skyrme, grid);

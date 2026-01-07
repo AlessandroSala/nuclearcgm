@@ -879,9 +879,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B(
 }
 
 std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
-    const ComplexSparseMatrix &A, const ComplexDenseMatrix &X_initial, int nev,
-    double shift = 0.0, int max_iter = 100, double tolerance = 1e-8,
-    int cg_steps = 10, double cg_tol = 1e-9, bool benchmark = false) {
+    const ComplexSparseMatrix &A, const ComplexDenseMatrix &X_initial,
+    const ComplexDenseMatrix &ConjDir, int nev, double shift = 0.0,
+    int max_iter = 100, double tolerance = 1e-8, int cg_steps = 10,
+    double cg_tol = 1e-9, bool benchmark = false) {
 
   auto start_total = Clock::now();
   auto start_op = Clock::now();
@@ -904,6 +905,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
   ComplexDenseMatrix X0(n, 0);
   ComplexDenseMatrix X = X_initial.leftCols(nev);
   ComplexDenseMatrix P(n, 0);
+  if (ConjDir.cols() > 0) {
+    std::cout << "Using external conjugate direction" << std::endl;
+    P = ConjDir;
+  }
 
   b_modified_gram_schmidt_complex_no_B(X);
   ComplexSparseMatrix A_shifted = A + ComplexScalar(current_shift) * Id;

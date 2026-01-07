@@ -7,50 +7,6 @@
 #include <tuple>
 #include <vector>
 
-// Nota: ComplexDenseMatrix, ComplexScalar e Grid sono tipi già presenti nel tuo 
-// rogetto. Questo file assume che Grid::idx(i,j,k,s) accetti s = 0 (up) o 1
-// (down).
-
-// ---------------------------
-// Gaussian guess (corretto)
-// ---------------------------
-ComplexDenseMatrix gaussian_guess(const Grid &grid, int nev, double a) {
-  int grid_n = grid.get_n();
-  int total_points = grid.get_total_points();
-
-  ComplexDenseMatrix guess(total_points, nev);
-
-  // Creo gaussiane con larghezze crescenti per ev diversi (ev = 0 -> più 
-  // tretta)
-  for (int ev = 0; ev < nev; ++ev) {
-    double width =
-        a * (1.0 + 0.5 * ev); // scaling semplice per varietà di scale
-    double scale = 5.0 * width;
-
-    for (int i = 0; i < grid_n; ++i) {
-      for (int j = 0; j < grid_n; ++j) {
-        for (int k = 0; k < grid_n; ++k) {
-          double x = grid.get_xs()[i];
-          double y = grid.get_ys()[j];
-          double z = grid.get_zs()[k];
-          double r = std::sqrt(x * x + y * y + z * z);
-          double val =
-              std::exp(-(r / scale) * (r / scale)); // gaussiana radiale
-
-          for (int s = 0; s < 2; ++s) {
-            guess(grid.idx(i, j, k, s), ev) = ComplexScalar(val, 0.0);
-          }
-        }
-      }
-    }
-
-    // normalizzo la colonna
-    guess.col(ev).normalize();
-  }
-
-  return guess;
-}
-
 ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
                                              double omega, // omega unit of hbar
                                              double beta, bool useSpinOrbit) {
@@ -60,9 +16,7 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
   ComplexDenseMatrix guess(total_points, nev);
   guess.setZero();
 
-  // ---------------------------
   // Hermite polynomials
-  // ---------------------------
   auto hermite = [](int order, double x) {
     if (order == 0)
       return 1.0;
@@ -79,20 +33,15 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
     return Hn;
   };
 
-  // ---------------------------
   // Normalized 1D HO wavefunction
-  // ---------------------------
   auto ho_1d = [omega, &hermite](int order, double x) {
     double xi = x / omega;
-    // (1 << order) -> 2^order (per piccoli order va bene)
     double norm = 1.0 / (std::sqrt((1u << order) * std::tgamma(order + 1) *
                                    std::sqrt(M_PI) * omega));
     return norm * hermite(order, xi) * std::exp(-0.5 * xi * xi);
   };
 
-  // ---------------------------
   // Generalized Laguerre (recurrence)
-  // ---------------------------
   auto laguerre = [](int n, double alpha, double x) {
     if (n == 0)
       return 1.0;
@@ -121,12 +70,11 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
   int state_index = 0;
 
   if (!useSpinOrbit) {
-    // Genero prodotti 1D ho_1d(nx,x)*ho_1d(ny,y)*ho_1d(nz,z)
+
     for (int nx = 0; nx < grid_n && state_index < nev; ++nx) {
       for (int ny = 0; ny < grid_n && state_index < nev; ++ny) {
         for (int nz = 0; nz < grid_n && state_index < nev; ++nz) {
-          // Per ogni orbitale spaziale genero DUE colonne: spin up e spin down
-          // (duplicazione spin degeneracy) spin = 0 (up)
+
           if (state_index < nev) {
             for (int i = 0; i < grid_n; ++i) {
               double x = grid.get_xs()[i];
@@ -140,8 +88,6 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
                   double val = psi_x * psi_y * psi_z;
                   guess(grid.idx(i, j, k, 0), state_index) =
                       ComplexScalar(val, 0.0);
-                  // nota: non scriviamo sulla componente spin=1 per questa
-                  // colonna
                 }
               }
             }
@@ -149,7 +95,6 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
             ++state_index;
           }
 
-          // spin = 1 (down)
           if (state_index < nev) {
             for (int i = 0; i < grid_n; ++i) {
               double x = grid.get_xs()[i];
@@ -169,15 +114,12 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
             guess.col(state_index).normalize();
             ++state_index;
           }
-
-        } // nz
-      } // ny
-    } // nx
+        }
+      }
+    }
 
   } else {
-    // --- costruzione lista orbitali: uso (nr, l, j2, mj2) con j2 = 2*j, mj2 =
-    // 2*mj (interi) ---
-    std::vector<std::tuple<int, int, int, int>> orbitals; // (nr, l, j2, mj2)
+    std::vector<std::tuple<int, int, int, int>> orbitals;
 
     for (int N = 0; static_cast<int>(orbitals.size()) < nev; ++N) {
       for (int nr = 0; nr <= N / 2 && static_cast<int>(orbitals.size()) < nev;
@@ -195,7 +137,7 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
             orbitals.emplace_back(nr, l, j2_plus, -mj2_abs); // -|mj|
         }
 
-        // j = l - 1/2 (esiste se l>0)
+        // j = l - 1/2 (exists when l>0)
         if (l > 0) {
           int j2_minus = 2 * l - 1;
           for (int mj2_abs = 1;
@@ -209,7 +151,6 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
       }
     }
 
-    // DEBUG: stampa lista (nr, l, j2, mj2)
     std::cout
         << "STATE   nr  l   j    mj    ml_up  ml_down  have_up have_down\n";
     std::cout << std::setw(5) << "STATE" << "   " << std::setw(2) << "nr"
@@ -237,18 +178,17 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
                 << std::setw(7) << ml_down << "   " << std::setw(7) << have_up
                 << "   " << std::setw(9) << have_down << "\n";
     }
-    // --- generazione delle funzioni d'onda: ora usa j2, mj2 ---
     for (int state_index = 0;
          state_index < static_cast<int>(orbitals.size()) && state_index < nev;
          ++state_index) {
       int nr, l, j2, mj2;
       std::tie(nr, l, j2, mj2) = orbitals[state_index];
 
-      // mj = mj2 / 2.0 (mezzo intero)
+      // mj = mj2 / 2.0 (half int)
       double mj = mj2 * 0.5;
       double denom = 2.0 * l + 1.0;
 
-      // Calcoli dei coefficienti (CG) in double
+      // CG coefficients
       double C_up = 0.0, C_down = 0.0;
       bool j_is_plus = (j2 == 2 * l + 1);
       if (j_is_plus) {
@@ -256,21 +196,17 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
         C_down = std::sqrt((l - mj + 0.5) / denom);
       } else { // j = l - 1/2
         C_up = std::sqrt((l - mj + 0.5) / denom);
-        C_down = -std::sqrt((l + mj - 0.5) / denom); // segno meno corretto
+        C_down = -std::sqrt((l + mj - 0.5) / denom);
       }
 
-      // ml_up = mj - 1/2  -> in termini di "2*ml" : ml_up2 = mj2 - 1  (sarà 
-      // ari)
       int ml_up2 = mj2 - 1;
       int ml_down2 = mj2 + 1;
       int ml_up = ml_up2 / 2;
       int ml_down = ml_down2 / 2;
 
-      // pulizia: se ml fuori range non si somma componente
       bool have_up = (std::abs(ml_up) <= l);
       bool have_down = (std::abs(ml_down) <= l);
 
-      // riempio la colonna state_index con lo spinor (entrambi i canali)
       for (int i = 0; i < grid_n; ++i) {
         double x = grid.get_xs()[i];
         for (int jg = 0; jg < grid_n; ++jg) {
@@ -298,14 +234,12 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
               spinor_down = (C_down * Rnl) * Ylm_down;
             }
 
-            // assegna: s=0 -> up, s=1 -> down
             guess(grid.idx(i, jg, k, 0), state_index) = spinor_up;
             guess(grid.idx(i, jg, k, 1), state_index) = spinor_down;
           }
         }
       }
 
-      // normalizza la colonna (spinor completo)
       guess.col(state_index).normalize();
     }
   }
