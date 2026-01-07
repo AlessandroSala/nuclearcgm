@@ -346,6 +346,20 @@ Eigen::Matrix3Xd spinDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
   return res;
 }
 
+Eigen::VectorXd kineticDensityLagrange(const Eigen::MatrixXcd &psi) {
+
+  auto grid = *Grid::getInstance();
+  Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
+  for (int i = 0; i < psi.cols(); ++i) {
+    Eigen::MatrixX3cd grad = Operators::gradLagrange(psi.col(i));
+    Eigen::VectorXd mult = (grad * grad.adjoint()).diagonal().real();
+    for (int l = 0; l < grid.get_total_spatial_points(); ++l) {
+      res(l) += mult(2 * l) + mult(2 * l + 1);
+    }
+  }
+
+  return res;
+}
 Eigen::VectorXd kineticDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
   // using std::complex;
   Eigen::VectorXd res = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
@@ -368,6 +382,55 @@ void normalize(Eigen::MatrixXcd &psi, const Grid &grid) {
   }
 }
 
+Eigen::Matrix<double, Eigen::Dynamic, 9>
+soDensityLagrange(const Eigen::MatrixXcd &psi) {
+  using std::complex;
+  auto grid = *Grid::getInstance();
+
+  Eigen::Matrix<complex<double>, Eigen::Dynamic, 9> J(
+      grid.get_total_spatial_points(), 9);
+  J.setZero();
+
+  auto pauli = nuclearConstants::getPauli(); // Call once outside the
+                                             // parallel region
+
+  using nuclearConstants::img;
+  for (int col = 0; col < psi.cols(); ++col) {
+    Eigen::MatrixX3cd grad = Operators::gradLagrange(psi.col(col));
+
+#pragma omp parallel for collapse(3)
+    for (int i = 0; i < grid.get_n(); ++i) {
+      for (int j = 0; j < grid.get_n(); ++j) {
+        for (int k = 0; k < grid.get_n(); ++k) {
+          int idx = grid.idx(i, j, k, 0);
+
+          for (int mu = 0; mu < 3; ++mu) {
+            for (int nu = 0; nu < 3; nu++) {
+              Eigen::Vector2cd chi(2), chiPsi(2);
+              chi(0) = grad(idx, mu);
+              chi(1) = grad(idx + 1, mu);
+              chiPsi(0) = psi(idx, col);
+              chiPsi(1) = psi(idx + 1, col);
+              auto prod = pauli[nu] * chi;
+              if (std::norm(chiPsi.dot(prod)) > 1e20) {
+                std::cout << "Anomaly " << std::endl;
+                std::cout << "Chi: " << chi << std::endl;
+              }
+
+              J(grid.idxNoSpin(i, j, k), mu * 3 + nu) +=
+                  chiPsi(0).real() * prod(0).imag() -
+                  chiPsi(0).imag() * prod(0).real() +
+                  chiPsi(1).real() * prod(1).imag() -
+                  chiPsi(1).imag() * prod(1).real();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return J.real();
+}
 Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
                                                    const Grid &grid) {
   using std::complex;

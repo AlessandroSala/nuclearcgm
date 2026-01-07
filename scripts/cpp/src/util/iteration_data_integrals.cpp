@@ -1,28 +1,25 @@
 #include "constants.hpp"
-#include <iostream>
 #include "operators/common_operators.hpp"
 #include "operators/integral_operators.hpp"
+#include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
 #include <cmath>
-#include "spherical_harmonics.hpp"
+#include <iostream>
 
-double IterationData::betaRealRadius()
-{
+double IterationData::betaRealRadius() {
 
   Eigen::VectorXd rho = *rhoP + *rhoN;
   int A = input.getA();
   double a20 = SphericalHarmonics::Q(2, 0, rho).real();
   double beta = 4 * M_PI * a20 / (5 * A * radius());
 
-  if (axis2Exp('x') > axis2Exp('z'))
-  {
+  if (axis2Exp('x') > axis2Exp('z')) {
     beta = -beta;
   }
 
   return beta;
 }
-QuadrupoleDeformation IterationData::quadrupoleDeformation()
-{
+QuadrupoleDeformation IterationData::quadrupoleDeformation() {
 
   Eigen::VectorXd rho = *rhoP + *rhoN;
   int A = input.getA();
@@ -41,33 +38,24 @@ QuadrupoleDeformation IterationData::quadrupoleDeformation()
   return {beta, gamma};
 }
 
-double IterationData::axis2Exp(char dir)
-{
+double IterationData::axis2Exp(char dir) {
 
   Eigen::VectorXd rho = *rhoP + *rhoN;
   auto grid = *Grid::getInstance();
   int n = grid.get_n();
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i)
-  {
-    for (int j = 0; j < grid.get_n(); ++j)
-    {
-      for (int k = 0; k < grid.get_n(); ++k)
-      {
+  for (int i = 0; i < grid.get_n(); ++i) {
+    for (int j = 0; j < grid.get_n(); ++j) {
+      for (int k = 0; k < grid.get_n(); ++k) {
         int idx = grid.idxNoSpin(i, j, k);
         double ii = grid.get_xs()[i];
         double jj = grid.get_ys()[j];
         double kk = grid.get_zs()[k];
-        if (dir == 'x')
-        {
+        if (dir == 'x') {
           res += ii * ii * rho(idx);
-        }
-        else if (dir == 'y')
-        {
+        } else if (dir == 'y') {
           res += jj * jj * rho(idx);
-        }
-        else if (dir == 'z')
-        {
+        } else if (dir == 'z') {
           res += kk * kk * rho(idx);
         }
       }
@@ -76,8 +64,7 @@ double IterationData::axis2Exp(char dir)
   return res / rho.sum();
 }
 
-double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid)
-{
+double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid) {
 
   double t0 = params.t0;
   double t3 = params.t3;
@@ -99,8 +86,7 @@ double IterationData::C0RhoEnergy(SkyrmeParameters params, const Grid &grid)
   return integral(Eigen::VectorXd(energy0), grid);
 }
 
-double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid)
-{
+double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid) {
   Eigen::VectorXd energy1 =
       Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   double t0 = params.t0;
@@ -120,8 +106,7 @@ double IterationData::C1RhoEnergy(SkyrmeParameters params, const Grid &grid)
   return integral(energy1, grid);
 }
 
-double IterationData::C0TauEnergy(SkyrmeParameters params, const Grid &grid)
-{
+double IterationData::C0TauEnergy(SkyrmeParameters params, const Grid &grid) {
 
   double t1 = params.t1;
   double t2 = params.t2;
@@ -139,8 +124,7 @@ double IterationData::C0TauEnergy(SkyrmeParameters params, const Grid &grid)
   return integral(energy0c, grid);
 }
 
-double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid)
-{
+double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid) {
 
   double t1 = params.t1;
   double t2 = params.t2;
@@ -161,8 +145,7 @@ double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid)
 
 // SUS !
 double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
-                                        const Grid &grid)
-{
+                                        const Grid &grid) {
   double t1 = params.t1;
   double t2 = params.t2;
   double x1 = params.x1;
@@ -172,12 +155,6 @@ double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
   Eigen::VectorXd rho0 = *rhoN + *rhoP;
 
   Eigen::VectorXd prod = (rho0 * nabla2Rho0.transpose()).diagonal();
-  Eigen::MatrixX3d nablaRho = *nablaRhoN + *nablaRhoP;
-  Eigen::VectorXd nablaRhoSq = (nablaRho * nablaRho.adjoint()).diagonal();
-  Eigen::VectorXd nablaRhoNSq =
-      (*nablaRhoN * nablaRhoN->transpose()).diagonal();
-  Eigen::VectorXd nablaRhoPSq =
-      (*nablaRhoP * nablaRhoP->transpose()).diagonal();
 
   Eigen::VectorXd energy0c =
       ((-(9.0 / 64.0) * t1 + (1.0 / 16.0) * t2 * (1.25 + x2))) * prod;
@@ -193,8 +170,7 @@ double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
 }
 
 double IterationData::C1nabla2RhoEnergy(SkyrmeParameters params,
-                                        const Grid &grid)
-{
+                                        const Grid &grid) {
   double t1 = params.t1;
   double t2 = params.t2;
   double x1 = params.x1;
@@ -211,8 +187,7 @@ double IterationData::C1nabla2RhoEnergy(SkyrmeParameters params,
   return integral(energy1c, grid);
 }
 
-double IterationData::CoulombDirectEnergy(const Grid &grid)
-{
+double IterationData::CoulombDirectEnergy(const Grid &grid) {
 
   double res = 0.0;
   double h = grid.get_h();
@@ -228,8 +203,7 @@ double IterationData::CoulombDirectEnergy(const Grid &grid)
          Operators::integral((VectorXd)(rhoP->array() * UCDir.array()), grid);
 }
 
-double IterationData::SlaterCoulombEnergy(const Grid &grid)
-{
+double IterationData::SlaterCoulombEnergy(const Grid &grid) {
   using Eigen::VectorXd;
   using nuclearConstants::e2;
   using Operators::integral;
@@ -245,8 +219,7 @@ double IterationData::SlaterCoulombEnergy(const Grid &grid)
   return integral(func, grid);
 }
 
-double IterationData::Hso(SkyrmeParameters params, const Grid &grid)
-{
+double IterationData::Hso(SkyrmeParameters params, const Grid &grid) {
   double W0 = params.W0;
   using Operators::dot;
 
@@ -260,8 +233,7 @@ double IterationData::Hso(SkyrmeParameters params, const Grid &grid)
   return Operators::integral(func, grid);
 }
 
-double IterationData::Hsg(SkyrmeParameters params, const Grid &grid)
-{
+double IterationData::Hsg(SkyrmeParameters params, const Grid &grid) {
   if (!input.useJ)
     return 0.0;
   double t0 = params.t0, t1 = params.t1, t2 = params.t2;
