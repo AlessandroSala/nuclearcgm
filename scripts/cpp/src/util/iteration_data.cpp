@@ -271,6 +271,44 @@ Eigen::MatrixXcd colwiseMatVecMult(const Eigen::MatrixXcd &M,
   return result;
 }
 
+void IterationData::recomputeLagrange(
+    const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
+    const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair) {
+
+  auto grid = *Grid::getInstance();
+
+  using Wavefunction::kineticDensityLagrange;
+  using Wavefunction::soDensityLagrange;
+
+  Eigen::MatrixXcd neutrons, protons;
+
+  neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2.array().sqrt());
+  protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().sqrt());
+
+  *tauN = kineticDensityLagrange(neutrons);
+  *tauP = kineticDensityLagrange(protons);
+
+  *JN = soDensityLagrange(neutrons);
+  *JP = soDensityLagrange(protons);
+
+  *nablaRhoN = Operators::gradLagrangeNoSpin(*rhoN);
+  *nablaRhoP = Operators::gradLagrangeNoSpin(*rhoP);
+
+  *nabla2RhoN = Operators::lapLagrangeNoSpin(*rhoN);
+  *nabla2RhoP = Operators::lapLagrangeNoSpin(*rhoP);
+
+  JvecN = std::make_shared<Eigen::MatrixX3d>(Operators::leviCivita(*JN));
+  JvecP = std::make_shared<Eigen::MatrixX3d>(Operators::leviCivita(*JP));
+
+  Eigen::VectorXd rho = *rhoN + *rhoP;
+  Eigen::MatrixX3d nablaRho = *nablaRhoN + *nablaRhoP;
+
+  *massN =
+      EffectiveMass(grid, rho, *rhoN, nablaRho, *nablaRhoN, massCorr, params);
+  *massP =
+      EffectiveMass(grid, rho, *rhoP, nablaRho, *nablaRhoP, massCorr, params);
+}
+
 BCS::BCSResult mixBCS(BCS::BCSResult oldBCS, BCS::BCSResult newBCS,
                       double mix) {
   BCS::BCSResult result;

@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1760453733.95134 "/home/ale/dev/nuclearcgm/notes/master.tex" "master.pdf" "master" 1760453734.78008 0
+["pdflatex"] 1764670782.24086 "/home/ale/dev/nuclearcgm/notes/master.tex" "master.pdf" "master" 1764670784.21488 0
   "/home/ale/dev/nuclearcgm/notes/master.tex" 1758643102.24384 16544 120c5c8d52a80dd905ba2d73f01d3b5e ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -143,17 +143,17 @@
   "chapters/finite_differences/shell_model/deformed_woods_saxon.tex" 1746603861.45486 2019 ab35b05b9ade86f7fb9358773384f125 ""
   "chapters/finite_differences/shell_model/shell_model.tex" 1746007926.13796 3296 1d5a0391473728117fdc497646b3fd07 ""
   "chapters/finite_differences/spin/spin_treatment.tex" 1744896232.89807 3589 967e04f8b8a661cc6f8bf85fa7ee8b80 ""
-  "chapters/hartree_fock/benchmark/benchmark.tex" 1760453733.70799 10591 b249859e5341a6a4f649cdec3337d759 ""
+  "chapters/hartree_fock/benchmark/benchmark.tex" 1764670781.86751 11644 878d3386188d15744731919794a8c2c0 ""
   "chapters/hartree_fock/coulomb/coulomb.tex" 1757355887.18316 3604 6b51f552354cf85ba08ecfa78386fda9 ""
   "chapters/hartree_fock/introduction/hartree_fock_introduction.tex" 1756278999.88969 3109 cf480f0bb64603e945fc4009b4fbd9f3 ""
   "chapters/hartree_fock/skyrme/functional.tex" 1757355135.8991 5658 2710dcf1ff569664c9a83cfc7d54b5a2 ""
   "chapters/hartree_fock/skyrme/skyrme.tex" 1760354634.42816 5796 9369dd60519fc550180ccebe496331cd ""
   "chapters/spherical_harmonics.tex" 1757355609.40932 2241 ec241f2bfb3d14a178b94af00ab53513 ""
   "figures/1D_ho.png" 1742811028.12076 25588 81b5860564460d3763fd675c36c5f494 ""
-  "master.aux" 1760453734.69699 11415 badd82f103920f621f181f79123d595a "pdflatex"
-  "master.out" 1760453734.69699 8150 77284608769a6ae566a2144da1dd74c5 "pdflatex"
+  "master.aux" 1764670783.98352 12051 c1e882214f65fbbd826cf5e25de30f7a "pdflatex"
+  "master.out" 1764670783.98552 8150 77284608769a6ae566a2144da1dd74c5 "pdflatex"
   "master.tex" 1758643102.24384 16544 120c5c8d52a80dd905ba2d73f01d3b5e ""
-  "master.toc" 1760453734.69799 4370 db6b9a3f977949b8453ca4064e550ee0 "pdflatex"
+  "master.toc" 1764670783.98652 4370 db6b9a3f977949b8453ca4064e550ee0 "pdflatex"
   (generated)
   "master.aux"
   "master.log"

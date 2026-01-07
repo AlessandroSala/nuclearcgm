@@ -5,6 +5,7 @@
 #include "input_parser.hpp"
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
+#include "operators/integral_operators.hpp"
 #include "radius.hpp"
 #include "skyrme/local_coulomb_potential.hpp"
 #include "skyrme/octupole_constraint.hpp"
@@ -107,6 +108,7 @@ int main(int argc, char **argv) {
 
     std::vector<double> integralEnergies;
     std::vector<double> HFEnergies;
+    std::vector<double> maxDispersions;
 
     vector<double> mu20s;
     mu20s.clear();
@@ -186,10 +188,13 @@ int main(int argc, char **argv) {
 
         Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
-        auto newNeutronsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
-                                          neutronsEigenpair.first, orbitalsN);
+        auto hN = skyrmeHam.buildMatrix();
+
+        auto newNeutronsEigenpair =
+            solve(hN, calc.hf.gcg, neutronsEigenpair.first, orbitalsN);
 
         pair<MatrixXcd, VectorXd> newProtonsEigenpair;
+        auto hP = hN;
         if (input.useCoulomb || N != Z) {
           pots.clear();
           skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
@@ -197,8 +202,10 @@ int main(int argc, char **argv) {
           std::cout << "Protons " << std::endl;
           Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
-          newProtonsEigenpair = solve(skyrmeHam.buildMatrix(), calc.hf.gcg,
-                                      protonsEigenpair.first, orbitalsP);
+          auto hP = skyrmeHam.buildMatrix();
+
+          newProtonsEigenpair =
+              solve(hP, calc.hf.gcg, protonsEigenpair.first, orbitalsP);
         } else {
           newProtonsEigenpair.first =
               newNeutronsEigenpair.first.leftCols(orbitalsP);
@@ -229,6 +236,11 @@ int main(int argc, char **argv) {
         }
         std::cout << std::endl;
         HFEnergies.push_back(newHFEnergy);
+
+        std::cout << "rel. err: "
+                  << std::abs(newIntegralEnergy - integralEnergy) /
+                         newIntegralEnergy
+                  << std::endl;
 
         if (abs(newIntegralEnergy - integralEnergy) <
                 input.getCalculation().hf.energyTol &&

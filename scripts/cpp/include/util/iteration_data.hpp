@@ -81,6 +81,10 @@ public:
   double C0nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);
   double C1nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);
 
+  void recomputeLagrange(
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
+
   double kineticEnergy(SkyrmeParameters params, const Grid &grid);
   double kineticEnergyEff(SkyrmeParameters params, const Grid &grid);
   double coulombEnergy(SkyrmeParameters params, const Grid &grid);

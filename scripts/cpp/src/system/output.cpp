@@ -1,6 +1,6 @@
 #include "util/output.hpp"
-#include "operators/common_operators.hpp"
 #include "constraint.hpp"
+#include "operators/common_operators.hpp"
 #include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
 #include "util/wavefunction.hpp"
@@ -8,34 +8,28 @@
 #include <iostream>
 
 #include <Eigen/Dense>
+#include <algorithm>
 #include <array>   // Per std::array
 #include <cassert> // Per assert
-#include <utility> // Per std::swap
-#include <algorithm>
 #include <regex>
+#include <utility> // Per std::swap
 
-bool contains(const std::vector<std::string> &vec, const std::string &str)
-{
+bool contains(const std::vector<std::string> &vec, const std::string &str) {
   return std::find(vec.begin(), vec.end(), str) != vec.end();
 }
-int find_multipoles_number(const std::vector<std::string> &arr)
-{
+int find_multipoles_number(const std::vector<std::string> &arr) {
   std::regex pattern(R"(multipoles_(\d+))"); // capture the number
   std::smatch match;
 
-  for (const auto &s : arr)
-  {
-    if (std::regex_match(s, match, pattern))
-    {
+  for (const auto &s : arr) {
+    if (std::regex_match(s, match, pattern)) {
       return std::stoi(match[1]); // return the captured number
     }
   }
   return -1; // not found
 }
-void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2)
-{
-  if (a1 == a2)
-  {
+void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2) {
+  if (a1 == a2) {
     return;
   }
 
@@ -44,12 +38,9 @@ void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2)
   const int n = grid->get_n();
 
 #pragma omp parallel for collapse(3)
-  for (int i = 0; i < n; ++i)
-  {
-    for (int j = 0; j < n; ++j)
-    {
-      for (int k = 0; k < n; ++k)
-      {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      for (int k = 0; k < n; ++k) {
         int dest_idx = grid->idxNoSpin(i, j, k);
 
         std::array<int, 3> src_coords = {i, j, k};
@@ -65,32 +56,23 @@ void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2)
   }
 }
 
-double Output::x2(IterationData *data, const Grid &grid, char dir)
-{
+double Output::x2(IterationData *data, const Grid &grid, char dir) {
 
   auto rho = *(data->rhoN) + *(data->rhoP);
   int n = grid.get_n();
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i)
-  {
-    for (int j = 0; j < grid.get_n(); ++j)
-    {
-      for (int k = 0; k < grid.get_n(); ++k)
-      {
+  for (int i = 0; i < grid.get_n(); ++i) {
+    for (int j = 0; j < grid.get_n(); ++j) {
+      for (int k = 0; k < grid.get_n(); ++k) {
         int idx = grid.idxNoSpin(i, j, k);
         double ii = grid.get_xs()[i];
         double jj = grid.get_ys()[j];
         double kk = grid.get_zs()[k];
-        if (dir == 'x')
-        {
+        if (dir == 'x') {
           res += ii * ii * rho(idx);
-        }
-        else if (dir == 'y')
-        {
+        } else if (dir == 'y') {
           res += jj * jj * rho(idx);
-        }
-        else if (dir == 'z')
-        {
+        } else if (dir == 'z') {
           res += kk * kk * rho(idx);
         }
       }
@@ -100,13 +82,11 @@ double Output::x2(IterationData *data, const Grid &grid, char dir)
 }
 
 Output::Output() : Output("output") {}
-Output::Output(std::string folder_) : folder(folder_)
-{
+Output::Output(std::string folder_) : folder(folder_) {
   namespace fs = std::filesystem;
   fs::create_directory(folder);
 }
-void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix)
-{
+void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix) {
   std::ofstream file(folder + "/" + fileName);
   file << matrix << std::endl;
   file.close();
@@ -117,9 +97,9 @@ void Output::shellsToFile(
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
     IterationData *iterationData, InputParser input, int iterations,
-    std::vector<double> energies, std::vector<double> HFEnergies, double cpuTime, char mode,
-    const std::vector<std::unique_ptr<Constraint>> &constraints)
-{
+    std::vector<double> energies, std::vector<double> HFEnergies,
+    double cpuTime, char mode,
+    const std::vector<std::unique_ptr<Constraint>> &constraints) {
 
   auto grid = *Grid::getInstance();
   int N = input.getZ();
@@ -133,7 +113,8 @@ void Output::shellsToFile(
   std::ofstream file(folder + "/" + input.getOutputName() + ".txt",
                      std::ios_base::app);
 
-  std::cout << "Writing to " << folder + "/" + input.getOutputName() + ".txt" << " in mode " << fileMode << std::endl;
+  std::cout << "Writing to " << folder + "/" + input.getOutputName() + ".txt"
+            << " in mode " << fileMode << std::endl;
   file << "=== BOX ===" << std::endl;
   auto a = grid.get_a();
   file << "Size: [-" << a << ", " << a << "]" << " fm " << std::endl;
@@ -152,16 +133,14 @@ void Output::shellsToFile(
   //  file << "diff: " << ws["alpha"] << std::endl;
   //  file << "Beta: " << "0.0" << std::endl;
   //  file << std::endl;
-  auto toYesNo = [](bool value)
-  { return value ? "YES" : "NO"; };
+  auto toYesNo = [](bool value) { return value ? "YES" : "NO"; };
 
   file << "=== Interaction ===" << std::endl;
   file << "Name: " << input.get_json()["interaction"] << std::endl;
   file << "Options: " << "J2 terms: " << toYesNo(input.useJ) << " | "
        << "Spin orbit: " << toYesNo(input.spinOrbit) << " | "
        << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl;
-  file << std::endl
-       << "Parameters" << std::endl;
+  file << std::endl << "Parameters" << std::endl;
   file << "t0: " << input.skyrme.t0 << ", ";
   file << "t1: " << input.skyrme.t1 << ", ";
   file << "t2: " << input.skyrme.t2 << ", ";
@@ -192,7 +171,8 @@ void Output::shellsToFile(
   file << "RP: " << std::sqrt(iterationData->protonRadius()) << " fm"
        << std::endl;
   file << "CR: "
-       << std::sqrt(iterationData->chargeRadius(neutronShells.first, protonShells.first, N, Z))
+       << std::sqrt(iterationData->chargeRadius(neutronShells.first,
+                                                protonShells.first, N, Z))
        << " fm" << std::endl;
 
   file << std::endl;
@@ -239,12 +219,12 @@ void Output::shellsToFile(
   file << "E (kin): " << eKin << " MeV" << std::endl;
   file << "E spin-orbit: " << iterationData->Hso(input.skyrme, grid) << " MeV"
        << std::endl;
-  file << "E spin-gradient: " << iterationData->Hsg(input.skyrme, grid) << " MeV"
-       << std::endl;
+  file << "E spin-gradient: " << iterationData->Hsg(input.skyrme, grid)
+       << " MeV" << std::endl;
   file << "E coulomb direct: " << iterationData->CoulombDirectEnergy(grid)
-          << " MeV" << std::endl;
+       << " MeV" << std::endl;
   file << "E coulomb exchange: " << iterationData->SlaterCoulombEnergy(grid)
-          << " MeV" << std::endl;
+       << " MeV" << std::endl;
 
   double totEnInt = eKin + skyrmeEnergy;
   file << "E_INT: " << totEnInt << " MeV" << std::endl;
@@ -263,6 +243,17 @@ void Output::shellsToFile(
   file << std::endl;
   file << "E_INT/E_HF - 1: " << 100.0 * ((totEnInt / E_HF) - 1.0) << " %"
        << std::endl;
+
+  file << std::endl << "=== Lagrange recomputed data ===" << std::endl;
+  iterationData->recomputeLagrange(neutronShells, protonShells);
+  file << "E_INT Lagrange: "
+       << iterationData->kineticEnergy(input.skyrme, grid) +
+              iterationData->totalEnergyIntegral(input.skyrme, grid)
+       << " MeV" << std::endl;
+  std::cout << "E_INT Lagrange: "
+            << iterationData->kineticEnergy(input.skyrme, grid) +
+                   iterationData->totalEnergyIntegral(input.skyrme, grid)
+            << " MeV" << std::endl;
   file << std::endl;
 
   file << "=== Neutrons ===" << std::endl;
@@ -277,13 +268,10 @@ void Output::shellsToFile(
 
   int l_max = find_multipoles_number(input.log);
   std::cout << "LMax: " << l_max << std::endl;
-  if (l_max > 0)
-  {
-    for (int l = 0; l <= std::min(l_max, 5); ++l)
-    {
+  if (l_max > 0) {
+    for (int l = 0; l <= std::min(l_max, 5); ++l) {
       file << "l: " << l << std::endl;
-      for (int m = -l; m <= l; ++m)
-      {
+      for (int m = -l; m <= l; ++m) {
         file << l << ", " << m << ": " << Q(l, m, rho) << std::endl;
       }
       file << std::endl;
@@ -292,42 +280,36 @@ void Output::shellsToFile(
   for (const auto &s : input.log)
     std::cout << s << std::endl;
 
-  if (contains(input.log, "tot_energies"))
-  {
-    std::ofstream totEnFile(folder + "/" + input.getOutputName() + "_tot_energies.csv", fileMode);
-    for (int i = 0; i < energies.size(); ++i)
-    {
+  if (contains(input.log, "tot_energies")) {
+    std::ofstream totEnFile(
+        folder + "/" + input.getOutputName() + "_tot_energies.csv", fileMode);
+    for (int i = 0; i < energies.size(); ++i) {
       double e = energies[i];
       totEnFile << std::setprecision(16) << e << std::endl;
     }
     totEnFile.close();
   }
-  if (contains(input.log, "hf_energies"))
-  {
-    std::ofstream hfEnFile(folder + "/" + input.getOutputName() + "_hf_energies.csv", fileMode);
-    for (int i = 0; i < HFEnergies.size(); ++i)
-    {
+  if (contains(input.log, "hf_energies")) {
+    std::ofstream hfEnFile(
+        folder + "/" + input.getOutputName() + "_hf_energies.csv", fileMode);
+    for (int i = 0; i < HFEnergies.size(); ++i) {
       double e = HFEnergies[i];
       hfEnFile << std::setprecision(16) << e << std::endl;
     }
     hfEnFile.close();
   }
-  if (contains(input.log, "tot_energies_errors"))
-  {
+  if (contains(input.log, "tot_energies_errors")) {
     file << "=== Integrated Energies Changes ===" << std::endl;
-    for (int i = 0; i < energies.size() - 1; ++i)
-    {
+    for (int i = 0; i < energies.size() - 1; ++i) {
       double err = std::abs(energies[i + 1] / energies[i] - 1.0);
       file << err << std::endl;
     }
     file << std::endl;
     file << std::endl;
   }
-  if (contains(input.log, "hf_energies_errors"))
-  {
+  if (contains(input.log, "hf_energies_errors")) {
     file << "=== HF Energies Changes ===" << std::endl;
-    for (int i = 0; i < HFEnergies.size() - 1; ++i)
-    {
+    for (int i = 0; i < HFEnergies.size() - 1; ++i) {
       double err = std::abs(HFEnergies[i + 1] / HFEnergies[i] - 1.0);
       file << err << std::endl;
     }
@@ -335,40 +317,60 @@ void Output::shellsToFile(
     file << std::endl;
   }
 
-    matrixToFile("density.csv", rho);
-    matrixToFile("density_n.csv", *iterationData->rhoN);
-    matrixToFile("density_p.csv", *iterationData->rhoP);
-    matrixToFile("kinetic_n.csv", *iterationData->tauN);
-    matrixToFile("kinetic_p.csv", *iterationData->tauP);
-    Eigen::VectorXd rhoN = *iterationData->rhoN;
-    Eigen::VectorXd rhoP = *iterationData->rhoP;
-    Eigen::VectorXd tauN = *iterationData->tauN;
-    Eigen::VectorXd tauP = *iterationData->tauP;
-    Eigen::VectorXd tau = *iterationData->tauN + *iterationData->tauP;
-    Eigen::MatrixXd nablaRho = *iterationData->nablaRhoN + *iterationData->nablaRhoP;
-    Eigen::VectorXd nablaRhoMod = Operators::mod2(nablaRho);
-    Eigen::VectorXd nablaRhoNMod2 = Operators::mod2(*iterationData->nablaRhoN);
-    Eigen::VectorXd nablaRhoPMod2 = Operators::mod2(*iterationData->nablaRhoP);
-    matrixToFile("nabla2rho_n.csv", *iterationData->nablaRhoN);
-    matrixToFile("nabla2rho_p.csv", *iterationData->nablaRhoP);
-    using std::pow;
-    Eigen::VectorXd TF = 3.0 / 5.0 *pow((3*M_PI*M_PI), 2.0 / 3.0) * rho.array().pow(5.0/3.0);
-    Eigen::VectorXd TFN = 3.0 / 5.0 *pow((3*M_PI*M_PI), 2.0 / 3.0) * rhoN.array().pow(5.0/3.0);
-    Eigen::VectorXd TFP = 3.0 / 5.0 *pow((3*M_PI*M_PI), 2.0 / 3.0) * rhoP.array().pow(5.0/3.0);
-  
+  matrixToFile("density.csv", rho);
+  matrixToFile("density_n.csv", *iterationData->rhoN);
+  matrixToFile("density_p.csv", *iterationData->rhoP);
+  matrixToFile("kinetic_n.csv", *iterationData->tauN);
+  matrixToFile("kinetic_p.csv", *iterationData->tauP);
+  matrixToFile("Field_n.csv", *iterationData->UN);
+  matrixToFile("Field_p.csv", *iterationData->UP);
+  Eigen::VectorXd rhoN = *iterationData->rhoN;
+  Eigen::VectorXd rhoP = *iterationData->rhoP;
+  Eigen::VectorXd tauN = *iterationData->tauN;
+  Eigen::VectorXd tauP = *iterationData->tauP;
+  Eigen::VectorXd tau = *iterationData->tauN + *iterationData->tauP;
+  Eigen::MatrixXd nablaRho =
+      *iterationData->nablaRhoN + *iterationData->nablaRhoP;
+  Eigen::VectorXd nablaRhoMod = Operators::mod2(nablaRho);
+  Eigen::VectorXd nablaRhoNMod2 = Operators::mod2(*iterationData->nablaRhoN);
+  Eigen::VectorXd nablaRhoPMod2 = Operators::mod2(*iterationData->nablaRhoP);
+  matrixToFile("nabla2rho_n.csv", *iterationData->nablaRhoN);
+  matrixToFile("nabla2rho_p.csv", *iterationData->nablaRhoP);
+  using std::pow;
+  Eigen::VectorXd TF = 3.0 / 5.0 * pow((3 * M_PI * M_PI), 2.0 / 3.0) *
+                       rho.array().pow(5.0 / 3.0);
+  Eigen::VectorXd TFN = 3.0 / 5.0 * pow((3 * M_PI * M_PI), 2.0 / 3.0) *
+                        rhoN.array().pow(5.0 / 3.0);
+  Eigen::VectorXd TFP = 3.0 / 5.0 * pow((3 * M_PI * M_PI), 2.0 / 3.0) *
+                        rhoP.array().pow(5.0 / 3.0);
+
   Eigen::VectorXd ones = Eigen::VectorXd::Ones(rho.rows());
   ones.setConstant(1.0);
-  Eigen::VectorXd C = (ones.array() + ((tau.array()*rho.array() - 0.25*nablaRhoMod.array())*(rho.array()*TF.array()+1e-12).pow(-1)).pow(2)).pow(-1);
-  Eigen::VectorXd CN = (ones.array() + ((tauN.array()*rhoN.array() - 0.25*nablaRhoNMod2.array())*(rhoN.array()*TFN.array()+1e-12).pow(-1)).pow(2)).pow(-1);
-  Eigen::VectorXd CP = (ones.array() + ((tauP.array()*rhoP.array() - 0.25*nablaRhoPMod2.array())*(rhoP.array()*TFP.array()+1e-12).pow(-1)).pow(2)).pow(-1);
+  Eigen::VectorXd C =
+      (ones.array() +
+       ((tau.array() * rho.array() - 0.25 * nablaRhoMod.array()) *
+        (rho.array() * TF.array() + 1e-12).pow(-1))
+           .pow(2))
+          .pow(-1);
+  Eigen::VectorXd CN =
+      (ones.array() +
+       ((tauN.array() * rhoN.array() - 0.25 * nablaRhoNMod2.array()) *
+        (rhoN.array() * TFN.array() + 1e-12).pow(-1))
+           .pow(2))
+          .pow(-1);
+  Eigen::VectorXd CP =
+      (ones.array() +
+       ((tauP.array() * rhoP.array() - 0.25 * nablaRhoPMod2.array()) *
+        (rhoP.array() * TFP.array() + 1e-12).pow(-1))
+           .pow(2))
+          .pow(-1);
 
   matrixToFile("C_p.csv", CP);
   matrixToFile("C.csv", C);
   matrixToFile("C_n.csv", CN);
 
   double constraintsEnergy = 0.0;
-  for (auto &&constraint : constraints)
-  {
+  for (auto &&constraint : constraints) {
     constraintsEnergy += constraint->evaluate(iterationData);
   }
   // JSON output
@@ -386,7 +388,7 @@ void Output::shellsToFile(
   };
   nlohmann::json jsonOutput;
   std::ifstream jsonReader(folder + "/" + input.getOutputName() + ".json");
-  if(jsonReader.good()) {
+  if (jsonReader.good()) {
     try {
       jsonReader >> jsonOutput;
     } catch (const std::exception &e) {
@@ -397,7 +399,7 @@ void Output::shellsToFile(
     jsonOutput = nlohmann::json::object();
   }
 
-  if(!jsonOutput.contains("data") || !jsonOutput["data"].is_array()) {
+  if (!jsonOutput.contains("data") || !jsonOutput["data"].is_array()) {
     jsonOutput["data"] = nlohmann::json::array();
   }
   jsonOutput["data"].push_back(jsonEntry);

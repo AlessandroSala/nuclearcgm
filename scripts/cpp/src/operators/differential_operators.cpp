@@ -1,7 +1,7 @@
 #include "operators/differential_operators.hpp"
-#include "Eigen/src/Core/Matrix.h"
 #include <iostream>
 #include <omp.h> // Include OpenMP header
+#include <unsupported/Eigen/CXX11/Tensor>
 
 Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
                                     const Grid &grid, char dir) {
@@ -110,6 +110,177 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd &psi, const Grid &grid,
     }
   }
   return res;
+}
+
+Eigen::MatrixXd lagrangeFirstDerivative(int N, double dx) {
+  using Eigen::MatrixXd;
+
+  MatrixXd D1 = MatrixXd::Zero(N, N);
+
+  for (int s = 0; s < N; ++s) {
+    // Loop over columns (t = basis function)
+    for (int t = 0; t < N; ++t) {
+
+      if (s == t) {
+        D1(s, t) = 0.0;
+      } else {
+        double diff = static_cast<double>(t - s);
+        double arg = M_PI * diff / N;
+        double sin_arg = std::sin(arg);
+
+        D1(s, t) = std::pow(-1.0, diff) * (M_PI / (N * dx)) * (1.0 / sin_arg);
+      }
+    }
+  }
+  return D1;
+}
+
+Eigen::MatrixXd lagrangeSecondDerivative(int N, double dx) {
+  using Eigen::MatrixXd;
+
+  MatrixXd D1 = MatrixXd::Zero(N, N);
+
+  for (int s = 0; s < N; ++s) {
+    // Loop over columns (t = basis function)
+    for (int t = 0; t < N; ++t) {
+
+      if (s == t) {
+        D1(s, t) = std::pow(M_PI * M_PI / (3.0 * dx), 2) * (1.0 - 1.0 / N / N);
+      } else {
+        double diff = static_cast<double>(t - s);
+        double arg = M_PI * diff / N;
+        double sin_arg = std::sin(arg);
+        double cos_arg = std::cos(arg);
+        D1(s, t) = std::pow(-1.0, diff) * std::pow((2 * M_PI / (N * dx)), 2) *
+                   (cos_arg / sin_arg / sin_arg);
+      }
+    }
+  }
+  return D1;
+}
+
+Eigen::MatrixX3d Operators::gradLagrangeNoSpin(const Eigen::VectorXd &vec) {
+  Eigen::MatrixX3d res(vec.rows(), 3);
+  res.setZero();
+  Grid grid = *Grid::getInstance();
+  Eigen::MatrixXd D1 = lagrangeFirstDerivative(grid.get_n(), grid.get_h());
+
+  const int N = grid.get_n();
+
+  using ColMajorTensor3 = Eigen::Tensor<double, 3, Eigen::ColMajor>;
+  using ReadOnlyTensorMap = Eigen::TensorMap<const ColMajorTensor3>;
+  using WriteableTensorMap = Eigen::TensorMap<ColMajorTensor3>;
+
+  ReadOnlyTensorMap F_map(vec.data(), {N, N, N});
+
+  WriteableTensorMap dFdx_map(res.col(0).data(), {N, N, N});
+  WriteableTensorMap dFdy_map(res.col(1).data(), {N, N, N});
+  WriteableTensorMap dFdz_map(res.col(2).data(), {N, N, N});
+
+  Eigen::Tensor<double, 2> D_tensor(N, N);
+  D_tensor = Eigen::TensorMap<const Eigen::Tensor<double, 2, Eigen::ColMajor>>(
+      D1.data(), {N, N});
+
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_x = {
+      Eigen::IndexPair<int>(0, 0)};
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_y = {
+      Eigen::IndexPair<int>(0, 1)};
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_z = {
+      Eigen::IndexPair<int>(0, 2)};
+
+  dFdx_map = D_tensor.contract(F_map, contract_x);
+
+  dFdy_map = D_tensor.contract(F_map, contract_y)
+                 .shuffle(Eigen::array<int, 3>{1, 0, 2});
+
+  dFdz_map = D_tensor.contract(F_map, contract_z)
+                 .shuffle(Eigen::array<int, 3>{1, 2, 0});
+
+  return res;
+}
+
+Eigen::VectorXd Operators::lapLagrangeNoSpin(const Eigen::VectorXd &vec) {
+  Eigen::MatrixX3d res(vec.rows(), 3);
+  res.setZero();
+  Grid grid = *Grid::getInstance();
+  Eigen::MatrixXd D1 = lagrangeFirstDerivative(grid.get_n(), grid.get_h()) *
+                       lagrangeFirstDerivative(grid.get_n(), grid.get_h());
+
+  const int N = grid.get_n();
+
+  using ColMajorTensor3 = Eigen::Tensor<double, 3, Eigen::ColMajor>;
+  using ReadOnlyTensorMap = Eigen::TensorMap<const ColMajorTensor3>;
+  using WriteableTensorMap = Eigen::TensorMap<ColMajorTensor3>;
+
+  ReadOnlyTensorMap F_map(vec.data(), {N, N, N});
+
+  WriteableTensorMap dFdx_map(res.col(0).data(), {N, N, N});
+  WriteableTensorMap dFdy_map(res.col(1).data(), {N, N, N});
+  WriteableTensorMap dFdz_map(res.col(2).data(), {N, N, N});
+
+  Eigen::Tensor<double, 2> D_tensor(N, N);
+  D_tensor = Eigen::TensorMap<const Eigen::Tensor<double, 2, Eigen::ColMajor>>(
+      D1.data(), {N, N});
+
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_x = {
+      Eigen::IndexPair<int>(0, 0)};
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_y = {
+      Eigen::IndexPair<int>(0, 1)};
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_z = {
+      Eigen::IndexPair<int>(0, 2)};
+
+  dFdx_map = D_tensor.contract(F_map, contract_x);
+
+  dFdy_map = D_tensor.contract(F_map, contract_y)
+                 .shuffle(Eigen::array<int, 3>{1, 0, 2});
+
+  dFdz_map = D_tensor.contract(F_map, contract_z)
+                 .shuffle(Eigen::array<int, 3>{1, 2, 0});
+
+  return res.col(0) + res.col(1) + res.col(2);
+}
+
+Eigen::MatrixX3cd Operators::gradLagrange(const Eigen::VectorXcd &vec) {
+  Eigen::MatrixX3cd res(vec.rows(), 3);
+  res.setZero();
+  Grid grid = *Grid::getInstance();
+  auto D1 = lagrangeFirstDerivative(grid.get_n(), grid.get_h());
+
+  const int N = grid.get_n();
+  const int Nspin = 2;
+
+  using dcomplex = std::complex<double>;
+  using ColMajorTensor4 = Eigen::Tensor<dcomplex, 4, Eigen::ColMajor>;
+  using ReadOnlyTensorMap = Eigen::TensorMap<const ColMajorTensor4>;
+  using WriteableTensorMap = Eigen::TensorMap<ColMajorTensor4>;
+
+  ReadOnlyTensorMap F_map(vec.data(), {Nspin, N, N, N});
+
+  WriteableTensorMap dFdx_map(res.col(0).data(), {Nspin, N, N, N});
+  WriteableTensorMap dFdy_map(res.col(1).data(), {Nspin, N, N, N});
+  WriteableTensorMap dFdz_map(res.col(2).data(), {Nspin, N, N, N});
+
+  Eigen::Tensor<double, 2> D_tensor(N, N);
+  D_tensor = Eigen::TensorMap<const Eigen::Tensor<double, 2, Eigen::ColMajor>>(
+      D1.data(), {N, N});
+
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_x = {
+      Eigen::IndexPair<int>(1, 1)};
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_y = {
+      Eigen::IndexPair<int>(1, 2)};
+  Eigen::array<Eigen::IndexPair<int>, 1> contract_z = {
+      Eigen::IndexPair<int>(1, 3)};
+
+  dFdx_map = D_tensor.contract(F_map, contract_x)
+                 .shuffle(Eigen::array<int, 4>{1, 0, 2, 3});
+
+  dFdy_map = D_tensor.contract(F_map, contract_y)
+                 .shuffle(Eigen::array<int, 4>{1, 2, 0, 3});
+
+  dFdz_map = D_tensor.contract(F_map, contract_z)
+                 .shuffle(Eigen::array<int, 4>{1, 2, 3, 0});
+
+  return -res;
 }
 
 Eigen::MatrixX3cd Operators::grad(const Eigen::VectorXcd &vec,
