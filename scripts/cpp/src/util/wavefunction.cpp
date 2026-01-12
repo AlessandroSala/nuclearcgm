@@ -1,26 +1,20 @@
 #include "VariadicTable.h"
-#include "constants.hpp" // Assuming this is where nuclearConstants are
+#include "constants.hpp"
 #include "coulomb/laplacian_potential.hpp"
 #include "hamiltonian.hpp"
 #include "input_parser.hpp"
-#include "operators/differential_operators.hpp" // Assuming this is where Operators::derivative is
+#include "operators/differential_operators.hpp"
 #include "operators/integral_operators.hpp"
 #include "spherical_harmonics.hpp"
-#include "types.hpp"
 #include "util/shell.hpp"
 #include <cmath>
 #include <complex>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <omp.h> // Required for OpenMP
+#include <omp.h>
 #include <vector>
 
-// Forward declaration of Grid class if not fully included,
-// or include the necessary header for Grid.
-// class Grid;
-
-// Assuming Wavefunction is a class or namespace
 namespace Wavefunction {
 
 Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
@@ -38,12 +32,10 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
 
         double point_density = 0.0;
         for (int col = 0; col < psi.cols(); ++col) {
-          point_density += std::norm(
-              psi(psi_idx_s0, col)); // std::norm(complex) = |complex|^2
+          point_density += std::norm(psi(psi_idx_s0, col));
           point_density += std::norm(psi(psi_idx_s1, col));
         }
-        rho(rho_idx) =
-            point_density; // Each thread writes to a unique element of rho
+        rho(rho_idx) = point_density;
       }
     }
   }

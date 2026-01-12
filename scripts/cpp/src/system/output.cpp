@@ -9,10 +9,10 @@
 
 #include <Eigen/Dense>
 #include <algorithm>
-#include <array>   // Per std::array
-#include <cassert> // Per assert
+#include <array>
+#include <cassert>
 #include <regex>
-#include <utility> // Per std::swap
+#include <utility>
 
 bool contains(const std::vector<std::string> &vec, const std::string &str) {
   return std::find(vec.begin(), vec.end(), str) != vec.end();

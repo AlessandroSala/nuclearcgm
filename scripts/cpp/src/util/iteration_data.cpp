@@ -57,7 +57,6 @@ IterationData::IterationData(InputParser input) : input(input) {
   int A = input.getA();
   using nuclearConstants::m;
   energyDiff = 1.0;
-  lastConvergedIter = 0;
 
   massCorr = input.COMCorr ? m * ((double)A) / ((double)(A - 1)) : m;
 
@@ -333,7 +332,8 @@ void IterationData::updateQuantities(
   int N = A - Z;
 
   double mu = constraints.size() > 0 ? 0.2 : std::min(0.05 + 0.01 * iter, 0.4);
-  std::cout << "mu: " << mu << std::endl;
+  mu = 0.25;
+  // std::cout << "mu: " << mu << std::endl;
 
   Eigen::VectorXd v2N(neutronsPair.second.size()),
       u2N(neutronsPair.second.size());
@@ -493,12 +493,7 @@ void IterationData::updateQuantities(
     std::cout
         << "Constraints tolerance reached, updating last converged iteration"
         << std::endl;
-    lastConvergedIter = iter;
   }
-  auto smooth = [&](int iter) {
-    return std::min(0.1 + 0.01 * (double)(iter - lastConvergedIter), 0.6);
-    // return 1.0/(1.0 + std::exp((-((double)iter - 15.0))/10.0));
-  };
   // reset for fields
   mu = 1.0;
 
@@ -513,8 +508,10 @@ void IterationData::updateQuantities(
 
   Eigen::VectorXd newFieldN = Wavefunction::field(
       rho, *rhoN, tau, *tauN, nabla2rho, *nabla2RhoN, divJJQN, grid, params);
+
   Eigen::VectorXd newFieldP = Wavefunction::field(
       rho, *rhoP, tau, *tauP, nabla2rho, *nabla2RhoP, divJJQP, grid, params);
+
   Eigen::VectorXd constraintField =
       Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   // CONSTRAINTS

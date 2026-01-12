@@ -206,7 +206,7 @@ int main(int argc, char **argv) {
           std::cout << "Protons " << std::endl;
           Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
-          auto hP = skyrmeHam.buildMatrix();
+          hP = skyrmeHam.buildMatrix();
 
           newProtonsEigenpair = solve(hP, ConjDirP, calc.hf.gcg,
                                       protonsEigenpair.first, orbitalsP);
@@ -235,10 +235,8 @@ int main(int argc, char **argv) {
           ConjDirN.colwise().normalize();
           ConjDirP.colwise().normalize();
         }
-        neutronsEigenpair = newNeutronsEigenpair;
-        protonsEigenpair = newProtonsEigenpair;
 
-        if (hfIter > 0) {
+        if (hfIter > 0 && false) {
           cout << "Neutron dispersion: "
                << Utilities::computeDispersion(hN, neutronsEigenpair.first)
                << endl;
@@ -246,6 +244,10 @@ int main(int argc, char **argv) {
                << Utilities::computeDispersion(hP, protonsEigenpair.first)
                << endl;
         }
+
+        neutronsEigenpair = newNeutronsEigenpair;
+        protonsEigenpair = newProtonsEigenpair;
+
         double newIntegralEnergy =
             data.totalEnergyIntegral(input.skyrme, grid) +
             data.kineticEnergy(input.skyrme, grid);
@@ -290,7 +292,6 @@ int main(int argc, char **argv) {
       double cpuTime = chrono::duration_cast<chrono::seconds>(computationEnd -
                                                               computationBegin)
                            .count();
-      data.lastConvergedIter = 0;
       out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
                        &data, input, hfIter, integralEnergies, HFEnergies,
                        cpuTime, 'a', constraints);

@@ -143,7 +143,7 @@ double IterationData::C1TauEnergy(SkyrmeParameters params, const Grid &grid) {
   return integral(energy1c, grid);
 }
 
-// SUS !
+// TODO: SUS !
 double IterationData::C0nabla2RhoEnergy(SkyrmeParameters params,
                                         const Grid &grid) {
   double t1 = params.t1;

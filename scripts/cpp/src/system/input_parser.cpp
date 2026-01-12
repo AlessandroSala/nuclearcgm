@@ -1,5 +1,5 @@
 #include "input_parser.hpp"
-#include "woods_saxon/deformed_woods_saxon.hpp"
+#include "grid.hpp"
 #include <fstream>
 #include <iostream>
 

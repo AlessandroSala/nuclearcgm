@@ -7,7 +7,7 @@
     "outputName": "test",
     "outputDirectory": "conv_tests_random",
     "box": {
-        "size": 10.0,
+        "size": 9.0,
         "n": 20
     },
     "nucleus": {
@@ -22,7 +22,7 @@
     ],
     "hf": {
         "cycles": 100,
-        "energyTol": 1e-07,
+        "energyTol": 1e-05,
         "gcg": {
             "maxIter": 1,
             "nev": 0,
@@ -32,7 +32,7 @@
         }
     },
     "gcg": {
-        "maxIter": 1,
+        "maxIter": 10,
         "nev": 10,
         "tol": 1e-05,
         "cgTol": 1e-07,

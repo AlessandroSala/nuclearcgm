@@ -1,6 +1,6 @@
 # Compilatore e flag
 CXX = g++
-CXXFLAGS = -std=c++17 -fopenmp -O3 -march=native -DNDEBUG -I /usr/include/eigen3 -lopenblas -llapack -I include
+CXXFLAGS = -Wall -std=c++17 -fopenmp -O3 -march=native -DNDEBUG -I /usr/include/eigen3 -lopenblas -llapack -I include
 
 # Cartelle
 SRC_DIR = src
