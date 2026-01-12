@@ -49,7 +49,6 @@ MatrixXd compute_G_pairing(const MatrixXcd &phi,
             }
           }
 
-      // integrand to integrate:
       VectorXcd integrand = P_i.conjugate().cwiseProduct(P_j);
 
       double V0 = t == NucleonType::N ? params.V0N : params.V0P;
@@ -117,7 +116,7 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
 
   int num_pairs = eps_pairs.size();
   if (num_pairs == 0)
-    return {}; // empty
+    return {};
 
   MatrixXd G = 0.5 * G_pairing;
 
@@ -129,8 +128,7 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
   } else {
     std::cout << "Reinitializing Delta" << std::endl;
   }
-  const double window_smoothness =
-      params.window / 10.0; // Sharpness of the cutoff
+  const double window_smoothness = params.window / 10.0;
 
   double lambda = oldLambda;
   if (!isfinite(lambda) || isnan(lambda)) {
@@ -140,10 +138,9 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
 
   VectorXd kappa = VectorXd::Zero(num_pairs);
 
-  // --- STABILITY IMPROVEMENTS ---
-  double mixDelta = 0.9; // More conservative mixing
+  double mixDelta = 0.9;
   double mixLambda = 0.9;
-  double maxDeltaStepFrac = 0.9; // Smaller max step
+  double maxDeltaStepFrac = 0.9;
 
   VectorXd window_weights(num_pairs);
   VectorXd Eqp = VectorXd::Zero(num_pairs);
@@ -190,20 +187,20 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
       if (Ei < EPS_SMALL)
         Ei = EPS_SMALL;
       double vp2 = 0.5 * (1.0 - xi / Ei);
-      vp2 = std::clamp(vp2, 0.0, 1.0); // Simplified clamping
+      vp2 = std::clamp(vp2, 0.0, 1.0);
       v(p) = std::sqrt(vp2);
       u(p) = std::sqrt(1.0 - vp2);
       kappa(p) = u(p) * v(p);
     }
 
-    // --- 4) Update DeltaNew with a SMOOTH window function ---
+    // 4) Update DeltaNew with a smooth window function
     VectorXd DeltaNew = VectorXd::Zero(num_pairs);
 
     for (int p = 0; p < num_pairs; ++p) {
       double sum = 0.0;
       for (int q = 0; q < num_pairs; ++q) {
-        if (window_weights(q) > EPS_SMALL) { // Only include state q if relevant
-          // sum += G(p, q) * kappa(q) * window_weights(q);
+        // Only include state q if relevant
+        if (window_weights(q) > EPS_SMALL) {
           sum += G(p, q) * window_weights(q) * Delta(q) / Eqp(q);
         }
       }
@@ -220,8 +217,6 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
     Delta = DeltaMixed;
 
     if (ldiff < PairingPrec && dnorm < tol) {
-      // Final consistency calculation (optional but good practice)
-      // ... (your final loop to re-calculate v, u, kappa)
       std::cout << "BCS Iterations: " << iter << std::endl;
       break;
     }
@@ -248,15 +243,10 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
   }
 
   kappa = final_u2.array().sqrt() * final_v2.array().sqrt();
-  // double Epair =  (kappa.array() * window_weights.array()).matrix().dot( (G *
-  // (kappa.array() * window_weights.array()).matrix()));
   double Epair = 0.0;
   for (int p = 0; p < num_pairs; ++p) {
     for (int q = 0; q < num_pairs; ++q) {
       if (window_weights(q) > EPS_SMALL) {
-        // Epair += G(p, q) * window_weights(q) * Delta(q) / Eqp(p);
-        // Epair += G(p, q) * window_weights(q) * window_weights(p) * kappa(q) *
-        // kappa(p);
         Epair += -0.5 * window_weights(q) * window_weights(p) * Delta(p) *
                  Delta(q) * G(p, q) / Eqp(p) / Eqp(q);
       }
@@ -266,16 +256,13 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
           lambda,   Epair};
 }
 
-// Assumes Eigen is included and BCSResult is defined as before
 BCSResult BCSiter(const MatrixXcd &phi, const VectorXd &eps, int A,
                   PairingParameters params, NucleonType t,
                   const VectorXd &oldDelta, double oldLambda) {
   int M = phi.cols();
-  // Step 1: Find time-reversal partners for all states
   auto O = pairs(phi);
   auto timeReversalPairs = match_time_reversal(O);
 
-  // Step 2: Identify unique pairs and create necessary mappings
   std::vector<int> unique_pairs;
   unique_pairs.reserve(M / 2);
   std::vector<int> state_to_pair_map(M);
@@ -287,7 +274,7 @@ BCSResult BCSiter(const MatrixXcd &phi, const VectorXd &eps, int A,
       int partner = timeReversalPairs[i];
       if (partner != i && partner != -1) {
         int pair_index = unique_pairs.size();
-        unique_pairs.push_back(i); // Add the first state of the pair
+        unique_pairs.push_back(i);
 
         state_to_pair_map[i] = pair_index;
         state_to_pair_map[partner] = pair_index;
@@ -298,12 +285,9 @@ BCSResult BCSiter(const MatrixXcd &phi, const VectorXd &eps, int A,
     }
   }
 
-  // Step 3: Prepare inputs for the pair-based BCS solver
   int num_pairs = unique_pairs.size();
   VectorXd eps_pairs(num_pairs);
   for (int p = 0; p < num_pairs; ++p) {
-    // Energies are degenerate, so we take the energy of the first state in the
-    // pair
     eps_pairs(p) = eps(unique_pairs[p]);
   }
   for (int i = 0; i < oldDeltaUnique.size(); i++)
@@ -312,28 +296,23 @@ BCSResult BCSiter(const MatrixXcd &phi, const VectorXd &eps, int A,
   if (oldDelta.size() != num_pairs * 2)
     oldDeltaUnique = oldDelta;
 
-  // Step 4: Compute the correct pairing matrix and solve BCS
   MatrixXd G_p =
       compute_G_pairing(phi, unique_pairs, timeReversalPairs, params, t);
   BCSResult pair_results =
       solveBCS(eps_pairs, G_p, A, params, oldDeltaUnique, oldLambda);
 
-  // Step 5: "Unpack" the results from pairs back to the full M states
   VectorXd u2_full = VectorXd::Zero(M);
   VectorXd v2_full = VectorXd::Zero(M);
   VectorXd Delta_full = VectorXd::Zero(M);
 
   for (int i = 0; i < M; ++i) {
-    if (visited[i]) // Only paired states will have non-zero results
-    {
+    if (visited[i]) {
       int pair_idx = state_to_pair_map[i];
       u2_full(i) = pair_results.u2(pair_idx);
       v2_full(i) = pair_results.v2(pair_idx);
       Delta_full(i) = pair_results.Delta(pair_idx);
     }
   }
-
-  // std::cout << v2_full.transpose() << std::endl;
 
   std::cout << "Converged Lambda: " << pair_results.lambda
             << ", Epair: " << pair_results.Epair << std::endl;

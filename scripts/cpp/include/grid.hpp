@@ -33,6 +33,8 @@ public:
   /** @brief Returns the grid spacing (h). */
   double get_h() const noexcept;
 
+  double dV() const noexcept;
+
   /** @brief Returns the vector of x-coordinates. */
   const std::vector<double> &get_xs() const noexcept;
 

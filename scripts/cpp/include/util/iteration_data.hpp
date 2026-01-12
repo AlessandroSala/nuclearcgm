@@ -51,7 +51,6 @@ public:
   double massCorr;
   double energyDiff;
   double constraintTol = 5e-3;
-  int lastConvergedIter;
 
   void mixDensity(const Eigen::MatrixXcd &newDensity,
                   std::vector<std::shared_ptr<Eigen::MatrixXcd>> history);

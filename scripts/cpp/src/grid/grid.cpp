@@ -47,6 +47,8 @@ double Grid::get_a() const noexcept { return a_; }
 
 double Grid::get_h() const noexcept { return h_; }
 
+double Grid::dV() const noexcept { return h_ * h_ * h_; }
+
 const std::vector<double> &Grid::get_xs() const noexcept { return xs_; }
 
 const std::vector<double> &Grid::get_ys() const noexcept { return ys_; }
