@@ -1,8 +1,9 @@
 #include "constraint.hpp"
 
 double Constraint::error() const {
-  if (target == 0.0) {
-    return 0.0;
+
+  if (std::abs(target) <= 1e-12) {
+    return std::abs(value);
   } else {
     return std::abs(value / target - 1.0);
   }

@@ -8,6 +8,7 @@
 OctupoleConstraint::OctupoleConstraint(double mu20)
     : mu20(mu20), C(0.001), lambda(0.0), firstIter(true) {
   value = 0.0;
+  target = mu20;
   residuals.clear();
 }
 Eigen::VectorXd OctupoleConstraint::getField(IterationData *data) {
@@ -35,7 +36,7 @@ Eigen::VectorXd OctupoleConstraint::getField(IterationData *data) {
     return 2.0 * C * (Q20 - mu20) * O;
   }
 
-  double gamma = 0.01;
+  double gamma = 0.3;
 
   std::cout << "Updated lambda Q30, previous: " << lambda;
   lambda += gamma * 2.0 * C * (Q20 - mu20);

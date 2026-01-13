@@ -236,13 +236,17 @@ int main(int argc, char **argv) {
           ConjDirP.colwise().normalize();
         }
 
-        if (hfIter > 0 && false) {
-          cout << "Neutron dispersion: "
-               << Utilities::computeDispersion(hN, neutronsEigenpair.first)
-               << endl;
-          cout << "Proton dispersion: "
-               << Utilities::computeDispersion(hP, protonsEigenpair.first)
-               << endl;
+        if (hfIter > 0 && true) {
+
+          auto dispersionN =
+              Utilities::computeDispersion(hN, newNeutronsEigenpair.first);
+          auto dispersionP =
+              Utilities::computeDispersion(hP, newProtonsEigenpair.first);
+          auto dispersion = (dispersionN * N + dispersionP * Z) / (N + Z);
+          cout << "Neutron dispersion: " << dispersionN << endl;
+          cout << "Proton dispersion: " << dispersionP << endl;
+          cout << "Total dispersion: "
+               << (dispersionN * N + dispersionP * Z) / (N + Z) << endl;
         }
 
         neutronsEigenpair = newNeutronsEigenpair;
@@ -261,15 +265,16 @@ int main(int argc, char **argv) {
         std::cout << "Constraints errors: ";
         for (auto &&constraint : constraints) {
           std::cout << constraint->error() << ", ";
-          constraintsConv = constraintsConv && constraint->error() < 1e-3;
+          constraintsConv = constraintsConv && (constraint->error() < 1e-3);
         }
         std::cout << std::endl;
         HFEnergies.push_back(newHFEnergy);
 
-        std::cout << "rel. err: "
+        std::cout << "rel. err. integral energy: "
                   << std::abs(newIntegralEnergy - integralEnergy) /
                          newIntegralEnergy
                   << std::endl;
+        double maxDiff = 0.0;
 
         if (abs(newIntegralEnergy - integralEnergy) <
                 input.getCalculation().hf.energyTol &&
@@ -289,9 +294,11 @@ int main(int argc, char **argv) {
 
       std::chrono::steady_clock::time_point computationEnd =
           std::chrono::steady_clock::now();
+
       double cpuTime = chrono::duration_cast<chrono::seconds>(computationEnd -
                                                               computationBegin)
                            .count();
+      std::cout << "CPU time: " << cpuTime << std::endl;
       out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
                        &data, input, hfIter, integralEnergies, HFEnergies,
                        cpuTime, 'a', constraints);

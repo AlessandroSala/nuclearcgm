@@ -59,10 +59,10 @@ double Utilities::mu20FromBeta(double beta, double R, int A) {
 double Utilities::computeDispersion(const ComplexSparseMatrix &h,
                                     const ComplexDenseMatrix &X) {
   ComplexDenseMatrix HX = h * X;
-  ComplexDenseMatrix HHX = h * h * X;
+  ComplexDenseMatrix HHX = h.adjoint() * HX;
   auto grid = *Grid::getInstance();
 
-  double max = 0.0;
+  double sum = 0.0;
 
   for (int i = 0; i < X.cols(); ++i) {
     std::complex<double> expH =
@@ -74,8 +74,8 @@ double Utilities::computeDispersion(const ComplexSparseMatrix &h,
 
     double dispersion = diff;
 
-    max = std::max(max, dispersion);
+    sum += dispersion;
   }
 
-  return max;
+  return sum / X.cols();
 }
