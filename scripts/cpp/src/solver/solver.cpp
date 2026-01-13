@@ -771,12 +771,26 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
     ComplexDenseMatrix C = es.eigenvectors().leftCols(rr_nev);
     DenseVector Lambda_proj = es.eigenvalues().head(rr_nev);
     ComplexDenseMatrix X_new_full = V_eff * C;
+    ComplexDenseMatrix X_new_red = X_new_full.leftCols(X.cols());
+
+    int new_p_cols = 0;
+    if (iter == max_iter - 1) { // Do not update P if we are at the last iter
+      new_p_cols = X.cols();
+      if (new_p_cols > 0) {
+        ComplexDenseMatrix tmp;
+        tmp.noalias() = X.adjoint() * X_new_red;
+        P = X_new_red - X * tmp;
+      }
+    }
+    if (new_p_cols == 0) {
+      P.resize(n, 0);
+    }
+
     DenseVector Lambda_new =
         Lambda_proj - DenseVector::Constant(Lambda_proj.size(), current_shift);
 
     ComplexDenseMatrix Residuals =
         A * X_new_full - X_new_full * Lambda_new.asDiagonal();
-    ComplexDenseMatrix X_old_active = X; // Store old active X for P update
 
     ComplexDenseMatrix updated_X0 = X_new_full.leftCols(num_converged);
 
@@ -809,21 +823,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
     ComplexDenseMatrix C_active(C.rows(), next_active_indices.size());
     for (size_t i = 0; i < next_active_indices.size(); ++i) {
       C_active.col(i) = C.col(next_active_indices[i]);
-    }
-
-    int new_p_cols = 0;
-    if (X_old_active.cols() > 0 && C_active.cols() > 0) {
-      ComplexDenseMatrix C_old_in_new_basis = V_eff.adjoint() * X_old_active;
-      new_p_cols =
-          std::min((int)C_active.cols(), (int)C_old_in_new_basis.cols());
-      if (new_p_cols > 0) {
-        ComplexDenseMatrix C_p = C_active.leftCols(new_p_cols) -
-                                 C_old_in_new_basis.leftCols(new_p_cols);
-        P = V_eff * C_p;
-      }
-    }
-    if (new_p_cols == 0) {
-      P.resize(n, 0);
     }
   }
 

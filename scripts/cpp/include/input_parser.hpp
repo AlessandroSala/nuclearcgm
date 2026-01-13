@@ -1,7 +1,11 @@
 
+
 #pragma once
+
 #include "json/json.hpp"
 #include <string>
+
+class EDF;
 
 class Grid;
 
@@ -99,7 +103,7 @@ public:
   PairingParameters pairingParameters;
   bool useDIIS;
 
-  SkyrmeParameters skyrme;
+  EDF skyrme;
   CalculationType calculationType;
   DeformationCurve deformationCurve;
 

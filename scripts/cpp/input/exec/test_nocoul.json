@@ -1,14 +1,14 @@
 {
-    "interaction": "SLy5",
-    "coulomb": false,
-    "Jterms": true,
+    "interaction": "SLy4",
+    "coulomb": true,
+    "Jterms": false,
     "spinOrbit": true,
     "COMCorrection": true,
     "outputName": "test",
     "outputDirectory": "conv_tests_random",
     "box": {
-        "size": 9.0,
-        "n": 20
+        "size": 10.0,
+        "n": 40
     },
     "nucleus": {
         "A": 40,
@@ -22,7 +22,7 @@
     ],
     "hf": {
         "cycles": 100,
-        "energyTol": 1e-05,
+        "energyTol": 1e-09,
         "gcg": {
             "maxIter": 1,
             "nev": 0,
@@ -32,10 +32,10 @@
         }
     },
     "gcg": {
-        "maxIter": 10,
+        "maxIter": 2,
         "nev": 10,
-        "tol": 1e-05,
-        "cgTol": 1e-07,
+        "tol": 1e-02,
+        "cgTol": 1e-04,
         "steps": 40
     },
     "woods_saxon": {

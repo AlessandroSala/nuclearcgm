@@ -58,7 +58,7 @@ Eigen::VectorXd QuadrupoleConstraint::getField(IterationData *data) {
     return 2.0 * C * (Q20 - mu) * O;
   }
 
-  double gamma = 0.02;
+  double gamma = 0.3;
 
   // if(residuals.size() > 1 &&
   // std::abs(residuals.back()/residuals[residuals.size()-2]-1) < 1e-2) {
