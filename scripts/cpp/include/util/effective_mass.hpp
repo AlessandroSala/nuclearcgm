@@ -4,6 +4,8 @@
 #include "input_parser.hpp"
 #include <Eigen/Dense>
 
+class EDF;
+
 /**
  * @brief Represents the mass term in the Skyrme interaction
  */
@@ -20,7 +22,7 @@ public:
 
   EffectiveMass(const Grid &grid, Eigen::VectorXd &rho, Eigen::VectorXd &rho_q,
                 Eigen::MatrixX3d &nablaRho, Eigen::MatrixX3d &nabla_rho_q,
-                double m, SkyrmeParameters p);
+                double m, std::shared_ptr<EDF> p);
 
   Eigen::VectorXd vector;
   Eigen::MatrixX3d gradient;

@@ -1,3 +1,4 @@
+#include "EDF.hpp"
 #include "VariadicTable.h"
 #include "constants.hpp"
 #include "coulomb/laplacian_potential.hpp"
@@ -260,57 +261,49 @@ Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
   return res * nuclearConstants::e2;
 }
 
-/**
- * @brief Calculates the Mean field
- * @param rho Isoscalar density.
- * @param rhoQ nucleon density.
- * @param tau Isoscalar kinetic density.
- * @param tauQ nucleon kinetic density.
- * @param nabla2rho Laplacian of the isoscalar density.
- * @param nabla2rhoQ Laplacian of the nucleon density.
- * @param nablaJJQ Divergence of the spin-orbit density current.
- * @param grid The spatial grid.
- * @param params Parameters of the Skyrme interaction.
- * @return Eigen::VectorXd The calculated field.
- */
 Eigen::VectorXd field(Eigen::VectorXd &rho, Eigen::VectorXd &rhoQ,
                       Eigen::VectorXd &tau, Eigen::VectorXd &tauQ,
                       Eigen::VectorXd &nabla2rho, Eigen::VectorXd &nabla2rhoQ,
-                      Eigen::VectorXd &divJJQ, const Grid &grid,
-                      SkyrmeParameters params) {
-  double t0 = params.t0, t1 = params.t1, t2 = params.t2, t3 = params.t3;
-  double x0 = params.x0, x1 = params.x1, x2 = params.x2, x3 = params.x3;
-  double W0 = params.W0;
-  double sigma = params.sigma; // Corresponds to 'alpha' in the formula
+                      Eigen::VectorXd &divJ, Eigen::VectorXd &divJQ,
+                      const Grid &grid, std::shared_ptr<EDF> interaction) {
+  auto params = interaction->params;
 
   Eigen::VectorXd field(grid.get_total_spatial_points());
   field.setZero();
 
-  // t0 * [(1 + x0/2) * rho - (x0 + 1/2) * rhoQ]
-  field += t0 * ((1.0 + 0.5 * x0) * rho - (x0 + 0.5) * rhoQ);
+  // Un = U0 + U1, Up = U0 - U1
+  // implies field expression is always U = (A0-A1)r + 2A1rQ
+  // In terms of C0, C1: Ut = 2Ctr + 2Ctdr + Ctt + CtnJ
 
-  // Chabant
-  field += 0.125 * (t1 * (2 + x1) + t2 * (2 + x2)) * tau;
+  // t0 * ((1.0 + 0.5 * x0) * rho - (x0 + 0.5) * rhoQ);
+  field += (2 * params.C0rr - 2 * params.C1rr) * rho + 4 * params.C1rr * rhoQ;
 
-  field += 0.125 * (t2 * (2 * x2 + 1) - t1 * (2 * x1 + 1)) * tauQ;
+  //  0.125 * (t1 * (2 + x1) + t2 * (2 + x2)) * tau;
+  //  0.125 * (t2 * (2 * x2 + 1) - t1 * (2 * x1 + 1)) * tauQ;
+  field += (params.C0rt - params.C1rt) * tau + 2 * params.C1rt * tauQ;
 
-  // Chabant
-  // + 1/8 * (t2 - 3*t1 - (3*t1*x1 + t2*x2)/2) * nabla^2 rho
-  field += (1.0 / 16.0) * (t2 * (2 + x2) - 3 * t1 * (2 + x1)) * nabla2rho;
+  // (1.0 / 16.0) * (t2 * (2 + x2) - 3 * t1 * (2 + x1)) * nabla2rho;
+  // (1.0 / 16.0) * (3 * t1 * (2 * x1 + 1) + t2 * (2 * x2 + 1)) * nabla2rhoQ;
+  field += (2 * params.C0rdr - 2 * params.C1rdr) * nabla2rho +
+           4 * params.C1rdr * nabla2rhoQ;
 
-  // + 1/16 * (t2 + 3*t1 + 6*t1*x1 + 2*t2*x2) * nabla^2 rhoQ
-  // //Uguale C e S?
-  field +=
-      (1.0 / 16.0) * (3 * t1 * (2 * x1 + 1) + t2 * (2 * x2 + 1)) * nabla2rhoQ;
+  //  -0.5 * W0 * divJJQ, here the expression simplifies!!
+  field += (params.C0nJ - params.C1nJ) * divJ + 2 * params.C1nJ * divJQ;
 
-  field += -0.5 * W0 * divJJQ;
+  // TODO: In case of strange coupling different from standard skyrme, check
+  // again this expression, I'm too tired right now, this version should be good
+  // for numerical stability
+  double t3 = 48 * params.C0Drr / 3;
+  double x3 = -0.5 - 24 * params.C1Drr / t3;
 
+  double sigma = params.sigma;
   field +=
       ((t3 / 12.0) * pow(rho.array(), sigma - 1.0) *
        ((1.0 + 0.5 * x3) * (sigma + 2.0) * pow(rho.array(), 2.0) -
         (x3 + 0.5) *
             (sigma * (rhoQ.array().square() + (rho - rhoQ).array().square()) +
              2.0 * rho.array() * rhoQ.array())))
+
           .matrix();
 
   return field;

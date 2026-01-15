@@ -1,15 +1,37 @@
 #include "input_parser.hpp"
+#include "EDF.hpp"
 #include "grid.hpp"
 #include <fstream>
 #include <iostream>
 
 InputParser::InputParser(std::string inputFile) {
-  std::ifstream file(inputFile);
+  using std::ifstream;
+  ifstream file(inputFile);
   data = nlohmann::json::parse(file);
+  woodsSaxonData =
+      nlohmann::json::parse(ifstream("parameters/woods_saxon.json"));
 
-  useCoulomb = data["coulomb"];
-  useJ = data["Jterms"];
-  std::string interaction = data["interaction"];
+  hfData = nlohmann::json::parse(
+      ifstream("parameters/minimization_parameters.json"));
+
+  _woodsSaxonParameters = WoodsSaxonParameters{
+      woodsSaxonData["woods_saxon"]["V0"],
+      woodsSaxonData["woods_saxon"]["r0"],
+      woodsSaxonData["woods_saxon"]["diffusivity"],
+      woodsSaxonData["woods_saxon"]["kappa"],
+  };
+
+  _WSSpinOrbitParameters = WSSpinOrbitParameters{
+      woodsSaxonData["woods_saxon"]["spin_orbit"]["V0"],
+      woodsSaxonData["woods_saxon"]["spin_orbit"]["r0"],
+      woodsSaxonData["woods_saxon"]["diffusivity"],
+  };
+
+  useCoulomb = data.contains("coulombInteraction")
+                   ? data["coulombInteraction"].get<bool>()
+                   : false;
+
+  std::string interactionName = data["functional"];
   pairing = data.contains("pairing");
   if (pairing) {
     auto pairingData = data["pairing"];
@@ -49,8 +71,6 @@ InputParser::InputParser(std::string inputFile) {
 
   useDIIS = data.contains("useDIIS") ? data["useDIIS"].get<bool>() : true;
 
-  spinOrbit = data["spinOrbit"];
-  COMCorr = data["COMCorrection"];
   outputDirectory = data["outputDirectory"];
   calculationType = data.contains("deformation")
                         ? CalculationType::deformation_curve
@@ -78,13 +98,27 @@ InputParser::InputParser(std::string inputFile) {
     }
   }
   nlohmann::json interactionData = nlohmann::json::parse(
-      std::ifstream("interactions/" + interaction + ".json"));
+      std::ifstream("functionals/" + interactionName + ".json"));
 
-  skyrme = SkyrmeParameters{interactionData["W0"], interactionData["t0"],
-                            interactionData["t1"], interactionData["t2"],
-                            interactionData["t3"], interactionData["x0"],
-                            interactionData["x1"], interactionData["x2"],
-                            interactionData["x3"], interactionData["sigma"]};
+  auto setInteractionOptionalField = [&](std::string field) {
+    if (interactionData.contains(field)) {
+      return interactionData[field].get<bool>();
+    }
+    if (data.contains(field)) {
+      return data[field].get<bool>();
+    }
+    return true;
+  };
+
+  useJ = setInteractionOptionalField("J2");
+  spinOrbit = setInteractionOptionalField("spinOrbit");
+  COMCorr = setInteractionOptionalField("COMCorrection");
+
+  SkyrmeParameters skyrme = SkyrmeParameters{
+      interactionData["W0"],   interactionData["t0"], interactionData["t1"],
+      interactionData["t2"],   interactionData["t3"], interactionData["x0"],
+      interactionData["x1"],   interactionData["x2"], interactionData["x3"],
+      interactionData["sigma"]};
   std::cout << "Interaction: " << interaction << std::endl;
   std::cout << "t0: " << skyrme.t0 << ", t1: " << skyrme.t1
             << ", t2: " << skyrme.t2 << ", t3: " << skyrme.t3 << std::endl;
@@ -92,6 +126,19 @@ InputParser::InputParser(std::string inputFile) {
             << ", x1: " << skyrme.x1 << ", x2: " << skyrme.x2
             << ", x3: " << skyrme.x3 << std::endl;
   std::cout << "sigma: " << skyrme.sigma << std::endl;
+  interaction = std::make_shared<EDF>(skyrme);
+
+  HartreeFock hf = {data["maxIterations"], data["energyTol"],
+                    GCGParameters{hfData["gcg"]["nev"], hfData["gcg"]["tol"],
+                                  hfData["gcg"]["maxIter"],
+                                  hfData["gcg"]["steps"],
+                                  hfData["gcg"]["cgTol"]}};
+  calculation =
+      Calculation{GCGParameters{hfData["gcg"]["nev"], hfData["gcg"]["tol"],
+                                hfData["gcg"]["maxIter"],
+                                hfData["gcg"]["steps"], hfData["gcg"]["cgTol"]},
+                  hf};
+
   file.close();
 }
 
@@ -102,38 +149,15 @@ std::string InputParser::getOutputName() { return data["outputName"]; }
 nlohmann::json InputParser::get_json() { return data; }
 
 Grid InputParser::get_grid() {
-  return Grid(data["box"]["n"], data["box"]["size"]);
+  return Grid(data["box"]["axisGridPoints"], data["box"]["sideSize"]);
 }
 
 int InputParser::getA() { return A; }
 
 int InputParser::getZ() { return Z; }
 
-WoodsSaxonParameters InputParser::getWS() {
-  return WoodsSaxonParameters{
-      data["woods_saxon"]["V0"],
-      data["woods_saxon"]["r0"],
-      data["woods_saxon"]["diffusivity"],
-      data["woods_saxon"]["kappa"],
-  };
-}
+WoodsSaxonParameters InputParser::getWS() { return _woodsSaxonParameters; }
 
-WSSpinOrbitParameters InputParser::getWSSO() {
-  return WSSpinOrbitParameters{
-      data["woods_saxon"]["spin_orbit"]["V0"],
-      data["woods_saxon"]["spin_orbit"]["r0"],
-      data["woods_saxon"]["diffusivity"],
-  };
-}
+WSSpinOrbitParameters InputParser::getWSSO() { return _WSSpinOrbitParameters; }
 
-Calculation InputParser::getCalculation() {
-  HartreeFock hf = {
-      data["hf"]["cycles"], data["hf"]["energyTol"],
-      GCGParameters{data["hf"]["gcg"]["nev"], data["hf"]["gcg"]["tol"],
-                    data["hf"]["gcg"]["maxIter"], data["hf"]["gcg"]["steps"],
-                    data["hf"]["gcg"]["cgTol"]}};
-  return Calculation{GCGParameters{data["gcg"]["nev"], data["gcg"]["tol"],
-                                   data["gcg"]["maxIter"], data["gcg"]["steps"],
-                                   data["gcg"]["cgTol"]},
-                     hf};
-}
+Calculation InputParser::getCalculation() { return calculation; }

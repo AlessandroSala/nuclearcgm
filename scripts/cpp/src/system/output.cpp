@@ -140,18 +140,18 @@ void Output::shellsToFile(
   file << "Options: " << "J2 terms: " << toYesNo(input.useJ) << " | "
        << "Spin orbit: " << toYesNo(input.spinOrbit) << " | "
        << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl;
-  file << std::endl << "Parameters" << std::endl;
-  file << "t0: " << input.skyrme.t0 << ", ";
-  file << "t1: " << input.skyrme.t1 << ", ";
-  file << "t2: " << input.skyrme.t2 << ", ";
-  file << "t3: " << input.skyrme.t3 << ", ";
-  file << "W0: " << input.skyrme.W0 << ", ";
-  file << "x0: " << input.skyrme.x0 << ", ";
-  file << "x1: " << input.skyrme.x1 << ", ";
-  file << "x2: " << input.skyrme.x2 << ", ";
-  file << "x3: " << input.skyrme.x3 << ", ";
-  file << "alpha: " << input.skyrme.sigma << std::endl;
-  file << std::endl;
+  // file << std::endl << "Parameters" << std::endl;
+  //  file << "t0: " << input.skyrme.t0 << ", ";
+  //  file << "t1: " << input.skyrme.t1 << ", ";
+  //  file << "t2: " << input.skyrme.t2 << ", ";
+  //  file << "t3: " << input.skyrme.t3 << ", ";
+  //  file << "W0: " << input.skyrme.W0 << ", ";
+  //  file << "x0: " << input.skyrme.x0 << ", ";
+  //  file << "x1: " << input.skyrme.x1 << ", ";
+  //  file << "x2: " << input.skyrme.x2 << ", ";
+  //  file << "x3: " << input.skyrme.x3 << ", ";
+  //  file << "alpha: " << input.skyrme.sigma << std::endl;
+  //  file << std::endl;
 
   file << "=== Nuclear data ===" << std::endl;
   std::cout << "computing data" << std::endl;
@@ -191,8 +191,8 @@ void Output::shellsToFile(
   file << "Beta computed from real radius: " << betaRealRadius << std::endl;
   file << std::endl;
 
-  double eKin = iterationData->kineticEnergy(input.skyrme, grid);
-  double skyrmeEnergy = iterationData->totalEnergyIntegral(input.skyrme, grid);
+  double eKin = iterationData->kineticEnergy();
+  double skyrmeEnergy = iterationData->totalEnergyIntegral();
 
   file << "=== Convergence ===" << std::endl;
   file << "Iterations: " << iterations << std::endl;
@@ -202,25 +202,17 @@ void Output::shellsToFile(
   file << std::endl;
 
   file << "=== Density functional ===" << std::endl;
-  file << "C0 Rho0: " << iterationData->C0RhoEnergy(input.skyrme, grid)
-       << " MeV" << std::endl;
-  file << "C1 Rho1: " << iterationData->C1RhoEnergy(input.skyrme, grid)
-       << " MeV" << std::endl;
-  file << "C0 nabla2Rho0: "
-       << iterationData->C0nabla2RhoEnergy(input.skyrme, grid) << " MeV"
+  file << "C0 Rho0: " << iterationData->C0RhoEnergy() << " MeV" << std::endl;
+  file << "C1 Rho1: " << iterationData->C1RhoEnergy() << " MeV" << std::endl;
+  file << "C0 nabla2Rho0: " << iterationData->C0nabla2RhoEnergy() << " MeV"
        << std::endl;
-  file << "C1 nabla2Rho1: "
-       << iterationData->C1nabla2RhoEnergy(input.skyrme, grid) << " MeV"
+  file << "C1 nabla2Rho1: " << iterationData->C1nabla2RhoEnergy() << " MeV"
        << std::endl;
-  file << "C0 tau0: " << iterationData->C0TauEnergy(input.skyrme, grid)
-       << " MeV" << std::endl;
-  file << "C1 tau1: " << iterationData->C1TauEnergy(input.skyrme, grid)
-       << " MeV" << std::endl;
+  file << "C0 tau0: " << iterationData->C0TauEnergy() << " MeV" << std::endl;
+  file << "C1 tau1: " << iterationData->C1TauEnergy() << " MeV" << std::endl;
   file << "E (kin): " << eKin << " MeV" << std::endl;
-  file << "E spin-orbit: " << iterationData->Hso(input.skyrme, grid) << " MeV"
-       << std::endl;
-  file << "E spin-gradient: " << iterationData->Hsg(input.skyrme, grid)
-       << " MeV" << std::endl;
+  file << "E spin-orbit: " << iterationData->Hso() << " MeV" << std::endl;
+  file << "E spin-gradient: " << iterationData->Hsg() << " MeV" << std::endl;
   file << "E coulomb direct: " << iterationData->CoulombDirectEnergy(grid)
        << " MeV" << std::endl;
   file << "E coulomb exchange: " << iterationData->SlaterCoulombEnergy(grid)
@@ -235,7 +227,7 @@ void Output::shellsToFile(
   file << "E (SPE): " << SPE << " MeV" << std::endl;
   file << "E (Kin): " << eKin * 0.5 << " MeV" << std::endl;
 
-  double eRea = iterationData->Erear(grid);
+  double eRea = iterationData->Erear();
   double E = eRea + eKin * 0.5 + SPE;
   auto E_HF = iterationData->HFEnergy(SPE * 2.0, constraints);
   file << "E (REA): " << eRea << " MeV" << std::endl;
@@ -247,12 +239,11 @@ void Output::shellsToFile(
   file << std::endl << "=== Lagrange recomputed data ===" << std::endl;
   iterationData->recomputeLagrange(neutronShells, protonShells);
   file << "E_INT Lagrange: "
-       << iterationData->kineticEnergy(input.skyrme, grid) +
-              iterationData->totalEnergyIntegral(input.skyrme, grid)
+       << iterationData->kineticEnergy() + iterationData->totalEnergyIntegral()
        << " MeV" << std::endl;
   std::cout << "E_INT Lagrange: "
-            << iterationData->kineticEnergy(input.skyrme, grid) +
-                   iterationData->totalEnergyIntegral(input.skyrme, grid)
+            << iterationData->kineticEnergy() +
+                   iterationData->totalEnergyIntegral()
             << " MeV" << std::endl;
   file << std::endl;
 
@@ -281,8 +272,9 @@ void Output::shellsToFile(
     std::cout << s << std::endl;
 
   if (contains(input.log, "tot_energies")) {
-    std::ofstream totEnFile(
-        folder + "/" + input.getOutputName() + "_tot_energies.csv", fileMode);
+    std::ofstream totEnFile(folder + "/data/" + input.getOutputName() +
+                                "_tot_energies.csv",
+                            fileMode);
     for (int i = 0; i < energies.size(); ++i) {
       double e = energies[i];
       totEnFile << std::setprecision(16) << e << std::endl;
@@ -290,40 +282,25 @@ void Output::shellsToFile(
     totEnFile.close();
   }
   if (contains(input.log, "hf_energies")) {
-    std::ofstream hfEnFile(
-        folder + "/" + input.getOutputName() + "_hf_energies.csv", fileMode);
+    std::ofstream hfEnFile(folder + "/data/" + input.getOutputName() +
+                               "_hf_energies.csv",
+                           fileMode);
     for (int i = 0; i < HFEnergies.size(); ++i) {
       double e = HFEnergies[i];
       hfEnFile << std::setprecision(16) << e << std::endl;
     }
     hfEnFile.close();
   }
-  if (contains(input.log, "tot_energies_errors")) {
-    file << "=== Integrated Energies Changes ===" << std::endl;
-    for (int i = 0; i < energies.size() - 1; ++i) {
-      double err = std::abs(energies[i + 1] / energies[i] - 1.0);
-      file << err << std::endl;
-    }
-    file << std::endl;
-    file << std::endl;
-  }
-  if (contains(input.log, "hf_energies_errors")) {
-    file << "=== HF Energies Changes ===" << std::endl;
-    for (int i = 0; i < HFEnergies.size() - 1; ++i) {
-      double err = std::abs(HFEnergies[i + 1] / HFEnergies[i] - 1.0);
-      file << err << std::endl;
-    }
-    file << std::endl;
-    file << std::endl;
-  }
 
-  matrixToFile("density.csv", rho);
-  matrixToFile("density_n.csv", *iterationData->rhoN);
-  matrixToFile("density_p.csv", *iterationData->rhoP);
-  matrixToFile("kinetic_n.csv", *iterationData->tauN);
-  matrixToFile("kinetic_p.csv", *iterationData->tauP);
-  matrixToFile("Field_n.csv", *iterationData->UN);
-  matrixToFile("Field_p.csv", *iterationData->UP);
+  std::string dataOutputDirectory = fileName + "_output/fields";
+
+  matrixToFile(dataOutputDirectory + "density.csv", rho);
+  matrixToFile(dataOutputDirectory + "density_n.csv", *iterationData->rhoN);
+  matrixToFile(dataOutputDirectory + "density_p.csv", *iterationData->rhoP);
+  matrixToFile(dataOutputDirectory + "kinetic_n.csv", *iterationData->tauN);
+  matrixToFile(dataOutputDirectory + "kinetic_p.csv", *iterationData->tauP);
+  matrixToFile(dataOutputDirectory + "Field_n.csv", *iterationData->UN);
+  matrixToFile(dataOutputDirectory + "Field_p.csv", *iterationData->UP);
   Eigen::VectorXd rhoN = *iterationData->rhoN;
   Eigen::VectorXd rhoP = *iterationData->rhoP;
   Eigen::VectorXd tauN = *iterationData->tauN;
@@ -334,8 +311,10 @@ void Output::shellsToFile(
   Eigen::VectorXd nablaRhoMod = Operators::mod2(nablaRho);
   Eigen::VectorXd nablaRhoNMod2 = Operators::mod2(*iterationData->nablaRhoN);
   Eigen::VectorXd nablaRhoPMod2 = Operators::mod2(*iterationData->nablaRhoP);
-  matrixToFile("nabla2rho_n.csv", *iterationData->nablaRhoN);
-  matrixToFile("nabla2rho_p.csv", *iterationData->nablaRhoP);
+  matrixToFile(dataOutputDirectory + "nabla2rho_n.csv",
+               *iterationData->nablaRhoN);
+  matrixToFile(dataOutputDirectory + "nabla2rho_p.csv",
+               *iterationData->nablaRhoP);
   using std::pow;
   Eigen::VectorXd TF = 3.0 / 5.0 * pow((3 * M_PI * M_PI), 2.0 / 3.0) *
                        rho.array().pow(5.0 / 3.0);
@@ -365,9 +344,9 @@ void Output::shellsToFile(
            .pow(2))
           .pow(-1);
 
-  matrixToFile("C_p.csv", CP);
-  matrixToFile("C.csv", C);
-  matrixToFile("C_n.csv", CN);
+  matrixToFile(dataOutputDirectory + "C_p.csv", CP);
+  matrixToFile(dataOutputDirectory + "C.csv", C);
+  matrixToFile(dataOutputDirectory + "C_n.csv", CN);
 
   double constraintsEnergy = 0.0;
   for (auto &&constraint : constraints) {
