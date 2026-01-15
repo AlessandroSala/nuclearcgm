@@ -1,52 +1,16 @@
 {
-    "interaction": "SLy4",
-    "coulomb": true,
-    "Jterms": false,
-    "spinOrbit": true,
-    "COMCorrection": true,
+    "functional": "SLy5",
+    "coulombInteraction": true,
     "outputName": "test",
     "outputDirectory": "conv_tests_random",
+    "maxIterations": 100,
+    "energyTol": 1e-05,
     "box": {
-        "size": 10.0,
-        "n": 40
+        "sideSize": 9.0,
+        "axisGridPoints": 30
     },
     "nucleus": {
-        "A": 40,
-        "Z": 20
-    },
-    "log": [
-        "tot_energies",
-        "hf_energies",
-        "multipoles_4",
-        "density"
-    ],
-    "hf": {
-        "cycles": 100,
-        "energyTol": 1e-09,
-        "gcg": {
-            "maxIter": 1,
-            "nev": 0,
-            "tol": 0.001,
-            "steps": 80,
-            "cgTol": 0.001
-        }
-    },
-    "gcg": {
-        "maxIter": 2,
-        "nev": 10,
-        "tol": 1e-02,
-        "cgTol": 1e-04,
-        "steps": 40
-    },
-    "woods_saxon": {
-        "V0": 55.5,
-        "r0": 1.20,
-        "diffusivity": 0.67,
-        "spin_orbit": {
-            "V0": 55.5,
-            "r0": 1.20,
-            "R": 1.20
-        },
-        "kappa": 0.86
+        "A": 16,
+        "Z": 8
     }
 }

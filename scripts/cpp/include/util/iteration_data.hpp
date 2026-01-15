@@ -9,6 +9,7 @@ class InputParser;
 class Constraint;
 class Grid;
 class EffectiveMass;
+class EDF;
 
 typedef struct QuadrupoleDeformation {
   double beta;
@@ -46,7 +47,6 @@ public:
 
   BCS::BCSResult bcsN;
   BCS::BCSResult bcsP;
-  SkyrmeParameters params;
   InputParser input;
   double massCorr;
   double energyDiff;
@@ -62,31 +62,37 @@ public:
 
   double
   constraintEnergy(const std::vector<std::unique_ptr<Constraint>> &constraints);
-  double totalEnergyIntegral(SkyrmeParameters params, const Grid &grid);
-  double rearrangementIntegral(SkyrmeParameters params, const Grid &grid);
+  double totalEnergyIntegral();
+  double rearrangementIntegral();
   double HFEnergy(double SPE,
                   const std::vector<std::unique_ptr<Constraint>> &constraints);
-  double Erear(const Grid &grid);
+  double Erear();
 
-  double C0RhoEnergy(SkyrmeParameters params, const Grid &grid);
-  double C1RhoEnergy(SkyrmeParameters params, const Grid &grid);
+  double C0RhoEnergy();
+  double C1RhoEnergy();
 
-  double C0TauEnergy(SkyrmeParameters params, const Grid &grid);
-  double C1TauEnergy(SkyrmeParameters params, const Grid &grid);
+  double C0rhoDivJEnergy();
+  double C1rhoDivJEnergy();
 
-  double Hso(SkyrmeParameters params, const Grid &grid);
-  double Hsg(SkyrmeParameters params, const Grid &grid);
+  double C0J2Energy();
+  double C1J2Energy();
 
-  double C0nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);
-  double C1nabla2RhoEnergy(SkyrmeParameters params, const Grid &grid);
+  double C0TauEnergy();
+  double C1TauEnergy();
+
+  double Hso();
+  double Hsg();
+
+  double C0nabla2RhoEnergy();
+  double C1nabla2RhoEnergy();
 
   void recomputeLagrange(
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
 
-  double kineticEnergy(SkyrmeParameters params, const Grid &grid);
-  double kineticEnergyEff(SkyrmeParameters params, const Grid &grid);
-  double coulombEnergy(SkyrmeParameters params, const Grid &grid);
+  double kineticEnergy();
+  double kineticEnergyEff();
+  double coulombEnergy(const Grid &grid);
 
   double densityUVPIntegral(const Grid &grid);
 
@@ -97,6 +103,8 @@ public:
   double betaRealRadius();
 
   double axis2Exp(char dir);
+
+  std::shared_ptr<EDF> interaction;
 
   double protonRadius();
   double radius();

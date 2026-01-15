@@ -1,0 +1,9 @@
+{
+
+    "log": [
+        "tot_energies",
+        "hf_energies",
+        "multipoles_4",
+        "density"
+    ]
+}

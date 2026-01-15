@@ -1,4 +1,5 @@
 #include "util/iteration_data.hpp"
+#include "EDF.hpp"
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "grid.hpp"
@@ -23,8 +24,7 @@ void IterationData::logData(
   using std::cout;
   using std::endl;
 
-  double newIntegralEnergy = totalEnergyIntegral(input.skyrme, grid) +
-                             kineticEnergy(input.skyrme, grid);
+  double newIntegralEnergy = totalEnergyIntegral() + kineticEnergy();
 
   double SPE =
       0.5 * (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
@@ -53,7 +53,7 @@ void IterationData::logData(
 }
 
 IterationData::IterationData(InputParser input) : input(input) {
-  params = input.skyrme;
+  interaction = input.interaction;
   int A = input.getA();
   using nuclearConstants::m;
   energyDiff = 1.0;
@@ -127,23 +127,29 @@ double IterationData::chargeRadius(const Eigen::MatrixXcd psiN,
   return std::abs(protonRadius() + N * rn / Z + rp + corr);
 }
 
-double IterationData::totalEnergyIntegral(SkyrmeParameters params,
-                                          const Grid &grid) {
-  double energy_C0Rho = C0RhoEnergy(params, grid);
-  double energy_C1Rho = C1RhoEnergy(params, grid);
+double IterationData::totalEnergyIntegral() {
+  auto grid = *Grid::getInstance();
+  double energy_C0Rho = C0RhoEnergy();
+  double energy_C1Rho = C1RhoEnergy();
 
-  double energy_C0nabla2Rho = C0nabla2RhoEnergy(params, grid);
-  double energy_C1nabla2Rho = C1nabla2RhoEnergy(params, grid);
+  double energy_C0nabla2Rho = C0nabla2RhoEnergy();
+  double energy_C1nabla2Rho = C1nabla2RhoEnergy();
 
-  double energy_C0Tau = C0TauEnergy(params, grid);
-  double energy_C1Tau = C1TauEnergy(params, grid);
+  double energy_C0Tau = C0TauEnergy();
+  double energy_C1Tau = C1TauEnergy();
+
+  double energy_C0J2 = C0J2Energy();
+  double energy_C1J2 = C1J2Energy();
+
+  double energy_C0rhoDivJ = C0rhoDivJEnergy();
+  double energy_C1rhoDivJ = C1rhoDivJEnergy();
 
   double energy_CoulombDirect =
       input.useCoulomb ? CoulombDirectEnergy(grid) : 0.0;
 
-  double energy_Hso = input.spinOrbit ? Hso(params, grid) : 0.0;
+  double energy_Hso = input.spinOrbit ? Hso() : 0.0;
 
-  double energy_Hsg = input.useJ ? Hsg(params, grid) : 0.0;
+  double energy_Hsg = input.useJ ? Hsg() : 0.0;
 
   std::cout << "C0RhoEnergy: " << energy_C0Rho
             << ", C1RhoEnergy: " << energy_C1Rho
@@ -152,43 +158,34 @@ double IterationData::totalEnergyIntegral(SkyrmeParameters params,
             << ", C0TauEnergy: " << energy_C0Tau
             << ", C1TauEnergy: " << energy_C1Tau
             << ", CoulombDirectEnergy: " << energy_CoulombDirect
-            << ", Hso: " << energy_Hso << ", Hsg: " << energy_Hsg << std::endl;
+            << ", C0J2Energy: " << energy_C0J2
+            << ", C1J2Energy: " << energy_C1J2
+            << ", C0rhoDivJEnergy: " << energy_C0rhoDivJ
+            << ", C1rhoDivJEnergy: " << energy_C1rhoDivJ;
 
   return energy_C0Rho + energy_C1Rho + energy_C0nabla2Rho + energy_C1nabla2Rho +
          energy_C0Tau + energy_C1Tau + energy_CoulombDirect + bcsN.Epair +
-         bcsP.Epair + SlaterCoulombEnergy(grid) + energy_Hso + energy_Hsg;
+         bcsP.Epair + SlaterCoulombEnergy(grid) + energy_C0J2 + energy_C1J2 +
+         energy_C0rhoDivJ + energy_C1rhoDivJ;
 }
 
-double IterationData::Erear(const Grid &grid) {
-  double t0 = params.t0;
-  double t3 = params.t3;
-  double x0 = params.x0;
-  double x3 = params.x3;
-  double sigma = params.sigma;
-
-  Eigen::VectorXd ones = Eigen::VectorXd::Ones(grid.get_total_spatial_points());
+double IterationData::Erear() {
+  auto grid = *Grid::getInstance();
 
   Eigen::VectorXd rho0 = *rhoN + *rhoP;
   Eigen::VectorXd rho1 = *rhoN - *rhoP;
+  double sigma = interaction->params.sigma;
+  double C0 = interaction->params.C0Drr;
+  double C1 = interaction->params.C1Drr;
 
-  Eigen::VectorXd energy1 =
-      sigma * rho1.array().pow(sigma) *
-      ((1.0 / 12.0) * t3 * (1 + x3 / 2.0) * rho0.array().pow(2) -
-       (1.0 / 12.0) * t3 * (0.5 + x3) *
-           (rhoN->array().pow(2) + rhoP->array().pow(2)));
-  if (energy1.array().isNaN().any()) {
-    energy1 = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
-  }
-
-  Eigen::VectorXd energy0 =
-      sigma * rho0.array().pow(sigma) *
-      ((1.0 / 12.0) * t3 * (1 + x3 / 2.0) * rho0.array().pow(2) -
-       (1.0 / 12.0) * t3 * (0.5 + x3) *
-           (rhoN->array().pow(2) + rhoP->array().pow(2)));
+  Eigen::VectorXd func = -0.5 * sigma *
+                         (C0 * rho0.array().pow(sigma + 2) +
+                          C1 * rho0.array().pow(sigma) * rho1.array().square());
 
   using Operators::integral;
-  return integral(Eigen::VectorXd(energy0 + energy1), grid);
+  return integral(func, grid);
 }
+
 double IterationData::HFEnergy(
     double SPE, const std::vector<std::unique_ptr<Constraint>> &constraints) {
   auto grid = *Grid::getInstance();
@@ -198,10 +195,9 @@ double IterationData::HFEnergy(
   }
 
   return constraintEnergy +
-         0.5 * (bcsN.qpEnergies.sum() + bcsP.qpEnergies.sum() +
-                kineticEnergy(params, grid)) -
-         0.5 * Erear(grid) + SlaterCoulombEnergy(grid) / 3.0 + bcsN.Epair +
-         bcsP.Epair;
+         0.5 *
+             (bcsN.qpEnergies.sum() + bcsP.qpEnergies.sum() + kineticEnergy()) +
+         Erear() + SlaterCoulombEnergy(grid) / 3.0 + bcsN.Epair + bcsP.Epair;
 }
 
 double IterationData::constraintEnergy(
@@ -222,31 +218,22 @@ double IterationData::densityUVPIntegral(const Grid &grid) {
   return Operators::integral(vec, grid);
 }
 
-double IterationData::kineticEnergyEff(SkyrmeParameters params,
-                                       const Grid &grid) {
-  double t0 = params.t0;
-  double t3 = params.t3;
-  double sigma = params.sigma;
+double IterationData::kineticEnergyEff() {
 
   using Eigen::VectorXd;
   using nuclearConstants::h_bar;
   using nuclearConstants::m;
   using Operators::integral;
 
-  // VectorXd tN = 0.5 * h_bar * h_bar * (*tauN) / (massCorr);
-  // VectorXd tP = 0.5 * h_bar * h_bar * (*tauP) / (massCorr);
   VectorXd tN = massN->vector.array() * tauN->array();
   VectorXd tP = massP->vector.array() * tauP->array();
+  auto grid = *Grid::getInstance();
   double kineticEnergy = integral((VectorXd)(tN.matrix() + tP.matrix()), grid);
 
   return kineticEnergy;
 }
 
-double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid) {
-  double t0 = params.t0;
-  double t3 = params.t3;
-  double sigma = params.sigma;
-
+double IterationData::kineticEnergy() {
   using Eigen::VectorXd;
   using nuclearConstants::h_bar;
   using nuclearConstants::m;
@@ -254,6 +241,7 @@ double IterationData::kineticEnergy(SkyrmeParameters params, const Grid &grid) {
 
   VectorXd tN = 0.5 * h_bar * h_bar * (*tauN) / (massCorr);
   VectorXd tP = 0.5 * h_bar * h_bar * (*tauP) / (massCorr);
+  auto grid = *Grid::getInstance();
   double kineticEnergy = integral((VectorXd)(tN.matrix() + tP.matrix()), grid);
 
   return kineticEnergy;
@@ -302,10 +290,10 @@ void IterationData::recomputeLagrange(
   Eigen::VectorXd rho = *rhoN + *rhoP;
   Eigen::MatrixX3d nablaRho = *nablaRhoN + *nablaRhoP;
 
-  *massN =
-      EffectiveMass(grid, rho, *rhoN, nablaRho, *nablaRhoN, massCorr, params);
-  *massP =
-      EffectiveMass(grid, rho, *rhoP, nablaRho, *nablaRhoP, massCorr, params);
+  *massN = EffectiveMass(grid, rho, *rhoN, nablaRho, *nablaRhoN, massCorr,
+                         interaction);
+  *massP = EffectiveMass(grid, rho, *rhoP, nablaRho, *nablaRhoP, massCorr,
+                         interaction);
 }
 
 BCS::BCSResult mixBCS(BCS::BCSResult oldBCS, BCS::BCSResult newBCS,
@@ -478,15 +466,16 @@ void IterationData::updateQuantities(
                 (*divJvecP) * (1.0 - mu) +
                 Wavefunction::divJ(protons, grid) * mu);
 
-  Eigen::VectorXd divJJQN;
-  Eigen::VectorXd divJJQP;
+  Eigen::VectorXd divJN;
+  Eigen::VectorXd divJP;
   if (input.spinOrbit) {
-    divJJQN = *divJvecN + *divJvecN + *divJvecP;
-    divJJQP = *divJvecP + *divJvecN + *divJvecP;
+    divJN = *divJvecN;
+    divJP = *divJvecP;
   } else {
-    divJJQN = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
-    divJJQP = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
+    divJN = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
+    divJP = Eigen::VectorXd::Zero(grid.get_total_spatial_points());
   }
+  Eigen::VectorXd divJ = divJN + divJP;
   std::cout << "Densities updated" << std::endl;
 
   if (iter != 0 && energyDiff < constraintTol) {
@@ -502,15 +491,19 @@ void IterationData::updateQuantities(
   Eigen::VectorXd nabla2rho = *nabla2RhoN + *nabla2RhoP;
 
   EffectiveMass newMassN(grid, rho, *rhoN, nablaRho, *nablaRhoN, massCorr,
-                         params);
+                         interaction);
   EffectiveMass newMassP(grid, rho, *rhoP, nablaRho, *nablaRhoP, massCorr,
-                         params);
+                         interaction);
 
-  Eigen::VectorXd newFieldN = Wavefunction::field(
-      rho, *rhoN, tau, *tauN, nabla2rho, *nabla2RhoN, divJJQN, grid, params);
+  Eigen::VectorXd rho1sq = (*rhoN - *rhoP).array().pow(2);
 
-  Eigen::VectorXd newFieldP = Wavefunction::field(
-      rho, *rhoP, tau, *tauP, nabla2rho, *nabla2RhoP, divJJQP, grid, params);
+  Eigen::VectorXd newFieldN =
+      Wavefunction::field(rho, *rhoN, tau, *tauN, nabla2rho, *nabla2RhoN, divJ,
+                          divJN, grid, interaction);
+
+  Eigen::VectorXd newFieldP =
+      Wavefunction::field(rho, *rhoP, tau, *tauP, nabla2rho, *nabla2RhoP, divJ,
+                          divJP, grid, interaction);
 
   Eigen::VectorXd constraintField =
       Eigen::VectorXd::Zero(grid.get_total_spatial_points());
@@ -578,23 +571,27 @@ void IterationData::updateQuantities(
     *UCoul = (*UCoul) * (1 - mu) + newFieldCoul * mu;
   }
 
-  double t1 = params.t1, t2 = params.t2;
-  double x1 = params.x1, x2 = params.x2;
-
   Eigen::MatrixX3d newBN =
       Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3);
   Eigen::MatrixX3d newBP =
       Eigen::MatrixX3d::Zero(grid.get_total_spatial_points(), 3);
 
   if (input.spinOrbit) {
-    newBN += params.W0 * 0.5 * (*nablaRhoN + *nablaRhoN + *nablaRhoP);
-    newBP += params.W0 * 0.5 * (*nablaRhoN + *nablaRhoP + *nablaRhoP);
+    newBN += -(interaction->params.C0nJ - interaction->params.C1nJ) *
+             (*nablaRhoN + *nablaRhoP);
+    newBN += -2 * interaction->params.C1nJ * (*nablaRhoN);
+    newBP += -(interaction->params.C0nJ - interaction->params.C1nJ) *
+             (*nablaRhoN + *nablaRhoP);
+    newBP += -2 * interaction->params.C1nJ * (*nablaRhoP);
   }
   if (input.useJ) {
-    newBN += 0.125 * ((t1 - t2) * (*JvecN) -
-                      (t1 * x1 + t2 * x2) * ((*JvecN) + (*JvecP)));
-    newBP += 0.125 * ((t1 - t2) * (*JvecP) -
-                      (t1 * x1 + t2 * x2) * ((*JvecN) + (*JvecP)));
+    newBN += 2 * (interaction->params.C0J2 - interaction->params.C1J2) *
+             (*JvecN + *JvecP);
+    newBN += 4 * interaction->params.C1J2 * (*JvecN);
+
+    newBP += 2 * (interaction->params.C0J2 - interaction->params.C1J2) *
+             (*JvecP + *JvecN);
+    newBP += 4 * interaction->params.C1J2 * (*JvecP);
   }
   if (BN == nullptr) {
     BN = std::make_shared<Eigen::MatrixX3d>(newBN);

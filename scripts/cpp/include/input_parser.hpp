@@ -103,11 +103,15 @@ public:
   PairingParameters pairingParameters;
   bool useDIIS;
 
-  EDF skyrme;
+  std::shared_ptr<EDF> interaction;
   CalculationType calculationType;
   DeformationCurve deformationCurve;
+  WoodsSaxonParameters _woodsSaxonParameters;
+  WSSpinOrbitParameters _WSSpinOrbitParameters;
+  Calculation calculation;
 
 private:
   nlohmann::json data;
-  // Hamiltonian h;
+  nlohmann::json woodsSaxonData;
+  nlohmann::json hfData;
 };

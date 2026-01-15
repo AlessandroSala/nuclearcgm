@@ -43,7 +43,7 @@ void Utilities::skyrmeHamiltonian(std::vector<std::shared_ptr<Potential>> &pots,
                                   std::shared_ptr<IterationData> data) {
   using std::make_shared;
   auto grid = Grid::getInstance();
-  pots.push_back(make_shared<SkyrmeU>(input.skyrme, t, data));
+  pots.push_back(make_shared<SkyrmeU>(t, data));
   pots.push_back(make_shared<NonLocalKineticPotential>(data, t));
   pots.push_back(make_shared<LocalKineticPotential>(data, t));
   if (input.spinOrbit)

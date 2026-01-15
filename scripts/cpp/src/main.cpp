@@ -253,8 +253,7 @@ int main(int argc, char **argv) {
         protonsEigenpair = newProtonsEigenpair;
 
         double newIntegralEnergy =
-            data.totalEnergyIntegral(input.skyrme, grid) +
-            data.kineticEnergy(input.skyrme, grid);
+            data.totalEnergyIntegral() + data.kineticEnergy();
 
         double SPE =
             (neutronsEigenpair.second.sum() + protonsEigenpair.second.sum());
