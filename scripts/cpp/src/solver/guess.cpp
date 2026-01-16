@@ -151,8 +151,7 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
       }
     }
 
-    std::cout
-        << "STATE   nr  l   j    mj    ml_up  ml_down  have_up have_down\n";
+    std::cout << "=== HO states ===" << std::endl;
     std::cout << std::setw(5) << "STATE" << "   " << std::setw(2) << "nr"
               << "   " << std::setw(2) << "l" << "   " << std::setw(3) << "j"
               << "   " << std::setw(4) << "mj" << "   " << std::setw(5)
@@ -244,7 +243,5 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
     }
   }
 
-  std::cout << "Generated " << state_index << " states (requested " << nev
-            << ")" << std::endl;
   return guess;
 }

@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     std::pair<ComplexDenseMatrix, DenseVector> eigenpair;
     vector<shared_ptr<Potential>> pots;
 
-    std::cout << "Initial beta: " << input.initialBeta << std::endl;
+    std::cout << "Initial beta2: " << input.initialBeta << std::endl;
     Radius radius(input.initialBeta, WS.r0, A);
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
@@ -85,10 +85,10 @@ int main(int argc, char **argv) {
     auto guess = harmonic_oscillator_guess(grid, max, nucRadius,
                                            input.initialBeta, true);
 
+    std::cout << "=== Woods-Saxon guess ===" << std::endl;
     pair<MatrixXcd, VectorXd> firstEigenpair =
         solve(initialWS.build_matrix5p(), Eigen::MatrixXcd(0, 0),
               calc.initialGCG, guess);
-    std::cout << firstEigenpair.second << std::endl;
 
     pair<MatrixXcd, VectorXd> protonsEigenpair;
     pair<MatrixXcd, VectorXd> neutronsEigenpair;
@@ -113,7 +113,6 @@ int main(int argc, char **argv) {
 
     vector<double> mu20s;
     mu20s.clear();
-    std::cout << input.calculationType << std::endl;
 
     if (input.calculationType == CalculationType::deformation_curve) {
       std::cout << "=== Deformation curve, beta: ["
@@ -140,13 +139,10 @@ int main(int argc, char **argv) {
       std::cout << "=== Deformation curve, mu: [" << startMu << ", " << endMu
                 << "], step: " << stepMu << " ===" << std::endl;
       std::cout << mu20s.size() << " calculations to be done" << std::endl;
-    } else {
-      std::cout << "=== Ground state ===" << std::endl;
     }
     vector<unique_ptr<Constraint>> constraints;
     constraints.clear();
     // Wavefunction::printShells(neutronsEigenpair, grid);
-    std::cout << "Start HF" << std::endl;
 
     // i=-1 to guarantee a first gs iteration if calculation is not deformation
     // curve
@@ -178,13 +174,17 @@ int main(int argc, char **argv) {
       }
       ConjDirN = Eigen::MatrixXcd(0, 0);
       ConjDirP = Eigen::MatrixXcd(0, 0);
+      Eigen::VectorXd neutronSPEDiff(orbitalsN);
+      Eigen::VectorXd protonSPEDiff(orbitalsN);
+      neutronSPEDiff.setOnes();
+      protonSPEDiff.setOnes();
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
         data.updateQuantities(neutronsEigenpair, protonsEigenpair, hfIter,
                               constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
 
-        cout << "HF iteration: " << hfIter << endl;
-        cout << "Neutrons " << endl;
+        cout << "=== HF iteration: " << hfIter << " ===" << endl;
+        cout << "Neutrons ";
 
         vector<shared_ptr<Potential>> pots;
         auto dataPtr = make_shared<IterationData>(data);
@@ -203,7 +203,7 @@ int main(int argc, char **argv) {
           pots.clear();
           skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
 
-          std::cout << "Protons " << std::endl;
+          std::cout << "Protons ";
           Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
           hP = skyrmeHam.buildMatrix();
@@ -216,6 +216,17 @@ int main(int argc, char **argv) {
           newProtonsEigenpair.second =
               newNeutronsEigenpair.second.head(orbitalsP);
         }
+
+        neutronSPEDiff =
+            (newNeutronsEigenpair.second - neutronsEigenpair.second)
+                .array()
+                .abs();
+        protonSPEDiff = (newProtonsEigenpair.second - protonsEigenpair.second)
+                            .array()
+                            .abs();
+
+        double maxSPEDiff =
+            std::max(protonSPEDiff.maxCoeff(), neutronSPEDiff.maxCoeff());
 
         Wavefunction::normalize(newNeutronsEigenpair.first, grid);
         Wavefunction::normalize(newProtonsEigenpair.first, grid);
@@ -236,7 +247,7 @@ int main(int argc, char **argv) {
           ConjDirP.colwise().normalize();
         }
 
-        if (hfIter > 0 && true) {
+        if (hfIter > 0 && false) {
 
           auto dispersionN =
               Utilities::computeDispersion(hN, newNeutronsEigenpair.first);
@@ -261,18 +272,22 @@ int main(int argc, char **argv) {
         integralEnergies.push_back(newIntegralEnergy);
         double newHFEnergy = data.HFEnergy(SPE, constraints);
         bool constraintsConv = true;
-        std::cout << "Constraints errors: ";
-        for (auto &&constraint : constraints) {
-          std::cout << constraint->error() << ", ";
-          constraintsConv = constraintsConv && (constraint->error() < 1e-3);
+        if (constraints.size() > 0) {
+          std::cout << "Constraints errors: ";
+          for (auto &&constraint : constraints) {
+            std::cout << constraint->error() << ", ";
+            constraintsConv = constraintsConv && (constraint->error() < 1e-3);
+          }
         }
         std::cout << std::endl;
         HFEnergies.push_back(newHFEnergy);
 
-        std::cout << "rel. err. integral energy: "
-                  << std::abs(newIntegralEnergy - integralEnergy) /
-                         newIntegralEnergy
-                  << std::endl;
+        std::cout << "Energy diff: relative: "
+                  << std::abs((newIntegralEnergy - integralEnergy) /
+                              newIntegralEnergy)
+                  << ", absolute: "
+                  << std::abs(newIntegralEnergy - integralEnergy) << std::endl;
+        std::cout << "Max SP energy diff: " << maxSPEDiff << std::endl;
         double maxDiff = 0.0;
 
         if (abs(newIntegralEnergy - integralEnergy) <
@@ -286,10 +301,18 @@ int main(int argc, char **argv) {
         HFEnergy = newHFEnergy;
         data.logData(neutronsEigenpair, protonsEigenpair, constraints);
       }
-      cout << "Neutrons " << endl;
-      Wavefunction::printShells(neutronsEigenpair, grid);
-      cout << "Protons " << endl;
-      Wavefunction::printShells(protonsEigenpair, grid);
+      if (hfIter < input.getCalculation().hf.cycles) {
+        std::cout << "Calculation converged in " << hfIter << " iterations."
+                  << std::endl;
+      } else {
+        std::cout << "Calculation did not converge in " << hfIter
+                  << " iterations." << std::endl;
+      }
+
+      // cout << "Neutrons " << endl;
+      // Wavefunction::printShells(neutronsEigenpair, grid);
+      // cout << "Protons " << endl;
+      // Wavefunction::printShells(protonsEigenpair, grid);
 
       std::chrono::steady_clock::time_point computationEnd =
           std::chrono::steady_clock::now();
@@ -298,9 +321,9 @@ int main(int argc, char **argv) {
                                                               computationBegin)
                            .count();
       std::cout << "CPU time: " << cpuTime << std::endl;
-      out.shellsToFile("calc_output.csv", neutronsEigenpair, protonsEigenpair,
-                       &data, input, hfIter, integralEnergies, HFEnergies,
-                       cpuTime, 'a', constraints);
+      out.shellsToFile(neutronsEigenpair, protonsEigenpair, &data, input,
+                       hfIter, integralEnergies, HFEnergies, cpuTime, 'a',
+                       constraints);
     }
   }
   return 0;

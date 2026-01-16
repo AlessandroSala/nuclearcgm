@@ -43,6 +43,9 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;
 
+  Eigen::MatrixXcd kappa_n;
+  Eigen::MatrixXcd kappa_p;
+
   Eigen::VectorXd UCDir;
 
   BCS::BCSResult bcsN;
@@ -54,6 +57,19 @@ public:
 
   void mixDensity(const Eigen::MatrixXcd &newDensity,
                   std::vector<std::shared_ptr<Eigen::MatrixXcd>> history);
+
+  typedef struct BCSPairingSolution {
+    BCS::BCSResult bcsN;
+    BCS::BCSResult bcsP;
+  } BCSPairingSolution;
+
+  void solvePairingHFB(
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
+
+  void solvePairingBCS(
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
+      const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
 
   void updateQuantities(
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsEigenpair,

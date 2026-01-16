@@ -34,7 +34,6 @@ QuadrupoleDeformation IterationData::quadrupoleDeformation() {
 
   double beta = 4 * M_PI * a20 / (3 * A * R * R);
   double betaSim = 4 * M_PI * a20 / (5 * A * radius());
-  std::cout << "beta: " << beta << ", betaSim: " << betaSim << std::endl;
 
   return {beta, gamma};
 }
