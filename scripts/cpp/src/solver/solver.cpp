@@ -649,10 +649,11 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
   auto start_op = Clock::now();
   auto end_op = Clock::now();
 
-  std::cout << "GCGM Complex - Corrected Implementation of Algorithm 2"
-            << std::endl;
   int maxThreads = omp_get_max_threads();
-  std::cout << "Using " << maxThreads << " thread(s)." << std::endl;
+  if (benchmark) {
+    std::cout << "GCGM Complex + Lock of converged eigenvectors" << std::endl;
+    std::cout << "Using " << maxThreads << " thread(s)." << std::endl;
+  }
 
   int n = A.rows();
   ComplexSparseMatrix Id(n, n);
@@ -667,7 +668,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
   ComplexDenseMatrix X = X_initial.leftCols(nev);
   ComplexDenseMatrix P(n, 0);
   if (ConjDir.cols() > 0) {
-    std::cout << "Using external conjugate direction" << std::endl;
+    if (benchmark)
+      std::cout << "Using external conjugate direction" << std::endl;
     P = ConjDir;
   }
 
@@ -691,8 +693,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
 
     if (num_converged == nev) {
       std::cout << std::endl
-                << "Converged (Corrected GCGM) in " << iter << " iterations."
-                << std::endl;
+                << "Converged in " << iter << " iterations." << std::endl;
       DenseVector final_lambda(nev);
       for (int i = 0; i < nev; ++i) {
         final_lambda(i) = (X0.col(i).adjoint() * A * X0.col(i)).value().real();
@@ -708,8 +709,9 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
         sorted_X0.col(i) = X0.col(p[i]);
         sorted_lambda(i) = final_lambda(p[i]);
       }
-      std::cout << "Final Eigenvalues: " << sorted_lambda.transpose()
-                << std::endl;
+      if (benchmark)
+        std::cout << "Final Eigenvalues: " << sorted_lambda.transpose()
+                  << std::endl;
       return {sorted_X0, sorted_lambda};
     }
 
@@ -717,9 +719,10 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
       current_shift = (Lambda(Lambda.size() - 1) - 100.0 * Lambda(0)) / 99.0;
     }
     A_shifted = A + ComplexScalar(current_shift) * Id;
-    std::cout << "Iter: " << iter + 1 << ", Converged: " << num_converged << "/"
-              << nev << ", Active: " << num_active
-              << ", Shift: " << current_shift << " \r" << std::flush;
+    if (benchmark)
+      std::cout << "Iter: " << iter + 1 << ", Converged: " << num_converged
+                << "/" << nev << ", Active: " << num_active
+                << ", Shift: " << current_shift << " \r" << std::flush;
     ComplexDenseMatrix W(n, num_active);
     if (num_active > 0) {
       ComplexDenseMatrix BXLambda =
@@ -826,12 +829,15 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
     }
   }
 
-  std::cout << std::endl;
+  if (benchmark)
+    std::cout << std::endl;
   if (X0.cols() == nev) {
-    std::cout << "Converged in " << max_iter << " iterations." << std::endl;
+    if (benchmark)
+      std::cout << "Converged in " << max_iter << " iterations." << std::endl;
   } else {
-    std::cerr << "Warning: Corrected GCGM did not converge within " << max_iter
-              << " iterations." << std::endl;
+    if (benchmark)
+      std::cerr << "Warning: Corrected GCGM did not converge within "
+                << max_iter << " iterations." << std::endl;
   }
   int num_converged_final = X0.cols();
   int num_needed_from_active = nev - num_converged_final;
@@ -867,6 +873,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
     sorted_X.col(k) = final_X.col(indices[k]);
   }
 
-  std::cout << "Final Eigenvalues: " << sorted_lambda.transpose() << std::endl;
+  std::cout << "Eigenvalues: " << sorted_lambda.transpose() << std::endl;
   return {sorted_X, sorted_lambda};
 }

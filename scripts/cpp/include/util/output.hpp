@@ -3,8 +3,7 @@
 #include <Eigen/Dense>
 class IterationData;
 class Constraint;
-class Output
-{
+class Output {
 private:
   std::string folder;
 
@@ -14,12 +13,11 @@ public:
   double x2(IterationData *data, const Grid &grid, char dir);
   void swapAxes(Eigen::VectorXd &vec, int axis1, int axis2);
   void matrixToFile(std::string fileName, Eigen::MatrixXd matrix);
-  void shellsToFile(std::string fileName,
-                    std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
-                    std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
-                    IterationData *iterationData,
-                    InputParser input, int iterations,
-                    std::vector<double> energies, std::vector<double> HFEnergies,
-                    double cpuTime,
-                    char mode, const std::vector<std::unique_ptr<Constraint>> &constraints);
+  void
+  shellsToFile(std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
+               std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
+               IterationData *iterationData, InputParser &input, int iterations,
+               std::vector<double> energies, std::vector<double> HFEnergies,
+               double cpuTime, char mode,
+               const std::vector<std::unique_ptr<Constraint>> &constraints);
 };

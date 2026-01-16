@@ -86,17 +86,16 @@ Output::Output(std::string folder_) : folder(folder_) {
   namespace fs = std::filesystem;
   fs::create_directory(folder);
 }
-void Output::matrixToFile(std::string fileName, Eigen::MatrixXd matrix) {
-  std::ofstream file(folder + "/" + fileName);
+void Output::matrixToFile(std::string path, Eigen::MatrixXd matrix) {
+  std::ofstream file(path);
   file << matrix << std::endl;
   file.close();
 }
 
 void Output::shellsToFile(
-    std::string fileName,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> neutronShells,
     std::pair<Eigen::MatrixXcd, Eigen::VectorXd> protonShells,
-    IterationData *iterationData, InputParser input, int iterations,
+    IterationData *iterationData, InputParser &input, int iterations,
     std::vector<double> energies, std::vector<double> HFEnergies,
     double cpuTime, char mode,
     const std::vector<std::unique_ptr<Constraint>> &constraints) {
@@ -110,11 +109,11 @@ void Output::shellsToFile(
 
   auto fileMode = mode == 'a' ? std::ios_base::app : std::ios_base::out;
 
-  std::ofstream file(folder + "/" + input.getOutputName() + ".txt",
-                     std::ios_base::app);
+  std::string fileName = input.getOutputName();
+  std::ofstream file(folder + "/" + fileName + "_log.txt", std::ios_base::app);
 
-  std::cout << "Writing to " << folder + "/" + input.getOutputName() + ".txt"
-            << " in mode " << fileMode << std::endl;
+  std::cout << "> Writing to " << folder << std::endl;
+
   file << "=== BOX ===" << std::endl;
   auto a = grid.get_a();
   file << "Size: [-" << a << ", " << a << "]" << " fm " << std::endl;
@@ -135,11 +134,12 @@ void Output::shellsToFile(
   //  file << std::endl;
   auto toYesNo = [](bool value) { return value ? "YES" : "NO"; };
 
-  file << "=== Interaction ===" << std::endl;
-  file << "Name: " << input.get_json()["interaction"] << std::endl;
+  file << "=== Functional ===" << std::endl;
+  file << "Name: " << input.get_json()["functional"] << std::endl;
   file << "Options: " << "J2 terms: " << toYesNo(input.useJ) << " | "
        << "Spin orbit: " << toYesNo(input.spinOrbit) << " | "
-       << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl;
+       << "Coulomb: " << toYesNo(input.useCoulomb) << std::endl
+       << std::endl;
   // file << std::endl << "Parameters" << std::endl;
   //  file << "t0: " << input.skyrme.t0 << ", ";
   //  file << "t1: " << input.skyrme.t1 << ", ";
@@ -154,7 +154,6 @@ void Output::shellsToFile(
   //  file << std::endl;
 
   file << "=== Nuclear data ===" << std::endl;
-  std::cout << "computing data" << std::endl;
   double x2int = x2(iterationData, grid, 'x');
   double y2int = x2(iterationData, grid, 'y');
   double z2int = x2(iterationData, grid, 'z');
@@ -187,8 +186,9 @@ void Output::shellsToFile(
 
   auto [beta, gamma] = iterationData->quadrupoleDeformation();
   double betaRealRadius = iterationData->betaRealRadius();
-  file << "Beta: " << beta << std::endl;
-  file << "Beta computed from real radius: " << betaRealRadius << std::endl;
+  file << "Beta2: " << beta << std::endl;
+  file << "Beta2 computed from physical radius: " << betaRealRadius
+       << std::endl;
   file << std::endl;
 
   double eKin = iterationData->kineticEnergy();
@@ -201,7 +201,8 @@ void Output::shellsToFile(
   file << "CPU time: " << cpuTime << " s" << std::endl;
   file << std::endl;
 
-  file << "=== Density functional ===" << std::endl;
+  file << "=== Density Functional contributions ===" << std::endl;
+  file << "E (kin): " << eKin << " MeV" << std::endl;
   file << "C0 Rho0: " << iterationData->C0RhoEnergy() << " MeV" << std::endl;
   file << "C1 Rho1: " << iterationData->C1RhoEnergy() << " MeV" << std::endl;
   file << "C0 nabla2Rho0: " << iterationData->C0nabla2RhoEnergy() << " MeV"
@@ -210,9 +211,12 @@ void Output::shellsToFile(
        << std::endl;
   file << "C0 tau0: " << iterationData->C0TauEnergy() << " MeV" << std::endl;
   file << "C1 tau1: " << iterationData->C1TauEnergy() << " MeV" << std::endl;
-  file << "E (kin): " << eKin << " MeV" << std::endl;
-  file << "E spin-orbit: " << iterationData->Hso() << " MeV" << std::endl;
-  file << "E spin-gradient: " << iterationData->Hsg() << " MeV" << std::endl;
+  file << "C0 div J: " << iterationData->C0rhoDivJEnergy() << " MeV"
+       << std::endl;
+  file << "C1 div J: " << iterationData->C1rhoDivJEnergy() << " MeV"
+       << std::endl;
+  file << "C0 J2: " << iterationData->C0J2Energy() << " MeV" << std::endl;
+  file << "C1 J2: " << iterationData->C1J2Energy() << " MeV" << std::endl;
   file << "E coulomb direct: " << iterationData->CoulombDirectEnergy(grid)
        << " MeV" << std::endl;
   file << "E coulomb exchange: " << iterationData->SlaterCoulombEnergy(grid)
@@ -223,12 +227,10 @@ void Output::shellsToFile(
 
   double SPE = 0.5 * (neutronShells.second.sum() + protonShells.second.sum());
   file << std::endl;
-  file << "=== HF Energy + E_rea ===" << std::endl;
-  file << "E (SPE): " << SPE << " MeV" << std::endl;
-  file << "E (Kin): " << eKin * 0.5 << " MeV" << std::endl;
+  file << "=== HF Energy ===" << std::endl;
+  file << "E (SPE): " << 2 * SPE << " MeV" << std::endl;
 
   double eRea = iterationData->Erear();
-  double E = eRea + eKin * 0.5 + SPE;
   auto E_HF = iterationData->HFEnergy(SPE * 2.0, constraints);
   file << "E (REA): " << eRea << " MeV" << std::endl;
   file << "E_HF: " << E_HF << " MeV" << std::endl;
@@ -236,21 +238,24 @@ void Output::shellsToFile(
   file << "E_INT/E_HF - 1: " << 100.0 * ((totEnInt / E_HF) - 1.0) << " %"
        << std::endl;
 
-  file << std::endl << "=== Lagrange recomputed data ===" << std::endl;
+  file << std::endl
+       << "=== Lagrange derivatives recomputed data ===" << std::endl;
   iterationData->recomputeLagrange(neutronShells, protonShells);
-  file << "E_INT Lagrange: "
-       << iterationData->kineticEnergy() + iterationData->totalEnergyIntegral()
-       << " MeV" << std::endl;
-  std::cout << "E_INT Lagrange: "
-            << iterationData->kineticEnergy() +
-                   iterationData->totalEnergyIntegral()
-            << " MeV" << std::endl;
-  file << std::endl;
+  double E_INT_Lagrange =
+      iterationData->kineticEnergy() + iterationData->totalEnergyIntegral();
 
-  file << "=== Neutrons ===" << std::endl;
+  file << "Lagrange recomputed energy: " << E_INT_Lagrange << " MeV"
+       << std::endl
+       << std::endl;
+  std::cout << "Integrated energy: " << totEnInt << " MeV" << std::endl;
+  std::cout << "HF energy: " << E_HF << " MeV" << std::endl;
+  std::cout << "Lagrange recomputed energy: " << E_INT_Lagrange << " MeV"
+            << std::endl;
+
+  file << "=== Neutrons SP states ===" << std::endl;
   Wavefunction::printShellsToFile(neutronShells, grid, file);
   file << std::endl;
-  file << "=== Protons ===" << std::endl;
+  file << "=== Protons SP states ===" << std::endl;
   Wavefunction::printShellsToFile(protonShells, grid, file);
   file << std::endl;
 
@@ -258,7 +263,6 @@ void Output::shellsToFile(
   file << "=== Multipole moments ===" << std::endl;
 
   int l_max = find_multipoles_number(input.log);
-  std::cout << "LMax: " << l_max << std::endl;
   if (l_max > 0) {
     for (int l = 0; l <= std::min(l_max, 5); ++l) {
       file << "l: " << l << std::endl;
@@ -268,13 +272,15 @@ void Output::shellsToFile(
       file << std::endl;
     }
   }
-  for (const auto &s : input.log)
-    std::cout << s << std::endl;
+
+  std::string outputFilesDir = folder + "/" + fileName + "_output/";
+  std::filesystem::create_directory(outputFilesDir);
+
+  std::string dataOutputDir = outputFilesDir + "data/";
+  std::filesystem::create_directory(dataOutputDir);
 
   if (contains(input.log, "tot_energies")) {
-    std::ofstream totEnFile(folder + "/data/" + input.getOutputName() +
-                                "_tot_energies.csv",
-                            fileMode);
+    std::ofstream totEnFile(dataOutputDir + "int_energies.csv", fileMode);
     for (int i = 0; i < energies.size(); ++i) {
       double e = energies[i];
       totEnFile << std::setprecision(16) << e << std::endl;
@@ -282,9 +288,7 @@ void Output::shellsToFile(
     totEnFile.close();
   }
   if (contains(input.log, "hf_energies")) {
-    std::ofstream hfEnFile(folder + "/data/" + input.getOutputName() +
-                               "_hf_energies.csv",
-                           fileMode);
+    std::ofstream hfEnFile(dataOutputDir + "hf_energies.csv", fileMode);
     for (int i = 0; i < HFEnergies.size(); ++i) {
       double e = HFEnergies[i];
       hfEnFile << std::setprecision(16) << e << std::endl;
@@ -292,7 +296,8 @@ void Output::shellsToFile(
     hfEnFile.close();
   }
 
-  std::string dataOutputDirectory = fileName + "_output/fields";
+  std::string dataOutputDirectory = outputFilesDir + "fields/";
+  std::filesystem::create_directory(dataOutputDirectory);
 
   matrixToFile(dataOutputDirectory + "density.csv", rho);
   matrixToFile(dataOutputDirectory + "density_n.csv", *iterationData->rhoN);
@@ -356,17 +361,18 @@ void Output::shellsToFile(
   nlohmann::json jsonEntry = {
       {"beta", beta},
       {"betaReal", betaRealRadius},
+      {"EintLag", E_INT_Lagrange},
       {"Eint", totEnInt},
       {"EpairN", iterationData->bcsN.Epair},
       {"EpairP", iterationData->bcsP.Epair},
       {"gamma", gamma * 180.0 / M_PI},
       {"a", a},
       {"iter", iterations},
-      {"constraints_energy", constraintsEnergy},
+      {"constraintsEnergy", constraintsEnergy},
       {"step", grid.get_h()},
   };
   nlohmann::json jsonOutput;
-  std::ifstream jsonReader(folder + "/" + input.getOutputName() + ".json");
+  std::ifstream jsonReader(outputFilesDir + "data/data.json");
   if (jsonReader.good()) {
     try {
       jsonReader >> jsonOutput;
@@ -383,8 +389,7 @@ void Output::shellsToFile(
   }
   jsonOutput["data"].push_back(jsonEntry);
 
-  auto jsonOutputFile =
-      std::ofstream(folder + "/" + input.getOutputName() + ".json");
+  auto jsonOutputFile = std::ofstream(outputFilesDir + "data/data.json");
   jsonOutputFile << jsonOutput << std::endl;
   jsonOutputFile.close();
 

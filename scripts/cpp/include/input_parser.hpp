@@ -49,6 +49,8 @@ typedef struct {
   HartreeFock hf;
 } Calculation;
 
+typedef enum PairingType { none, hfb, bcs } PairingType;
+
 typedef struct {
   double V0;
   double r0;
@@ -94,6 +96,7 @@ public:
   std::string getOutputName();
   nlohmann::json getWoodsSaxon();
   bool pairing, spinOrbit, COMCorr;
+  PairingType pairingType;
   WoodsSaxonParameters getWS();
   WSSpinOrbitParameters getWSSO();
   std::string outputDirectory;
