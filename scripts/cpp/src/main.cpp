@@ -147,6 +147,7 @@ int main(int argc, char **argv) {
     // i=-1 to guarantee a first gs iteration if calculation is not deformation
     // curve
     Eigen::MatrixXcd ConjDirN(0, 0), ConjDirP(0, 0);
+    std::vector<double> enErrors;
     for (int i = -1; i < (int)mu20s.size(); ++i) {
       if (i == -1)
         i = 0;
@@ -178,6 +179,7 @@ int main(int argc, char **argv) {
       Eigen::VectorXd protonSPEDiff(orbitalsN);
       neutronSPEDiff.setOnes();
       protonSPEDiff.setOnes();
+
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
         data.updateQuantities(neutronsEigenpair, protonsEigenpair, hfIter,
                               constraints);
@@ -287,6 +289,10 @@ int main(int argc, char **argv) {
                               newIntegralEnergy)
                   << ", absolute: "
                   << std::abs(newIntegralEnergy - integralEnergy) << std::endl;
+        enErrors.push_back(std::abs(newIntegralEnergy - integralEnergy));
+        for (auto &e : enErrors) {
+          std::cout << e << std::endl;
+        }
         std::cout << "Max SP energy diff: " << maxSPEDiff << std::endl;
         double maxDiff = 0.0;
 

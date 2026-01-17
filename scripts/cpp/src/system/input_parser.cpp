@@ -35,8 +35,9 @@ InputParser::InputParser(std::string inputFile) {
   pairing = data.contains("pairing");
   if (pairing) {
     auto pairingData = data["pairing"];
-    std::string pairingType = pairingData["type"];
-    if (pairingType == "HFB") {
+    std::string pairingTypeStr = pairingData["type"];
+
+    if (pairingTypeStr == "HFB") {
       pairingType = PairingType::hfb;
     } else {
       pairingType = PairingType::bcs;
@@ -71,6 +72,13 @@ InputParser::InputParser(std::string inputFile) {
               : false,
       };
     }
+
+    std::cout << "Pairing parameters: " << pairingParameters.window << ", "
+              << pairingParameters.additionalStatesN << ", "
+              << pairingParameters.additionalStatesP << ", "
+              << pairingParameters.V0N << ", " << pairingParameters.V0P << ", "
+              << pairingParameters.alpha << ", " << pairingParameters.eta
+              << ", " << pairingParameters.windowBoth << ", ";
 
   } else {
     pairingType = PairingType::none;

@@ -16,6 +16,16 @@ typedef struct QuadrupoleDeformation {
   double gamma;
 } QuadrupoleDeformation;
 
+typedef struct UV {
+  Eigen::MatrixXcd U;
+  Eigen::MatrixXcd V;
+  double lambda;
+} UV;
+typedef struct HFBResult {
+  UV uv_n;
+  UV uv_p;
+} HFBResult;
+
 class IterationData {
 public:
   std::shared_ptr<EffectiveMass> massN;
@@ -43,8 +53,12 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;
 
-  Eigen::MatrixXcd kappa_n;
-  Eigen::MatrixXcd kappa_p;
+  std::shared_ptr<Eigen::VectorXcd> kappa_n;
+  std::shared_ptr<Eigen::VectorXcd> kappa_p;
+  Eigen::MatrixXcd kappa_matrix_n;
+  Eigen::MatrixXcd kappa_matrix_p;
+  double oldLambdaN;
+  double oldLambdaP;
 
   Eigen::VectorXd UCDir;
 
@@ -63,7 +77,7 @@ public:
     BCS::BCSResult bcsP;
   } BCSPairingSolution;
 
-  void solvePairingHFB(
+  HFBResult solvePairingHFB(
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
 

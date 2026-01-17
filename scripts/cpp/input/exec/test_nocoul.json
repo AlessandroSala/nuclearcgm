@@ -1,12 +1,13 @@
 {
-    "functional": "UNEDF0",
-    "outputName": "oxygen",
-    "outputDirectory": "output_test",
+    "functional": "SLy5",
+    "outputName": "ti44",
+    "outputDirectory": "hfb_test",
     "maxIterations": 100,
     "energyTol": 1e-05,
+    "initialBeta": 0.1,
     "box": {
         "sideSize": 11.0,
-        "axisGridPoints": 30
+        "axisGridPoints": 20
     },
     "nucleus": {
         "A": 44,
@@ -14,7 +15,7 @@
     },
     "pairing": {
         "type": "HFB",
-        "additionalStates": 18,
+        "additionalStates": 28,
         "window": 5.0,
         "V0": 300.0,
         "windowBoth": true
