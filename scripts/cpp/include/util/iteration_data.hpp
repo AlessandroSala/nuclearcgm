@@ -20,6 +20,7 @@ typedef struct UV {
   Eigen::MatrixXcd U;
   Eigen::MatrixXcd V;
   double lambda;
+  Eigen::MatrixXcd kappa;
 } UV;
 typedef struct HFBResult {
   UV uv_n;

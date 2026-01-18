@@ -391,7 +391,7 @@ HFBResult IterationData::solvePairingHFB(
   const double pairingStrength = -300.0;
   const double toleranceN = 1e-8;
   const double toleranceL = 1e-4;
-  const int maxHFBIter = 100;
+  const int maxHFBIter = 1;
   const int maxBisectionIter = 100;
 
   const double targetNeutrons = input.getA() - input.getZ();
@@ -399,7 +399,6 @@ HFBResult IterationData::solvePairingHFB(
 
   auto solveForSpecies = [&](const Eigen::MatrixXcd &phi,
                              const Eigen::VectorXd &hf_energies,
-                             std::shared_ptr<Eigen::VectorXcd> &kappa_old,
                              Eigen::MatrixXcd &kappa_matrix,
                              double targetNumber, std::string speciesName,
                              double initLambda) {
@@ -407,8 +406,6 @@ HFBResult IterationData::solvePairingHFB(
     const int gridSize = phi.rows();
 
     double lambda = initLambda;
-    double lambda_min = -100.0;
-    double lambda_max = 50.0;
 
     Eigen::MatrixXcd Delta = Eigen::MatrixXcd::Zero(nStates, nStates);
 
@@ -419,6 +416,8 @@ HFBResult IterationData::solvePairingHFB(
     Eigen::MatrixXcd U(nStates, nStates);
     Eigen::MatrixXcd V(nStates, nStates);
 
+    Eigen::MatrixXcd kappa_new;
+
     for (int iter = 0; iter < maxHFBIter; ++iter) {
 
       Eigen::VectorXcd kappa_r = Eigen::VectorXcd::Zero(gridSize);
@@ -426,19 +425,6 @@ HFBResult IterationData::solvePairingHFB(
         for (int j = 0; j < nStates; ++j)
           kappa_r.array() +=
               phi.col(i).array() * phi.col(j).array() * kappa_matrix(i, j);
-
-      double mu = 0.25;
-      if (kappa_old != nullptr) {
-        if ((kappa_r - *kappa_old).norm() < toleranceL) {
-          std::cout << "Converged" << std::endl;
-          break;
-        }
-        kappa_r = kappa_r * (1.0 - mu) + (*kappa_old) * mu;
-        *kappa_old = kappa_r;
-      } else {
-        std::cout << "New kappa" << std::endl;
-        kappa_old = std::make_shared<Eigen::VectorXcd>(kappa_r);
-      }
 
       Eigen::VectorXcd delta_field_spatial = pairingStrength * kappa_r;
 
@@ -462,15 +448,16 @@ HFBResult IterationData::solvePairingHFB(
       double b_min = lambda_min;
       double b_max = lambda_max;
 
+      double currentLambda = initLambda;
+
       for (int bIter = 0; bIter < maxBisectionIter; ++bIter) {
-        double currentLambda = (b_min + b_max) / 2.0;
 
         H_HFB.topLeftCorner(nStates, nStates) =
             (hf_energies.array() - currentLambda).matrix().asDiagonal();
 
         H_HFB.topRightCorner(nStates, nStates) = Delta;
 
-        H_HFB.bottomLeftCorner(nStates, nStates) = -Delta.conjugate();
+        H_HFB.bottomLeftCorner(nStates, nStates) = Delta.conjugate();
 
         H_HFB.bottomRightCorner(nStates, nStates) =
             -1.0 * (hf_energies.array() - currentLambda).matrix().asDiagonal();
@@ -503,11 +490,12 @@ HFBResult IterationData::solvePairingHFB(
         } else {
           b_min = currentLambda;
         }
+        currentLambda = (b_min + b_max) / 2.0;
       }
 
-      Eigen::MatrixXcd kappa_new = V.conjugate() * U.transpose();
+      kappa_new = V.conjugate() * U.transpose();
 
-      kappa_matrix = 0.5 * kappa_matrix + 0.5 * kappa_new;
+      // kappa_matrix = 0.5 * kappa_matrix + 0.5 * kappa_new;
 
       if (iter % 5 == 0) {
         std::cout << "    Iter " << iter << ": Lambda = " << lambda
@@ -519,14 +507,15 @@ HFBResult IterationData::solvePairingHFB(
     double pairingEnergy =
         0.5 * (Delta.array() * kappa_matrix.conjugate().array()).sum().real();
     std::cout << "Pairing energy: " << pairingEnergy << std::endl;
-    UV uv = {U, V, lambda};
+    UV uv = {U, V, lambda, kappa_new};
     return uv;
   };
 
   auto uv_n =
-      solveForSpecies(neutronsPair.first, neutronsPair.second, kappa_n,
-                      kappa_matrix_n, targetNeutrons, "Neutrons", oldLambdaN);
+      solveForSpecies(neutronsPair.first, neutronsPair.second, kappa_matrix_n,
+                      targetNeutrons, "Neutrons", oldLambdaN);
   oldLambdaN = uv_n.lambda;
+  kappa_matrix_n = uv_n.kappa;
 
   // TODO: both species!!
   // auto uv_p = solveForSpecies(protonsPair.first, protonsPair.second,
@@ -565,28 +554,30 @@ void IterationData::updateQuantities(
       protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().sqrt());
     } else {
       if (iter == 1) {
-        kappa_matrix_n = Eigen::MatrixXcd::Zero(N, N);
-        oldLambdaN = neutronsPair.second(N - 1);
+        kappa_matrix_n = Eigen::MatrixXcd::Zero(neutronsPair.second.size(),
+                                                neutronsPair.second.size());
+        oldLambdaN = neutronsPair.second(neutronsPair.second.size() - 1);
 
-        for (int b = 0; b < N / 2; ++b) {
+        for (int b = 0; b < neutronsPair.second.size() / 2; ++b) {
           int i = 2 * b;
           int j = 2 * b + 1;
 
           if (j > i) {
             double uv = std::sqrt(bcsN.u2(i) * bcsN.v2(i));
             kappa_matrix_n(i, j) = uv;
-            kappa_matrix_n(j, i) = -uv;
+            kappa_matrix_n(j, i) = uv;
           }
         }
-        kappa_matrix_p = Eigen::MatrixXcd::Zero(Z, Z);
-        oldLambdaP = protonsPair.second(Z - 1);
-        for (int b = 0; b < Z / 2; ++b) {
+        kappa_matrix_p = Eigen::MatrixXcd::Zero(protonsPair.second.size(),
+                                                protonsPair.second.size());
+        oldLambdaP = bcsP.lambda;
+        for (int b = 0; b < protonsPair.second.size() / 2; ++b) {
           int i = 2 * b;
           int j = 2 * b + 1;
 
           if (j > i) {
             double uv = std::sqrt(bcsP.u2(i) * bcsP.v2(i));
-            kappa_matrix_p(i, j) = -uv;
+            kappa_matrix_p(i, j) = uv;
             kappa_matrix_p(j, i) = uv;
           }
         }
