@@ -291,8 +291,9 @@ int main(int argc, char **argv) {
                   << std::abs(newIntegralEnergy - integralEnergy) << std::endl;
         enErrors.push_back(std::abs(newIntegralEnergy - integralEnergy));
         for (auto &e : enErrors) {
-          std::cout << e << std::endl;
+          std::cout << e << ", ";
         }
+        std::cout << std::endl;
         std::cout << "Max SP energy diff: " << maxSPEDiff << std::endl;
         double maxDiff = 0.0;
 
