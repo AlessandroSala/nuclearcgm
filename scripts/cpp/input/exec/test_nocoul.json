@@ -15,7 +15,7 @@
     },
     "pairing": {
         "type": "HFB",
-        "additionalStates": 28,
+        "additionalStates": 18,
         "window": 5.0,
         "V0": 300.0,
         "windowBoth": true
