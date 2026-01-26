@@ -7,16 +7,16 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import cm
 
 name = "mg"
-density = np.genfromtxt("output/time_tests/density.csv")
+density = np.genfromtxt("output/o16/tensor_test_output/fields/density.csv")
 #density = np.genfromtxt("output/density.csv")
-n = 50
+n = 30
 n2 = n // 2
 a = 10
 
 mat_or = density.reshape((n, n, n))
 
 #mat = mat[:, :, n // 2]
-mat = mat_or[n2, :, :]
+mat = mat_or[:, :, n2]
 #mat = mat[n // 2, :, :]
 
 x = np.linspace(-a, a, n)
@@ -84,3 +84,12 @@ plt.xticks(major_ticks)
 plt.yticks(major_ticks)
 
 plt.show()
+
+rho = mat_or
+rho_max = rho.max()
+
+# livello di isosuperficie: ad esempio 90% del massimo
+iso_level = 0.9 * rho_max
+
+X, Y, Z = np.meshgrid(x, y, z, indexing="ij")
+

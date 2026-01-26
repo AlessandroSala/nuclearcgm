@@ -18,5 +18,4 @@ public:
 public:
   std::shared_ptr<IterationData> data;
   NucleonType n;
-  SkyrmeParameters params;
 };

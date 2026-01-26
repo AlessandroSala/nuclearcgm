@@ -20,6 +20,14 @@ typedef struct DeformationCurve {
   double step;
 } DeformationCurve;
 
+typedef struct MultipoleConstraintInput {
+  int iter_start;
+  int iter_end;
+  int l;
+  int m;
+  double target;
+} MultipoleConstraintInput;
+
 typedef struct GCGParameters {
   int nev;
   double tol;
@@ -27,18 +35,6 @@ typedef struct GCGParameters {
   int steps;
   double cgTol;
 } CGCParameters;
-typedef struct {
-  double W0;
-  double t0;
-  double t1;
-  double t2;
-  double t3;
-  double x0;
-  double x1;
-  double x2;
-  double x3;
-  double sigma;
-} SkyrmeParameters;
 typedef struct HartreeFock {
   int cycles;
   double energyTol;
@@ -105,6 +101,8 @@ public:
   double beta3;
   PairingParameters pairingParameters;
   bool useDIIS;
+
+  std::vector<MultipoleConstraintInput> multipoleConstraints;
 
   std::shared_ptr<EDF> interaction;
   CalculationType calculationType;

@@ -8,6 +8,7 @@
 #include "operators/integral_operators.hpp"
 #include "radius.hpp"
 #include "skyrme/local_coulomb_potential.hpp"
+#include "skyrme/multipole_constraint.hpp"
 #include "skyrme/octupole_constraint.hpp"
 #include "skyrme/quadrupole_constraint.hpp"
 #include "skyrme/x2my2_constraint.hpp"
@@ -155,8 +156,17 @@ int main(int argc, char **argv) {
 
       double integralEnergy = 0.0;
       double HFEnergy = 0.0;
-      // constraints.clear();
-      if ((int)mu20s.size() != 0) {
+      // constraints.push_back(make_unique<OctupoleConstraint>(20.0));
+      // constraints.push_back(make_unique<XCMConstraint>(0.0));
+      // constraints.push_back(make_unique<YCMConstraint>(0.0));
+      // constraints.push_back(make_unique<ZCMConstraint>(0.0));
+      //  constraints.clear();
+      if (input.multipoleConstraints.size() > 0) {
+        for (auto &c : input.multipoleConstraints)
+          constraints.push_back(
+              make_unique<MultipoleConstraint>(c.target, c.l, c.m));
+      }
+      if ((int)mu20s.size() > 0) {
         if (i == 0) {
           auto mu = mu20s[i];
           constraints.push_back(make_unique<XCMConstraint>(0.0));
@@ -181,6 +191,7 @@ int main(int argc, char **argv) {
       protonSPEDiff.setOnes();
 
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
+
         data.updateQuantities(neutronsEigenpair, protonsEigenpair, hfIter,
                               constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
@@ -232,6 +243,7 @@ int main(int argc, char **argv) {
 
         Wavefunction::normalize(newNeutronsEigenpair.first, grid);
         Wavefunction::normalize(newProtonsEigenpair.first, grid);
+
         if (hfIter > 0) {
           MatrixXcd tmp;
           tmp.noalias() =
@@ -249,7 +261,7 @@ int main(int argc, char **argv) {
           ConjDirP.colwise().normalize();
         }
 
-        if (hfIter > 0 && false) {
+        if (hfIter > 0 && true) {
 
           auto dispersionN =
               Utilities::computeDispersion(hN, newNeutronsEigenpair.first);
@@ -289,7 +301,7 @@ int main(int argc, char **argv) {
                               newIntegralEnergy)
                   << ", absolute: "
                   << std::abs(newIntegralEnergy - integralEnergy) << std::endl;
-        enErrors.push_back(std::abs(newIntegralEnergy - integralEnergy));
+        enErrors.push_back((newIntegralEnergy - integralEnergy));
         for (auto &e : enErrors) {
           std::cout << e << ", ";
         }

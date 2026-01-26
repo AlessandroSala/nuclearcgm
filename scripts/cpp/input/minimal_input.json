@@ -1,0 +1,23 @@
+{
+    "functional": "SLy5",
+    "outputName": "tensor_test",
+    "outputDirectory": "o16",
+    "maxIterations": 250,
+    "energyTol": 1e-05,
+    "box": {
+        "sideSize": 9.0,
+        "axisGridPoints": 10
+    },
+    "nucleus": {
+        "A": 16,
+        "Z": 8
+    },
+    "pairing": {
+        "type": "None",
+        "additionalStates": 0,
+        "window": 5.0,
+        "V0": 400.0,
+        "windowBoth": true
+    }
+
+}

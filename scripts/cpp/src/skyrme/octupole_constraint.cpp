@@ -27,9 +27,8 @@ Eigen::VectorXd OctupoleConstraint::getField(IterationData *data) {
   double Q20 = integral((Eigen::VectorXd)(O.array() * rho.array()), grid);
 
   std::cout << "q: " << Q20 << std::endl;
-  std::cout << "mu20: " << mu20 << std::endl;
+  std::cout << "mu30: " << mu20 << std::endl;
 
-  std::cout << "Constraint energy: " << evaluate(data) << std::endl;
   if (firstIter) {
     firstIter = false;
     // return Eigen::VectorXd::Zero(data->rhoN->rows());
@@ -38,9 +37,7 @@ Eigen::VectorXd OctupoleConstraint::getField(IterationData *data) {
 
   double gamma = 0.3;
 
-  std::cout << "Updated lambda Q30, previous: " << lambda;
   lambda += gamma * 2.0 * C * (Q20 - mu20);
-  std::cout << ", new: " << lambda << std::endl;
 
   double mu = mu20 - lambda / (2.0 * C);
 

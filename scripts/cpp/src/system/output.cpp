@@ -390,7 +390,7 @@ void Output::shellsToFile(
   jsonOutput["data"].push_back(jsonEntry);
 
   auto jsonOutputFile = std::ofstream(outputFilesDir + "data/data.json");
-  jsonOutputFile << jsonOutput << std::endl;
+  jsonOutputFile << jsonOutput.dump(4);
   jsonOutputFile.close();
 
   file.close();

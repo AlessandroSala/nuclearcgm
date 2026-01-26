@@ -1,0 +1,23 @@
+{
+    "functional": "SLy5",
+    "outputName": "output_test_name",
+    "outputDirectory": "output_directory",
+    "maxIterations": 250,
+    "energyTol": 1e-05,
+    "box": {
+        "sideSize": 9.0,
+        "axisGridPoints": 10
+    },
+    "nucleus": {
+        "A": 16,
+        "Z": 8
+    },
+    "pairing": {
+        "type": "BCS",
+        "basisSizeN": 8,
+        "basisSizeP": 8,
+        "window": 5.0,
+        "V0": 400.0
+    }
+
+}

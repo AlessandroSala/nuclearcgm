@@ -296,18 +296,6 @@ void IterationData::recomputeLagrange(
                          interaction);
 }
 
-BCS::BCSResult mixBCS(BCS::BCSResult oldBCS, BCS::BCSResult newBCS,
-                      double mix) {
-  BCS::BCSResult result;
-  result.v2 = oldBCS.v2 * (1.0 - mix) + newBCS.v2 * mix;
-  result.u2 = oldBCS.u2 * (1.0 - mix) + newBCS.u2 * mix;
-  result.Delta = oldBCS.Delta * (1.0 - mix) + newBCS.Delta * mix;
-  result.qpEnergies = oldBCS.qpEnergies * (1.0 - mix) + newBCS.qpEnergies * mix;
-  result.lambda = oldBCS.lambda * (1.0 - mix) + newBCS.lambda * mix;
-  result.Epair = oldBCS.Epair * (1.0 - mix) + newBCS.Epair * mix;
-  return result;
-}
-
 void IterationData::solvePairingBCS(
     const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
     const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair) {
@@ -382,14 +370,84 @@ void IterationData::solvePairingBCS(
   }
 }
 
+Eigen::VectorXd kappa_field(const Eigen::MatrixXcd &phi,
+                            const Eigen::MatrixXd &kappa_matrix,
+                            const Eigen::VectorXd &fermi_factors) {
+  Eigen::VectorXd kappa_r = Eigen::VectorXd::Zero(phi.rows() / 2);
+  Eigen::VectorXcd kappa_complex = Eigen::VectorXcd::Zero(phi.rows() / 2);
+  int nStates = phi.cols();
+  auto grid = *Grid::getInstance();
+  Eigen::VectorXcd tmp_vec = Eigen::VectorXd::Zero(phi.rows() / 2);
+
+  for (int a = 0; a < nStates; ++a)
+    for (int b = 0; b < nStates; ++b) {
+      tmp_vec.setZero();
+      for (int k = 0; k < grid.get_n(); ++k)
+        for (int j = 0; j < grid.get_n(); ++j)
+          for (int i = 0; i < grid.get_n(); ++i) {
+            int idxNS = grid.idxNoSpin(i, j, k);
+            for (int s = 0; s < 2; ++s) {
+              double sigma = s == 0 ? 1.0 : -1.0;
+              int idx = grid.idx(i, j, k, s);
+              int idx_other = grid.idx(i, j, k, 1 - s);
+              tmp_vec(idxNS) += sigma * phi.col(a)(idx) *
+                                (phi.col(b)(idx_other)) * fermi_factors(a) *
+                                fermi_factors(b);
+            }
+          }
+      kappa_complex += tmp_vec * kappa_matrix(b, a);
+    }
+  kappa_r = kappa_complex.real();
+
+  return kappa_r;
+}
+
+Eigen::MatrixXd delta_matrix(const Eigen::MatrixXcd &phi,
+                             const Eigen::VectorXd &kappa_r,
+                             const Eigen::VectorXd &fermi_factors) {
+  auto grid = *Grid::getInstance();
+  int nStates = phi.cols();
+  Eigen::MatrixXd Delta(nStates, nStates);
+  Eigen::MatrixXcd Delta_complex = Eigen::MatrixXd::Zero(nStates, nStates);
+
+  Eigen::VectorXcd tmp_vec =
+      Eigen::VectorXcd::Zero(grid.get_total_spatial_points());
+
+  double pairingStrength = +500.0;
+
+  for (int a = 0; a < nStates; ++a)
+    for (int b = a; b < nStates; ++b) {
+      tmp_vec.setZero();
+      for (int k = 0; k < grid.get_n(); ++k)
+        for (int j = 0; j < grid.get_n(); ++j)
+          for (int i = 0; i < grid.get_n(); ++i) {
+            int idxNS = grid.idxNoSpin(i, j, k);
+            for (int s = 0; s < 2; ++s) {
+              double sigma = s == 0 ? 1.0 : -1.0;
+              int idx = grid.idx(i, j, k, s);
+              int idx_other = grid.idx(i, j, k, 1 - s);
+              tmp_vec(idxNS) += sigma * std::conj(phi.col(a)(idx)) *
+                                std::conj(phi.col(b)(idx_other));
+            }
+          }
+      tmp_vec = tmp_vec.array() * kappa_r.array();
+      std::complex<double> val = Operators::integralNoSpin(tmp_vec, grid);
+      val *= fermi_factors(a) * fermi_factors(b);
+      // val *= 0.5;
+      Delta_complex(a, b) = val;
+      Delta_complex(b, a) = -val;
+    }
+  return pairingStrength * Delta_complex.real();
+}
+
 HFBResult IterationData::solvePairingHFB(
     const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
     const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair) {
 
   std::cout << "> Solving pairing HFB" << std::endl;
 
-  const double pairingStrength = -30.0;
-  const double toleranceN = 1e-8;
+  const double pairingStrength = 500.0;
+  const double toleranceN = 1e-9;
   const int maxHFBIter = 1;
   const int maxBisectionIter = 100;
 
@@ -398,123 +456,94 @@ HFBResult IterationData::solvePairingHFB(
 
   auto solveForSpecies = [&](const Eigen::MatrixXcd &phi,
                              const Eigen::VectorXd &hf_energies,
-                             Eigen::MatrixXcd &kappa_matrix,
-                             double targetNumber, std::string speciesName,
-                             double initLambda) {
+                             Eigen::MatrixXd &kappa_matrix, double targetNumber,
+                             std::string speciesName, double initLambda,
+                             const Eigen::VectorXd &pairingField,
+                             const Eigen::MatrixXd &Delta_old) {
     const int nStates = hf_energies.size();
     const int gridSize = phi.rows();
     double window = 5.0;
     double smooth = 0.5;
-    auto fermi_factor = [&](double e) {
-      return 1.0 / (1.0 + std::exp((e - initLambda) - window) / smooth);
+    auto fermi_factor = [&](double e, double lambda) {
+      double val = 1.0 / (1.0 + std::exp((e - lambda) - window) / smooth);
+      val *= 1.0 / (1.0 + std::exp(-(e - lambda + window) / smooth));
+      return val;
     };
 
     double lambda = initLambda;
 
-    Eigen::MatrixXcd Delta = Eigen::MatrixXcd::Zero(nStates, nStates);
+    Eigen::MatrixXd Delta = Eigen::MatrixXd::Zero(nStates, nStates);
+    Eigen::MatrixXcd Delta_complex = Eigen::MatrixXd::Zero(nStates, nStates);
 
-    Eigen::MatrixXcd H_HFB(2 * nStates, 2 * nStates);
+    Eigen::MatrixXd H_HFB(2 * nStates, 2 * nStates);
 
     std::cout << "  - Starting HFB loop for " << speciesName
               << " (Target N=" << targetNumber << ")" << std::endl;
-    Eigen::MatrixXcd U(nStates, nStates);
-    Eigen::MatrixXcd V(nStates, nStates);
+    Eigen::MatrixXd U(nStates, nStates);
+    Eigen::MatrixXd V(nStates, nStates);
 
-    double lambda_min = initLambda - 4.0;
-    double lambda_max = initLambda + 4.0;
+    double lambda_min = initLambda - 0.7;
+    double lambda_max = initLambda + 0.7;
 
-    Eigen::MatrixXcd kappa_new;
+    Eigen::MatrixXd kappa_new = kappa_matrix;
+
+    Eigen::VectorXd kappa_r = pairingField;
+    Delta_complex.setZero();
+    Delta = Delta_old;
 
     for (int iter = 0; iter < maxHFBIter; ++iter) {
+      kappa_r.setZero();
 
-      Eigen::VectorXcd kappa_r = Eigen::VectorXcd::Zero(gridSize / 2);
-      Eigen::VectorXcd tmp_vec = Eigen::VectorXcd::Zero(gridSize / 2);
+      kappa_r = pairingField;
+      Eigen::VectorXd fermi_factors(hf_energies.size());
+      for (int i = 0; i < hf_energies.size(); ++i) {
+        fermi_factors(i) =
+            1.0 / (1.0 + std::exp((hf_energies(i) - lambda) - 5.0) / 0.5);
+        fermi_factors(i) *=
+            1.0 / (1.0 + std::exp(-(hf_energies(i) - lambda) - 5.0) / 0.5);
+      }
 
       auto grid = *Grid::getInstance();
 
-      for (int a = 0; a < nStates; ++a)
-        for (int b = 0; b < nStates; ++b) {
-          tmp_vec.setZero();
-          for (int k = 0; k < grid.get_n(); ++k)
-            for (int j = 0; j < grid.get_n(); ++j)
-              for (int i = 0; i < grid.get_n(); ++i) {
-                int idxNS = grid.idxNoSpin(i, j, k);
-                for (int s = 0; s < grid.get_n(); ++s) {
-                  double sigma = 2 * ((double)s - 0.5);
-                  int idx = grid.idx(i, j, k, s);
-                  int idx_other = grid.idx(i, j, k, 1 - s);
-                  tmp_vec(idxNS) += sigma * phi.col(a)(idx) *
-                                    std::conj(phi.col(b)(idx_other));
-                }
-              }
-          kappa_r += tmp_vec * kappa_matrix(a, b) *
-                     fermi_factor(hf_energies(a)) *
-                     fermi_factor(hf_energies(b));
-        }
-
-      auto delta_field = pairingStrength * kappa_r;
-
-      for (int a = 0; a < nStates; ++a)
-        for (int b = a; b < nStates; ++b) {
-          tmp_vec.setZero();
-          for (int k = 0; k < grid.get_n(); ++k)
-            for (int j = 0; j < grid.get_n(); ++j)
-              for (int i = 0; i < grid.get_n(); ++i) {
-                int idxNS = grid.idxNoSpin(i, j, k);
-                for (int s = 0; s < grid.get_n(); ++s) {
-                  double sigma = 2 * ((double)s - 0.5);
-                  int idx = grid.idx(i, j, k, s);
-                  int idx_other = grid.idx(i, j, k, 1 - s);
-                  tmp_vec(idxNS) += sigma * std::conj(phi.col(a)(idx_other)) *
-                                    phi.col(b)(idx);
-                }
-              }
-          tmp_vec = tmp_vec.array() * delta_field.array();
-          std::complex<double> val = Operators::integralNoSpin(tmp_vec, grid);
-          Delta(a, b) = val;
-          Delta(b, a) = -val;
-        }
-
       double particleDiff = 0.0;
-      double E_fermi = lambda;
 
       double b_min = lambda_min;
       double b_max = lambda_max;
 
       double currentLambda = initLambda;
 
-      for (int bIter = 0; bIter < maxBisectionIter; ++bIter) {
+      int bIter;
+      for (bIter = 0; bIter < maxBisectionIter; ++bIter) {
 
         H_HFB.topLeftCorner(nStates, nStates) =
             (hf_energies.array() - currentLambda).matrix().asDiagonal();
 
         H_HFB.topRightCorner(nStates, nStates) = Delta;
 
-        H_HFB.bottomLeftCorner(nStates, nStates) = -Delta.conjugate();
+        H_HFB.bottomLeftCorner(nStates, nStates) = -Delta;
 
         H_HFB.bottomRightCorner(nStates, nStates) =
             -1.0 * (hf_energies.array() - currentLambda).matrix().asDiagonal();
 
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> es(H_HFB);
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_HFB);
 
         double calculatedNumber = 0.0;
         for (int k = 0; k < nStates; ++k) {
           int qp_index = k + nStates;
 
-          Eigen::VectorXcd W = es.eigenvectors().col(qp_index);
+          Eigen::VectorXd W = es.eigenvectors().col(qp_index);
 
-          Eigen::VectorXcd Uk = W.head(nStates);
-          Eigen::VectorXcd Vk = W.tail(nStates);
+          Eigen::VectorXd Uk = W.head(nStates);
+          Eigen::VectorXd Vk = W.tail(nStates);
 
           U.col(k) = Uk;
           V.col(k) = Vk;
+          calculatedNumber += std::pow(V.col(k).norm(), 2);
         }
-        calculatedNumber = (V.conjugate() * V.transpose()).trace().real();
 
         particleDiff = calculatedNumber - targetNumber;
 
         if (std::abs(particleDiff) < toleranceN) {
-          lambda = currentLambda;
           break;
         }
 
@@ -525,39 +554,43 @@ HFBResult IterationData::solvePairingHFB(
         }
         currentLambda = (b_min + b_max) / 2.0;
       }
+      lambda = currentLambda;
+      std::cout << "Bisection converged in " << bIter << " iterations."
+                << std::endl;
 
-      kappa_new = V.conjugate() * U.transpose();
-
-      // kappa_matrix = 0.5 * kappa_matrix + 0.5 * kappa_new;
-
-      if (iter % 5 == 0) {
+      if (iter % 1 == 0) {
         std::cout << "    Iter " << iter << ": Lambda = " << lambda
                   << ", dN = " << particleDiff << std::endl;
       }
+
+      double mixKappa_matrix = 1.0;
+      kappa_new = V * U.transpose();
+      kappa_new =
+          kappa_matrix * (1.0 - mixKappa_matrix) + mixKappa_matrix * kappa_new;
+
+      auto fermi_matrix = fermi_factors * fermi_factors.transpose();
+      double pairingEnergy = +0.5 * (Delta.array() * kappa_new.array()).sum();
+      std::cout << "===> Pairing energy: " << pairingEnergy << std::endl;
     }
     std::cout << "  - Converged. Final Lambda: " << lambda << std::endl;
 
-    Eigen::VectorXd fermi_factors(hf_energies.size());
-    for (int i = 0; i < hf_energies.size(); ++i) {
-      fermi_factors(i) =
-          1.0 / (1.0 + std::exp((hf_energies(i) - lambda) - 5.0) / 0.5);
-    }
-    auto fermi_matrix = fermi_factors * fermi_factors.transpose();
-    double pairingEnergy =
-        +0.5 * (Delta.array() * kappa_matrix.conjugate().array() *
-                fermi_matrix.array())
-                   .sum()
-                   .real();
-    std::cout << "Pairing energy: " << pairingEnergy << std::endl;
-    UV uv = {U, V, lambda, kappa_new};
+    UV uv = {U, V, lambda, kappa_new, kappa_r, Delta};
     return uv;
   };
 
-  auto uv_n =
-      solveForSpecies(neutronsPair.first, neutronsPair.second, kappa_matrix_n,
-                      targetNeutrons, "Neutrons", oldLambdaN);
+  auto uv_n = solveForSpecies(neutronsPair.first, neutronsPair.second,
+                              kappa_matrix_n, targetNeutrons, "Neutrons",
+                              oldLambdaN, pairingField_n, Delta_matrix_n);
+
   oldLambdaN = uv_n.lambda;
+
+  Delta_matrix_n = uv_n.Delta;
+
+  std::cout << "Difference: " << (uv_n.kappa - kappa_matrix_n).norm()
+            << std::endl;
   kappa_matrix_n = uv_n.kappa;
+
+  pairingField_n = uv_n.pairingField;
 
   // TODO: both species!!
   // auto uv_p = solveForSpecies(protonsPair.first, protonsPair.second,
@@ -582,23 +615,32 @@ void IterationData::updateQuantities(
 
   int N = A - Z;
 
-  double mu = constraints.size() > 0 ? 0.2 : std::min(0.05 + 0.01 * iter, 0.4);
-  mu = 0.25;
+  // double mu = constraints.size() > 0 ? 0.2 : std::min(0.05 + 0.01 * iter,
+  // 0.4);
+  double mu = 0.25;
 
   Eigen::MatrixXcd neutrons, protons;
 
   if (input.pairingType == PairingType::hfb) {
     std::cout << "Iter: " << iter << std::endl;
 
-    if (iter == 0) {
+    int startHFBIter = 3;
+
+    if (iter < startHFBIter) {
       solvePairingBCS(neutronsPair, protonsPair);
       neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2.array().sqrt());
       protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().sqrt());
     } else {
-      if (iter == 1) {
-        kappa_matrix_n = Eigen::MatrixXcd::Zero(neutronsPair.second.size(),
-                                                neutronsPair.second.size());
+      if (iter == startHFBIter) {
+        pairingField_n = Eigen::VectorXd::Zero(0);
+        pairingField_p = Eigen::VectorXd::Zero(0);
+        Delta_matrix_n = Eigen::MatrixXd::Zero(0, 0);
+        Delta_matrix_p = Eigen::MatrixXd::Zero(0, 0);
+        std::cout << "Initializing kappa using BCS" << std::endl;
+        kappa_matrix_n = Eigen::MatrixXd::Zero(neutronsPair.second.size(),
+                                               neutronsPair.second.size());
         oldLambdaN = bcsN.lambda;
+        double kappa_par = -1.0;
 
         for (int b = 0; b < neutronsPair.second.size() / 2; ++b) {
           int i = 2 * b;
@@ -607,11 +649,11 @@ void IterationData::updateQuantities(
           if (j > i) {
             double uv = std::sqrt(bcsN.u2(i) * bcsN.v2(i));
             kappa_matrix_n(i, j) = uv;
-            kappa_matrix_n(j, i) = uv;
+            kappa_matrix_n(j, i) = kappa_par * uv;
           }
         }
-        kappa_matrix_p = Eigen::MatrixXcd::Zero(protonsPair.second.size(),
-                                                protonsPair.second.size());
+        kappa_matrix_p = Eigen::MatrixXd::Zero(protonsPair.second.size(),
+                                               protonsPair.second.size());
         oldLambdaP = bcsP.lambda;
         for (int b = 0; b < protonsPair.second.size() / 2; ++b) {
           int i = 2 * b;
@@ -620,36 +662,75 @@ void IterationData::updateQuantities(
           if (j > i) {
             double uv = std::sqrt(bcsP.u2(i) * bcsP.v2(i));
             kappa_matrix_p(i, j) = uv;
-            kappa_matrix_p(j, i) = uv;
+            kappa_matrix_p(j, i) = kappa_par * uv;
           }
         }
+        pairingField_n =
+            kappa_field(neutronsPair.first, kappa_matrix_n,
+                        Eigen::VectorXd::Ones(neutronsPair.second.size()));
+        pairingField_p =
+            kappa_field(protonsPair.first, kappa_matrix_p,
+                        Eigen::VectorXd::Ones(protonsPair.second.size()));
+        Delta_matrix_n =
+            delta_matrix(neutronsPair.first, pairingField_n,
+                         Eigen::VectorXd::Ones(neutronsPair.second.size()));
+        Delta_matrix_p =
+            delta_matrix(protonsPair.first, pairingField_p,
+                         Eigen::VectorXd::Ones(protonsPair.second.size()));
       }
 
       auto res = solvePairingHFB(neutronsPair, protonsPair);
-      Eigen::MatrixXcd rho_n_hfb =
-          res.uv_n.V.conjugate() * res.uv_n.V.transpose();
+      Eigen::MatrixXd rho_n_hfb = res.uv_n.V * res.uv_n.V.transpose();
 
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> es_n(rho_n_hfb);
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_n(rho_n_hfb);
       Eigen::VectorXd v2_n = es_n.eigenvalues();
-      Eigen::MatrixXcd W_n = es_n.eigenvectors();
+      std::cout << "Eigenvalues of rho_n_hfb: " << v2_n.transpose()
+                << std::endl;
+      for (int i = 0; i < v2_n.size(); i++) {
+        if (v2_n(i) < 1e-12) {
+          v2_n(i) = 0.0;
+        }
+      }
+      Eigen::MatrixXd W_n = es_n.eigenvectors();
+      neutrons = neutronsPair.first;
 
-      neutrons = (neutronsPair.first * W_n) * v2_n.cwiseSqrt().asDiagonal();
+      neutrons = neutronsPair.first * (W_n * v2_n.cwiseSqrt().asDiagonal());
 
-      Eigen::MatrixXcd rho_p_hfb =
-          res.uv_n.V.conjugate() * res.uv_n.V.transpose();
+      double mixKappa = 1.0;
+      pairingField_n = kappa_field(phi, kappa_new, fermi_factors);
 
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> es_p(rho_p_hfb);
+      double mixDelta = 1.0;
+      Delta = delta_matrix(phi, kappa_r, fermi_factors) * mixDelta +
+              Delta * (1.0 - mixDelta);
+
+      Eigen::MatrixXd rho_p_hfb = res.uv_n.V * res.uv_n.V.transpose();
+
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_p(rho_p_hfb);
       Eigen::VectorXd v2_p = es_p.eigenvalues();
-      Eigen::MatrixXcd W_p = es_p.eigenvectors();
+      Eigen::MatrixXd W_p = es_p.eigenvectors();
 
-      protons = (protonsPair.first * W_p) * v2_p.cwiseSqrt().asDiagonal();
+      for (int i = 0; i < v2_p.size(); i++) {
+        if (v2_p(i) < 1e-12) {
+          v2_p(i) = 0.0;
+        }
+      }
+
+      protons = protonsPair.first * (W_p * v2_p.cwiseSqrt().asDiagonal());
     }
   } else {
     solvePairingBCS(neutronsPair, protonsPair);
     neutrons = colwiseMatVecMult(neutronsPair.first, bcsN.v2.array().sqrt());
     protons = colwiseMatVecMult(protonsPair.first, bcsP.v2.array().sqrt());
   }
-
+  if (iter > 0) {
+    auto newRhoN = Wavefunction::density(neutrons, grid);
+    using Eigen::VectorXd;
+    using Operators::integral;
+    double error =
+        1 - integral((VectorXd)(newRhoN.array() * rhoN->array()), grid) /
+                integral((VectorXd)(newRhoN.array() * newRhoN.array()), grid);
+    std::cout << "Density error: " << error << std::endl;
+  }
   rhoN = rhoN == nullptr ? std::make_shared<Eigen::VectorXd>(
                                Wavefunction::density(neutrons, grid))
                          : std::make_shared<Eigen::VectorXd>(
@@ -721,6 +802,7 @@ void IterationData::updateQuantities(
 
   Eigen::VectorXd divJN;
   Eigen::VectorXd divJP;
+
   if (input.spinOrbit) {
     divJN = *divJvecN;
     divJP = *divJvecP;
@@ -736,10 +818,9 @@ void IterationData::updateQuantities(
         << "Constraints tolerance reached, updating last converged iteration"
         << std::endl;
   }
-  // reset for fields
+  // reset for fields, fields mixing is supported but not done
   mu = 1.0;
 
-  // TODO: dare una sistemata a sta roba
   Eigen::VectorXd tau = *tauN + *tauP;
   Eigen::VectorXd nabla2rho = *nabla2RhoN + *nabla2RhoP;
 

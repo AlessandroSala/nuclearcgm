@@ -29,8 +29,10 @@ InputParser::InputParser(std::string inputFile) {
 
   useCoulomb = data.contains("coulombInteraction")
                    ? data["coulombInteraction"].get<bool>()
-                   : false;
+                   : true;
 
+  A = data["nucleus"]["A"];
+  Z = data["nucleus"]["Z"];
   std::string interactionName = data["functional"];
   pairing = data.contains("pairing");
   if (pairing) {
@@ -39,15 +41,18 @@ InputParser::InputParser(std::string inputFile) {
 
     if (pairingTypeStr == "HFB") {
       pairingType = PairingType::hfb;
-    } else {
+    } else if (pairingTypeStr == "BCS") {
       pairingType = PairingType::bcs;
+    } else {
+      pairingType = PairingType::none;
+      pairing = false;
     }
 
     if (pairingData.contains("neutron")) {
       pairingParameters = PairingParameters{
           pairingData["window"],
-          pairingData["neutron"]["additionalStates"],
-          pairingData["proton"]["additionalStates"],
+          pairingData["neutron"]["basisSize"].get<int>() - (A - Z),
+          pairingData["proton"]["basisSize"].get<int>() - Z,
           pairingData["neutron"]["V0"],
           pairingData["proton"]["V0"],
           pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
@@ -55,13 +60,21 @@ InputParser::InputParser(std::string inputFile) {
           pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
           pairingData.contains("windowBoth")
               ? pairingData["windowBoth"].get<bool>()
-              : false,
+              : true,
       };
     } else {
+      int basisSizeN, basisSizeP;
+      if (pairingData.contains("basisSizeN")) {
+        basisSizeN = pairingData["basisSizeN"].get<int>();
+        basisSizeP = pairingData["basisSizeP"].get<int>();
+      } else {
+        basisSizeN = pairingData["basisSize"];
+        basisSizeP = pairingData["basisSize"];
+      }
       pairingParameters = PairingParameters{
           pairingData["window"],
-          pairingData["additionalStates"],
-          pairingData["additionalStates"],
+          basisSizeN - (A - Z),
+          basisSizeP - Z,
           pairingData["V0"],
           pairingData["V0"],
           pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
@@ -85,6 +98,18 @@ InputParser::InputParser(std::string inputFile) {
     pairingParameters = PairingParameters{0, 0, 0, 0, 0, 0, 0, false};
   }
 
+  multipoleConstraints.clear();
+  if (data.contains("constraints")) {
+
+    auto constraintsJson =
+        data["constraints"].get<std::vector<nlohmann::json>>();
+    for (auto &&constraint : constraintsJson) {
+      multipoleConstraints.push_back(MultipoleConstraintInput(
+          {-1, 10000, constraint["l"], constraint["m"], constraint["target"]}));
+    }
+  }
+
+  // DIIS still not supported!
   useDIIS = data.contains("useDIIS") ? data["useDIIS"].get<bool>() : true;
 
   outputDirectory = data["outputDirectory"];
@@ -103,9 +128,6 @@ InputParser::InputParser(std::string inputFile) {
         data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
   }
   beta3 = data.contains("beta3") ? data["beta3"].get<double>() : 0.0;
-
-  A = data["nucleus"]["A"];
-  Z = data["nucleus"]["Z"];
 
   log.clear();
   nlohmann::json logger =
