@@ -99,6 +99,7 @@ public:
   std::vector<std::string> log;
   double initialBeta;
   double beta3;
+  double densityMix;
   PairingParameters pairingParameters;
   bool useDIIS;
 

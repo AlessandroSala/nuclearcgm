@@ -1,8 +1,8 @@
 #pragma once
-#define EIGEN_USE_BLAS // Dice a Eigen di usare BLAS per certe operazioni (es.
-                       // Matrice*Matrice)
-#define EIGEN_USE_LAPACKE // Dice a Eigen di usare LAPACKE per decomposizioni
-                          // (es. SVD, Eigensolver densi)
+#define EIGEN_USE_BLAS
+
+#define EIGEN_USE_LAPACKE
+
 #include "types.hpp"
 #include <Eigen/StdVector>
 #include <vector>

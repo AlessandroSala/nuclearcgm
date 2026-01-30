@@ -1,6 +1,6 @@
 {
         "gcg": {
-            "maxIter": 1,
+            "maxIter": 2,
             "nev": 0,
             "tol": 0.001,
             "steps": 80,

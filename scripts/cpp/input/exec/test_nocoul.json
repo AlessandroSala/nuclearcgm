@@ -3,11 +3,12 @@
     "outputName": "tensor_test",
     "outputDirectory": "o16",
     "coulombInteraction": false,
-    "maxIterations": 50,
+    "maxIterations": 150,
     "energyTol": 1e-05,
     "initialBeta": 0.1,
+    "densityMix": 0.25,
     "box": {
-        "sideSize": 15.0,
+        "sideSize": 8.0,
         "axisGridPoints": 20
     },
     "nucleus": {
@@ -18,7 +19,7 @@
         "type": "HFB",
         "basisSize": 40,
         "window": 5.0,
-        "V0": 250.0
+        "V0": 200.0
     }
 
 }

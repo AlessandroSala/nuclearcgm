@@ -31,6 +31,8 @@ InputParser::InputParser(std::string inputFile) {
                    ? data["coulombInteraction"].get<bool>()
                    : true;
 
+  densityMix =
+      data.contains("densityMix") ? data["densityMix"].get<double>() : 0.25;
   A = data["nucleus"]["A"];
   Z = data["nucleus"]["Z"];
   std::string interactionName = data["functional"];
@@ -156,16 +158,18 @@ InputParser::InputParser(std::string inputFile) {
 
   interaction = std::make_shared<EDF>(interactionData);
 
+  auto woodsSaxonGCGParameters = GCGParameters{
+      woodsSaxonData["gcg"]["nev"], woodsSaxonData["gcg"]["tol"],
+      woodsSaxonData["gcg"]["maxIter"], woodsSaxonData["gcg"]["steps"],
+      woodsSaxonData["gcg"]["cgTol"]};
+
   HartreeFock hf = {data["maxIterations"], data["energyTol"],
                     GCGParameters{hfData["gcg"]["nev"], hfData["gcg"]["tol"],
                                   hfData["gcg"]["maxIter"],
                                   hfData["gcg"]["steps"],
                                   hfData["gcg"]["cgTol"]}};
-  calculation =
-      Calculation{GCGParameters{hfData["gcg"]["nev"], hfData["gcg"]["tol"],
-                                hfData["gcg"]["maxIter"],
-                                hfData["gcg"]["steps"], hfData["gcg"]["cgTol"]},
-                  hf};
+
+  calculation = Calculation{woodsSaxonGCGParameters, hf};
 
   file.close();
 }

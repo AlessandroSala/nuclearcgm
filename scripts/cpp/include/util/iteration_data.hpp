@@ -17,12 +17,13 @@ typedef struct QuadrupoleDeformation {
 } QuadrupoleDeformation;
 
 typedef struct UV {
-  Eigen::MatrixXd U;
-  Eigen::MatrixXd V;
+  Eigen::MatrixXcd U;
+  Eigen::MatrixXcd V;
   double lambda;
-  Eigen::MatrixXd kappa;
-  Eigen::VectorXd pairingField;
-  Eigen::MatrixXd Delta;
+  Eigen::MatrixXcd kappa;
+  Eigen::VectorXcd pairingField;
+  Eigen::MatrixXcd Delta;
+  double energy;
 } UV;
 typedef struct HFBResult {
   UV uv_n;
@@ -56,16 +57,8 @@ public:
   std::shared_ptr<Eigen::MatrixX3d> BP;
   std::shared_ptr<Eigen::VectorXd> UCoul;
 
-  std::shared_ptr<Eigen::VectorXd> kappa_n;
-  std::shared_ptr<Eigen::VectorXd> kappa_p;
-  Eigen::MatrixXd kappa_matrix_n;
-  Eigen::MatrixXd kappa_matrix_p;
-  Eigen::MatrixXd Delta_matrix_n;
-  Eigen::MatrixXd Delta_matrix_p;
-  Eigen::VectorXd pairingField_n;
-  Eigen::VectorXd pairingField_p;
-  HFBResult HFBResultN;
-  HFBResult HFBResultP;
+  UV HFBResultN;
+  UV HFBResultP;
   double oldLambdaN;
   double oldLambdaP;
 

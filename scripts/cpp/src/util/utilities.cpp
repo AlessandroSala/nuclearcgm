@@ -27,7 +27,7 @@ Utilities::solve(const ComplexSparseMatrix &matrix,
                  const Eigen::MatrixXcd &guess) {
   return gcgm_complex_no_B_lock(matrix, guess, ConjDir, guess.cols(), 0.0,
                                 calc.maxIter, calc.tol, calc.steps,
-                                (calc.cgTol), false);
+                                (calc.cgTol), true);
 }
 
 std::pair<Eigen::MatrixXcd, Eigen::VectorXd>
