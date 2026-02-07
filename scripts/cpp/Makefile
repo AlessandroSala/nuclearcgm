@@ -1,10 +1,14 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -fopenmp -O3 -march=native -DNDEBUG -I /usr/include/eigen3 -lopenblas -llapack -I include
+
+CXXFLAGS = -Wall -std=c++17 -O3 -march=native -DNDEBUG -fopenmp \
+           -I include -I /usr/include/eigen3 -MMD -MP
+
+LDFLAGS  = -fopenmp
+LDLIBS   = -lopenblas -llapack
 
 SRC_DIR = src
-INCLUDE_DIR = include
 BUILD_DIR = build
-BIN = out.o
+BIN = out
 
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
@@ -12,7 +16,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
 all: $(BIN)
 
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
@@ -21,4 +25,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 clean:
 	rm -rf $(BUILD_DIR) $(BIN)
 
+-include $(OBJS:.o=.d)
+
 .PHONY: all clean
+

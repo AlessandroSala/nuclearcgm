@@ -363,7 +363,9 @@ void normalize(Eigen::MatrixXcd &psi, const Grid &grid) {
 
   for (int c = 0; c < psi.cols(); ++c) {
     Eigen::VectorXd density = Wavefunction::density(psi.col(c), grid);
-    psi.col(c) /= sqrt(density.sum() * pow(grid.get_h(), 3));
+    auto integral =
+        Operators::integral(Wavefunction::density(psi.col(c), grid), grid);
+    psi.col(c) /= sqrt(integral);
   }
 }
 

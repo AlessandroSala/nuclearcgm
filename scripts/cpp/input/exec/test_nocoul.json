@@ -2,24 +2,23 @@
     "functional": "SLy5",
     "outputName": "tensor_test",
     "outputDirectory": "o16",
-    "coulombInteraction": false,
+    "coulombInteraction": true,
     "maxIterations": 150,
     "energyTol": 1e-05,
-    "initialBeta": 0.1,
-    "densityMix": 0.25,
+    "initialBeta": 0.0,
     "box": {
-        "sideSize": 8.0,
-        "axisGridPoints": 20
+        "sideSize": 10.0,
+        "axisGridPoints": 40
     },
     "nucleus": {
         "A": 44,
-        "Z": 22
+        "Z": 20
     },
     "pairing": {
         "type": "HFB",
-        "basisSize": 40,
+        "basisSize": 50,
         "window": 5.0,
-        "V0": 200.0
+        "V0": 300.0
     }
 
 }

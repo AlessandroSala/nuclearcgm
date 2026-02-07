@@ -4,9 +4,10 @@
 #include <Eigen/Eigenvalues>
 #include <Eigen/IterativeLinearSolvers>
 #include <Eigen/Sparse>
-#include <cmath>
 #include <omp.h>
 #include <utility>
+
+typedef enum EigenpairsOrdering { MATCH_PREVIOUS, ASCENDING_ENERGIES } ord;
 
 double f_constrained(const Eigen::VectorXd &x, const Eigen::VectorXd &Ax);
 Eigen::VectorXd g_constrained(const Eigen::VectorXd &x,
@@ -42,4 +43,5 @@ gcgm_complex_no_B(const ComplexSparseMatrix &A,
 std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
     const ComplexSparseMatrix &A, const ComplexDenseMatrix &X_initial,
     const ComplexDenseMatrix &ConjDir, int nev, double shift, int max_iter,
-    double tolerance, int cg_steps, double cg_tol, bool benchmark);
+    double tolerance, int cg_steps, double cg_tol, bool benchmark,
+    EigenpairsOrdering ordering);

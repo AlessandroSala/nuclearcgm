@@ -643,7 +643,8 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
     const ComplexSparseMatrix &A, const ComplexDenseMatrix &X_initial,
     const ComplexDenseMatrix &ConjDir, int nev, double shift = 0.0,
     int max_iter = 100, double tolerance = 1e-8, int cg_steps = 10,
-    double cg_tol = 1e-9, bool benchmark = false) {
+    double cg_tol = 1e-9, bool benchmark = false,
+    EigenpairsOrdering ordering = EigenpairsOrdering::MATCH_PREVIOUS) {
 
   auto start_total = Clock::now();
   auto start_op = Clock::now();
@@ -822,11 +823,6 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
       X.col(i) = X_new_full.col(next_active_indices[i]);
       Lambda(i) = Lambda_new(next_active_indices[i]);
     }
-
-    ComplexDenseMatrix C_active(C.rows(), next_active_indices.size());
-    for (size_t i = 0; i < next_active_indices.size(); ++i) {
-      C_active.col(i) = C.col(next_active_indices[i]);
-    }
   }
 
   if (benchmark)
@@ -859,20 +855,105 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
         Lambda.head(num_active_to_take);
   }
 
-  std::vector<int> indices(nev);
-  std::iota(indices.begin(), indices.end(), 0);
-
-  std::sort(indices.begin(), indices.end(),
-            [&](int i, int j) { return final_lambda(i) < final_lambda(j); });
-
+  ComplexDenseMatrix sorted_X(n, nev);
   DenseVector sorted_lambda(nev);
-  ComplexDenseMatrix sorted_X(final_X.rows(), final_X.cols());
 
-  for (int k = 0; k < nev; ++k) {
-    sorted_lambda(k) = final_lambda(indices[k]);
-    sorted_X.col(k) = final_X.col(indices[k]);
+  if (ordering == EigenpairsOrdering::MATCH_PREVIOUS) {
+
+    Eigen::MatrixXd overlap_matrix(nev, nev);
+    Eigen::MatrixXcd complex_overlaps(nev, nev); // Keep phases for later
+
+    for (int i = 0; i < nev; ++i) {
+      for (int k = 0; k < nev; ++k) {
+        std::complex<double> ov = X_initial.col(i).dot(final_X.col(k));
+        complex_overlaps(i, k) = ov;
+        overlap_matrix(i, k) = std::abs(ov);
+      }
+    }
+
+    std::vector<bool> assigned_source(nev, false);
+    std::vector<bool> assigned_target(nev, false);
+
+    for (int count = 0; count < nev; ++count) {
+      double max_val = -1.0;
+      int best_target = -1; // Index in X_initial
+      int best_source = -1; // Index in final_X
+
+      for (int i = 0; i < nev; ++i) {
+        if (assigned_target[i])
+          continue;
+        for (int k = 0; k < nev; ++k) {
+          if (assigned_source[k])
+            continue;
+          if (overlap_matrix(i, k) > max_val) {
+            max_val = overlap_matrix(i, k);
+            best_target = i;
+            best_source = k;
+          }
+        }
+      }
+
+      if (best_target != -1 && best_source != -1) {
+        std::complex<double> ov = complex_overlaps(best_target, best_source);
+        std::complex<double> phase =
+            (std::abs(ov) > 1e-12) ? (ov / std::abs(ov)) : 1.0;
+
+        sorted_X.col(best_target) = final_X.col(best_source) * phase;
+        sorted_lambda(best_target) = final_lambda(best_source);
+
+        assigned_target[best_target] = true;
+        assigned_source[best_source] = true;
+      } else {
+        for (int i = 0; i < nev; ++i)
+          if (!assigned_target[i]) {
+            for (int k = 0; k < nev; ++k)
+              if (!assigned_source[k]) {
+                sorted_X.col(i) = final_X.col(k);
+                sorted_lambda(i) = final_lambda(k);
+                assigned_target[i] = true;
+                assigned_source[k] = true;
+                break;
+              }
+          }
+      }
+    }
+  } else {
+    int num_converged_final = X0.cols();
+    int num_needed_from_active = nev - num_converged_final;
+    int num_active_to_take = std::min((int)X.cols(), num_needed_from_active);
+    ComplexDenseMatrix final_X = ComplexDenseMatrix::Zero(n, nev);
+
+    final_X.leftCols(num_converged_final) = X0;
+
+    if (num_active_to_take > 0) {
+
+      final_X.block(0, num_converged_final, n, num_active_to_take) =
+
+          X.leftCols(num_active_to_take);
+    }
+
+    DenseVector final_lambda = DenseVector::Zero(nev);
+
+    for (int i = 0; i < num_converged_final; ++i) {
+      final_lambda(i) = (X0.col(i).adjoint() * A * X0.col(i)).value().real();
+    }
+
+    if (num_active_to_take > 0) {
+      final_lambda.segment(num_converged_final, num_active_to_take) =
+          Lambda.head(num_active_to_take);
+    }
+
+    std::vector<int> indices(nev);
+    std::iota(indices.begin(), indices.end(), 0);
+    std::sort(indices.begin(), indices.end(),
+              [&](int i, int j) { return final_lambda(i) < final_lambda(j); });
+
+    for (int k = 0; k < nev; ++k) {
+      sorted_lambda(k) = final_lambda(indices[k]);
+      sorted_X.col(k) = final_X.col(indices[k]);
+    }
   }
+  std::cout << sorted_lambda.transpose() << std::endl;
 
-  std::cout << "Eigenvalues: " << sorted_lambda.transpose() << std::endl;
   return {sorted_X, sorted_lambda};
 }

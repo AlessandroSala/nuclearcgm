@@ -4,18 +4,13 @@
 #include "input_parser.hpp"
 #include "kinetic/local_kinetic_potential.hpp"
 #include "kinetic/non_local_kinetic_potential.hpp"
-#include "operators/integral_operators.hpp"
 #include "skyrme/local_coulomb_potential.hpp"
 #include "skyrme/skyrme_so.hpp"
 #include "skyrme/skyrme_u.hpp"
 #include "solver.hpp"
-#include "util/wavefunction.hpp"
 #include <Eigen/Dense>
-#include <algorithm>
 #include <cassert>
 #include <complex>
-#include <iostream>
-#include <numeric>
 #include <vector>
 
 using namespace Eigen;
@@ -25,9 +20,9 @@ std::pair<Eigen::MatrixXcd, Eigen::VectorXd>
 Utilities::solve(const ComplexSparseMatrix &matrix,
                  const ComplexDenseMatrix &ConjDir, GCGParameters &calc,
                  const Eigen::MatrixXcd &guess) {
-  return gcgm_complex_no_B_lock(matrix, guess, ConjDir, guess.cols(), 0.0,
-                                calc.maxIter, calc.tol, calc.steps,
-                                (calc.cgTol), true);
+  return gcgm_complex_no_B_lock(
+      matrix, guess, ConjDir, guess.cols(), 0.0, calc.maxIter, calc.tol,
+      calc.steps, (calc.cgTol), true, EigenpairsOrdering::ASCENDING_ENERGIES);
 }
 
 std::pair<Eigen::MatrixXcd, Eigen::VectorXd>
@@ -35,7 +30,8 @@ Utilities::solve(const ComplexSparseMatrix &matrix,
                  const ComplexDenseMatrix &ConjDir, GCGParameters &calc,
                  const Eigen::MatrixXcd &guess, int nev) {
   return gcgm_complex_no_B_lock(matrix, guess, ConjDir, nev, 0.0, calc.maxIter,
-                                calc.tol, calc.steps, (calc.cgTol), false);
+                                calc.tol, calc.steps, (calc.cgTol), false,
+                                EigenpairsOrdering::MATCH_PREVIOUS);
 }
 
 void Utilities::skyrmeHamiltonian(std::vector<std::shared_ptr<Potential>> &pots,

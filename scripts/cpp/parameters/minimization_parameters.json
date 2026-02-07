@@ -2,8 +2,8 @@
         "gcg": {
             "maxIter": 2,
             "nev": 0,
-            "tol": 0.001,
+            "tol": 0.000001,
             "steps": 80,
-            "cgTol": 0.001
+            "cgTol": 0.000001
         }
 }
