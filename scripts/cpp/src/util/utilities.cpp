@@ -31,7 +31,7 @@ Utilities::solve(const ComplexSparseMatrix &matrix,
                  const Eigen::MatrixXcd &guess, int nev) {
   return gcgm_complex_no_B_lock(matrix, guess, ConjDir, nev, 0.0, calc.maxIter,
                                 calc.tol, calc.steps, (calc.cgTol), false,
-                                EigenpairsOrdering::MATCH_PREVIOUS);
+                                EigenpairsOrdering::ASCENDING_ENERGIES);
 }
 
 void Utilities::skyrmeHamiltonian(std::vector<std::shared_ptr<Potential>> &pots,

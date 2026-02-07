@@ -398,6 +398,7 @@ Eigen::VectorXcd kappa_field(const Eigen::MatrixXcd &phi,
           }
       kappa_complex += tmp_vec * kappa_matrix(a, b);
     }
+
   return kappa_complex;
 }
 
@@ -426,7 +427,8 @@ Eigen::MatrixXcd delta_matrix(const Eigen::MatrixXcd &phi,
               int idx = grid.idx(i, j, k, s);
               int idx_other = grid.idx(i, j, k, 1 - s);
               tmp_vec(idxNS) +=
-                  sigma * std::conj(phi.col(a)(idx) * (phi.col(b)(idx_other)));
+                  sigma * std::conj(phi.col(a)(idx) * (phi.col(b)(idx_other))) *
+                  fermi_factors(a) * fermi_factors(b);
             }
           }
       tmp_vec = tmp_vec.array() * kappa_r.array();

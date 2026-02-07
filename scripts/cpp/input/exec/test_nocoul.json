@@ -8,7 +8,7 @@
     "initialBeta": 0.0,
     "box": {
         "sideSize": 10.0,
-        "axisGridPoints": 40
+        "axisGridPoints": 30
     },
     "nucleus": {
         "A": 44,
