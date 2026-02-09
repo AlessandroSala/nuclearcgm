@@ -5,10 +5,10 @@
     "coulombInteraction": true,
     "maxIterations": 150,
     "energyTol": 1e-05,
-    "initialBeta": 0.0,
+    "initialBeta": 0.1,
     "box": {
         "sideSize": 10.0,
-        "axisGridPoints": 30
+        "axisGridPoints": 20
     },
     "nucleus": {
         "A": 44,
