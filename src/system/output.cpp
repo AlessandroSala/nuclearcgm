@@ -6,6 +6,7 @@
 #include "util/wavefunction.hpp"
 #include <fstream>
 #include <iostream>
+#include <omp.h>
 
 #include <Eigen/Dense>
 #include <algorithm>
@@ -84,6 +85,7 @@ double Output::x2(IterationData *data, const Grid &grid, char dir) {
 Output::Output() : Output("output") {}
 Output::Output(std::string folder_) : folder(folder_) {
   namespace fs = std::filesystem;
+  fs::create_directory("output");
   fs::create_directory(folder);
 }
 void Output::matrixToFile(std::string path, Eigen::MatrixXd matrix) {
@@ -114,6 +116,11 @@ void Output::shellsToFile(
 
   std::cout << "> Writing to " << folder << std::endl;
 
+#pragma omp parallel
+  {
+#pragma omp single
+    file << "Threads used: " << omp_get_num_threads() << std::endl;
+  }
   file << "=== BOX ===" << std::endl;
   auto a = grid.get_a();
   file << "Size: [-" << a << ", " << a << "]" << " fm " << std::endl;
