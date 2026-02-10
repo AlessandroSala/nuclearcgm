@@ -1,0 +1,23 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++17",
+      "-fopenmp",
+      "-O3",
+      "-march=native",
+      "-DNDEBUG",
+      "-I",
+      "/usr/include/eigen3",
+      "-I",
+      "include",
+      "-c",
+      "-o",
+      "build/solver/solver.o",
+      "src/solver/solver.cpp"
+    ],
+    "directory": "/home/ale/dev/nuclearcgm/scripts/cpp",
+    "file": "/home/ale/dev/nuclearcgm/scripts/cpp/src/solver/solver.cpp",
+    "output": "/home/ale/dev/nuclearcgm/scripts/cpp/build/solver/solver.o"
+  }
+]

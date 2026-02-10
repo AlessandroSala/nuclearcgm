@@ -1,0 +1,29 @@
+{
+    "functional": "SLy5",
+    "outputName": "test_output",
+    "outputDirectory": "test_directory",
+    "maxIterations": 250,
+    "energyTol": 1e-05,
+    "box": {
+        "sideSize": 9.0,
+        "axisGridPoints": 10
+    },
+    "nucleus": {
+        "A": 16,
+        "Z": 8
+    },
+    "multipoleConstraints": [
+      {
+        "l": 3,
+        "m": 0,
+        "target": 1.0,
+        "iterStart": 0, // optional
+        "iterEnd": 10, // optional
+      },
+      {
+        "l": 3,
+        "m": 2,
+        "target": 1.0
+      }
+    ]
+}

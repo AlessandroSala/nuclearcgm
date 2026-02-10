@@ -1,0 +1,50 @@
+{
+    "pairing": false,
+    "coulomb": false,
+    "Jterms": false,
+    "spinOrbit": false,
+    "COMCorrection": true,
+    "additional": 0,
+    "outputName": "run_500",
+    "outputDirectory": "test",
+    "calculation": "sp",
+    "output_lmax": 2,
+    "box": {
+        "size": 9.0,
+        "n": 500
+    },
+    "interaction": "SLy5",
+    "hf": {
+        "cycles": 70,
+        "energyTol": 0.0001,
+        "gcg": {
+            "maxIter": 14,
+            "nev": 0,
+            "tol": 0.005,
+            "steps": 30,
+            "cgTol": 1e-07
+        }
+    },
+    "gcg": {
+        "maxIter": 40,
+        "nev": 10,
+        "tol": 1e-07,
+        "cgTol": 1e-07,
+        "steps": 50
+    },
+    "nucleus": {
+        "A": 16,
+        "Z": 8
+    },
+    "woods_saxon": {
+        "V0": 55.5,
+        "r0": 1.21,
+        "diffusivity": 0.67,
+        "spin_orbit": {
+            "V0": 55.5,
+            "r0": 1.21,
+            "R": 1.21
+        },
+        "kappa": 0.86
+    }
+}

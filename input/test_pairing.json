@@ -1,0 +1,64 @@
+{
+    "interaction": "SKMstar",
+    "coulomb": true,
+    "Jterms": true,
+    "spinOrbit": true,
+    "COMCorrection": true,
+    "outputName": "test",
+    "outputDirectory": "test_curve",
+    "deformation": {
+      "start": 0.4,
+      "end": 0.6,
+      "step": 0.04
+    },
+    "box": {
+        "size": 9.0,
+        "n": 20
+    },
+    "nucleus": {
+        "A": 24,
+        "Z": 12
+    },
+    "pairing": {
+        "alpha": 0.0,
+        "window": 5.0,
+        "additionalStates": 4,
+        "V0N": 300.0,
+        "V0P": 300.0
+    },
+    "log": [
+        "tot_energies",
+        "hf_energies",
+        "multipoles_2",
+        "density"
+    ],
+    "hf": {
+        "cycles": 100,
+        "energyTol": 1e-05,
+        "gcg": {
+            "maxIter": 1,
+            "nev": 0,
+            "tol": 0.001,
+            "steps": 80,
+            "cgTol": 0.001
+        }
+    },
+    "gcg": {
+        "maxIter": 10,
+        "nev": 10,
+        "tol": 1e-05,
+        "cgTol": 1e-07,
+        "steps": 40
+    },
+    "woods_saxon": {
+        "V0": 55.5,
+        "r0": 1.20,
+        "diffusivity": 0.67,
+        "spin_orbit": {
+            "V0": 55.5,
+            "r0": 1.20,
+            "R": 1.20
+        },
+        "kappa": 0.86
+    }
+}
