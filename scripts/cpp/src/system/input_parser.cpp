@@ -51,20 +51,44 @@ InputParser::InputParser(std::string inputFile) {
     }
 
     if (pairingData.contains("neutron")) {
-      pairingParameters = PairingParameters{
-          pairingData["window"],
+      pairingN = PairingParameters{
+          pairingData["neutron"]["window"],
           pairingData["neutron"]["basisSize"].get<int>() - (A - Z),
-          pairingData["proton"]["basisSize"].get<int>() - Z,
           pairingData["neutron"]["V0"],
-          pairingData["proton"]["V0"],
-          pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
-                                        : 0.0,
-          pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
-          pairingData.contains("windowBoth")
-              ? pairingData["windowBoth"].get<bool>()
+          pairingData["neutron"].contains("alpha")
+              ? pairingData["neutron"]["alpha"].get<double>()
+              : 0.0,
+          pairingData["neutron"].contains("eta")
+              ? pairingData["neutron"]["eta"].get<double>()
+              : 0.0,
+          pairingData["neutron"].contains("windowBoth")
+              ? pairingData["neutron"]["windowBoth"].get<bool>()
               : true,
-      };
-    } else {
+          true};
+      if (!pairingData.contains("proton")) {
+        pairingP = PairingParameters{0, 0, 0.0, 0.0, 0.0, false, false};
+      }
+    }
+    if (pairingData.contains("proton")) {
+      pairingP = PairingParameters{
+          pairingData["proton"]["window"],
+          pairingData["proton"]["basisSize"].get<int>() - (A - Z),
+          pairingData["proton"]["V0"],
+          pairingData["proton"].contains("alpha")
+              ? pairingData["proton"]["alpha"].get<double>()
+              : 0.0,
+          pairingData["proton"].contains("eta")
+              ? pairingData["proton"]["eta"].get<double>()
+              : 0.0,
+          pairingData["proton"].contains("windowBoth")
+              ? pairingData["proton"]["windowBoth"].get<bool>()
+              : true,
+          true};
+      if (!pairingData.contains("neutron")) {
+        pairingN = PairingParameters{0, 0, 0.0, 0.0, 0.0, false, false};
+      }
+    }
+    if (!pairingData.contains("neutron") && !pairingData.contains("proton")) {
       int basisSizeN, basisSizeP;
       if (pairingData.contains("basisSizeN")) {
         basisSizeN = pairingData["basisSizeN"].get<int>();
@@ -73,31 +97,34 @@ InputParser::InputParser(std::string inputFile) {
         basisSizeN = pairingData["basisSize"];
         basisSizeP = pairingData["basisSize"];
       }
-      pairingParameters = PairingParameters{
+      pairingP = PairingParameters{
           pairingData["window"],
-          basisSizeN - (A - Z),
           basisSizeP - Z,
-          pairingData["V0"],
           pairingData["V0"],
           pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
                                         : 0.0,
           pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
           pairingData.contains("windowBoth")
               ? pairingData["windowBoth"].get<bool>()
-              : false,
-      };
+              : true,
+          true};
+      pairingN = PairingParameters{
+          pairingData["window"],
+          basisSizeN - (A - Z),
+          pairingData["V0"],
+          pairingData.contains("alpha") ? pairingData["alpha"].get<double>()
+                                        : 0.0,
+          pairingData.contains("eta") ? pairingData["eta"].get<double>() : 0.0,
+          pairingData.contains("windowBoth")
+              ? pairingData["windowBoth"].get<bool>()
+              : true,
+          true};
     }
-
-    std::cout << "Pairing parameters: " << pairingParameters.window << ", "
-              << pairingParameters.additionalStatesN << ", "
-              << pairingParameters.additionalStatesP << ", "
-              << pairingParameters.V0N << ", " << pairingParameters.V0P << ", "
-              << pairingParameters.alpha << ", " << pairingParameters.eta
-              << ", " << pairingParameters.windowBoth << ", ";
 
   } else {
     pairingType = PairingType::none;
-    pairingParameters = PairingParameters{0, 0, 0, 0, 0, 0, 0, false};
+    pairingN = PairingParameters{0, 0, 0, 0, 0, false, false};
+    pairingP = PairingParameters{0, 0, 0, 0, 0, false, false};
   }
 
   multipoleConstraints.clear();

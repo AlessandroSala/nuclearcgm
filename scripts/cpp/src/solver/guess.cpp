@@ -33,7 +33,6 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
     return Hn;
   };
 
-  // Normalized 1D HO wavefunction
   auto ho_1d = [omega, &hermite](int order, double x) {
     double xi = x / omega;
     double norm = 1.0 / (std::sqrt((1u << order) * std::tgamma(order + 1) *
@@ -151,13 +150,13 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
       }
     }
 
-    std::cout << "=== HO states ===" << std::endl;
-    std::cout << std::setw(5) << "STATE" << "   " << std::setw(2) << "nr"
-              << "   " << std::setw(2) << "l" << "   " << std::setw(3) << "j"
-              << "   " << std::setw(4) << "mj" << "   " << std::setw(5)
-              << "ml_up" << "   " << std::setw(7) << "ml_down" << "   "
-              << std::setw(7) << "have_up" << "   " << std::setw(9)
-              << "have_down" << "\n";
+    // std::cout << "=== HO states ===" << std::endl;
+    // std::cout << std::setw(5) << "STATE" << "   " << std::setw(2) << "nr"
+    //           << "   " << std::setw(2) << "l" << "   " << std::setw(3) << "j"
+    //           << "   " << std::setw(4) << "mj" << "   " << std::setw(5)
+    //           << "ml_up" << "   " << std::setw(7) << "ml_down" << "   "
+    //           << std::setw(7) << "have_up" << "   " << std::setw(9)
+    //           << "have_down" << "\n";
     for (size_t idx = 0; idx < orbitals.size(); ++idx) {
       int nr, l, j2, mj2;
       std::tie(nr, l, j2, mj2) = orbitals[idx];
@@ -171,11 +170,13 @@ ComplexDenseMatrix harmonic_oscillator_guess(const Grid &grid, int nev,
       bool have_up = (std::abs(ml_up) <= l);
       bool have_down = (std::abs(ml_down) <= l);
 
-      std::cout << std::setw(5) << idx << "   " << std::setw(2) << nr << "   "
-                << std::setw(2) << l << "   " << std::setw(3) << j << "   "
-                << std::setw(4) << mj << "   " << std::setw(5) << ml_up << "   "
-                << std::setw(7) << ml_down << "   " << std::setw(7) << have_up
-                << "   " << std::setw(9) << have_down << "\n";
+      // std::cout << std::setw(5) << idx << "   " << std::setw(2) << nr << " "
+      //           << std::setw(2) << l << "   " << std::setw(3) << j << "   "
+      //           << std::setw(4) << mj << "   " << std::setw(5) << ml_up << "
+      //           "
+      //           << std::setw(7) << ml_down << "   " << std::setw(7) <<
+      //           have_up
+      //           << "   " << std::setw(9) << have_down << "\n";
     }
     for (int state_index = 0;
          state_index < static_cast<int>(orbitals.size()) && state_index < nev;

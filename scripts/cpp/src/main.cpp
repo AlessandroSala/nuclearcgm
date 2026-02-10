@@ -60,8 +60,8 @@ int main(int argc, char **argv) {
     int Z = input.getZ();
     int N = A - Z;
 
-    int orbitalsN = N + input.pairingParameters.additionalStatesN;
-    int orbitalsP = Z + input.pairingParameters.additionalStatesP;
+    int orbitalsN = N + input.pairingN.additionalStates;
+    int orbitalsP = Z + input.pairingP.additionalStates;
 
     auto WS = input.getWS();
     auto WSSO = input.getWSSO();
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     std::pair<ComplexDenseMatrix, DenseVector> eigenpair;
     vector<shared_ptr<Potential>> pots;
 
-    std::cout << "Initial beta2: " << input.initialBeta << std::endl;
+    std::cout << std::endl;
     Radius radius(input.initialBeta, WS.r0, A);
 
     pots.push_back(make_shared<DeformedWoodsSaxonPotential>(
@@ -196,8 +196,8 @@ int main(int argc, char **argv) {
                               constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
 
-        cout << "=== HF iteration: " << hfIter << " ===" << endl;
-        cout << "Neutrons ";
+        cout << endl;
+        cout << "======= Iteration: " << hfIter << " =======" << endl;
 
         vector<shared_ptr<Potential>> pots;
         auto dataPtr = make_shared<IterationData>(data);
@@ -216,7 +216,6 @@ int main(int argc, char **argv) {
           pots.clear();
           skyrmeHamiltonian(pots, input, NucleonType::P, dataPtr);
 
-          std::cout << "Protons ";
           Hamiltonian skyrmeHam(make_shared<Grid>(grid), pots);
 
           hP = skyrmeHam.buildMatrix();
@@ -261,7 +260,7 @@ int main(int argc, char **argv) {
           ConjDirP.colwise().normalize();
         }
 
-        if (hfIter > 0 && true) {
+        if (hfIter > 0 && false) {
 
           auto dispersionN =
               Utilities::computeDispersion(hN, newNeutronsEigenpair.first);
@@ -296,23 +295,18 @@ int main(int argc, char **argv) {
         std::cout << std::endl;
         HFEnergies.push_back(newHFEnergy);
 
-        std::cout << "Energy diff: relative: "
-                  << std::abs((newIntegralEnergy - integralEnergy) /
-                              newIntegralEnergy)
-                  << ", absolute: "
-                  << std::abs(newIntegralEnergy - integralEnergy) << std::endl;
-        enErrors.push_back((newIntegralEnergy - integralEnergy));
-        for (auto &e : enErrors) {
-          std::cout << e << ", ";
-        }
-        std::cout << std::endl;
+        double e_int_diff = std::abs(newIntegralEnergy - integralEnergy);
+        double e_int_diff_rel = e_int_diff / newIntegralEnergy;
+        std::cout << "ED diff (rel): " << e_int_diff_rel
+                  << " (abs): " << e_int_diff << std::endl;
         std::cout << "Max SP energy diff: " << maxSPEDiff << std::endl;
+        enErrors.push_back((newIntegralEnergy - integralEnergy));
         double maxDiff = 0.0;
 
-        if (abs(newIntegralEnergy - integralEnergy) <
-                input.getCalculation().hf.energyTol &&
-            abs(newHFEnergy - HFEnergy) < input.getCalculation().hf.energyTol &&
-            constraintsConv) {
+        double tol = input.getCalculation().hf.energyTol;
+        if (abs(newIntegralEnergy - integralEnergy) < tol &&
+            abs(newHFEnergy - HFEnergy) < tol && constraintsConv &&
+            maxSPEDiff < tol) {
           break;
         }
         data.energyDiff = std::abs(newHFEnergy - HFEnergy);

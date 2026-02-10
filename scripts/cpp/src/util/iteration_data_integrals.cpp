@@ -5,7 +5,35 @@
 #include "spherical_harmonics.hpp"
 #include "util/iteration_data.hpp"
 #include <cmath>
-#include <iostream>
+
+double IterationData::EpairP() {
+  if (!input.pairing) {
+    return 0.0;
+  }
+  if (!input.pairingP.active)
+    return 0.0;
+  if (input.pairingType == PairingType::hfb) {
+    return HFBResultP.energy;
+  }
+  if (input.pairingType == PairingType::bcs) {
+    return bcsP.Epair;
+  }
+  return 0.0;
+}
+double IterationData::EpairN() {
+  if (!input.pairing) {
+    return 0.0;
+  }
+  if (!input.pairingN.active)
+    return 0.0;
+  if (input.pairingType == PairingType::hfb) {
+    return HFBResultN.energy;
+  }
+  if (input.pairingType == PairingType::bcs) {
+    return bcsN.Epair;
+  }
+  return 0.0;
+}
 
 double IterationData::betaRealRadius() {
 

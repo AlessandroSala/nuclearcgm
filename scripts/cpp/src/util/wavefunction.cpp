@@ -447,10 +447,6 @@ Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
               chiPsi(0) = psi(idx, col);
               chiPsi(1) = psi(idx + 1, col);
               auto prod = pauli[nu] * chi;
-              if (std::norm(chiPsi.dot(prod)) > 1e20) {
-                std::cout << "Anomaly " << std::endl;
-                std::cout << "Chi: " << chi << std::endl;
-              }
 
               J(grid.idxNoSpin(i, j, k), mu * 3 + nu) +=
                   chiPsi(0).real() * prod(0).imag() -

@@ -100,6 +100,17 @@ public:
                   const std::vector<std::unique_ptr<Constraint>> &constraints);
   double Erear();
 
+  double EpairN();
+  double EpairP();
+
+  double fermiEnergyN();
+  double fermiEnergyP();
+
+  Eigen::MatrixXcd protonsFromPairing(const Eigen::MatrixXcd &phi);
+  Eigen::MatrixXcd neutronsFromPairing(const Eigen::MatrixXcd &phi);
+  Eigen::MatrixXcd protonsFromBCS(const Eigen::MatrixXcd &phi);
+  Eigen::MatrixXcd neutronsFromBCS(const Eigen::MatrixXcd &phi);
+
   double C0RhoEnergy();
   double C1RhoEnergy();
 

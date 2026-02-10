@@ -219,6 +219,10 @@ void Output::shellsToFile(
   file << "C1 J2: " << iterationData->C1J2Energy() << " MeV" << std::endl;
   file << "E coulomb direct: " << iterationData->CoulombDirectEnergy(grid)
        << " MeV" << std::endl;
+  file << "E pairing neutrons: " << iterationData->EpairN() << " MeV"
+       << std::endl;
+  file << "E pairing protons: " << iterationData->EpairP() << " MeV"
+       << std::endl;
   file << "E coulomb exchange: " << iterationData->SlaterCoulombEnergy(grid)
        << " MeV" << std::endl;
 

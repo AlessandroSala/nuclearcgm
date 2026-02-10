@@ -62,13 +62,12 @@ typedef struct {
 
 typedef struct {
   double window;
-  int additionalStatesN;
-  int additionalStatesP;
-  double V0N;
-  double V0P;
+  int additionalStates;
+  double V0;
   double alpha;
   double eta;
   bool windowBoth;
+  bool active;
 } PairingParameters;
 
 /**
@@ -94,13 +93,14 @@ public:
   bool pairing, spinOrbit, COMCorr;
   PairingType pairingType;
   WoodsSaxonParameters getWS();
+
   WSSpinOrbitParameters getWSSO();
   std::string outputDirectory;
   std::vector<std::string> log;
   double initialBeta;
   double beta3;
   double densityMix;
-  PairingParameters pairingParameters;
+  PairingParameters pairingN, pairingP;
   bool useDIIS;
 
   std::vector<MultipoleConstraintInput> multipoleConstraints;

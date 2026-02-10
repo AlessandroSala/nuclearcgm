@@ -51,7 +51,7 @@ MatrixXd compute_G_pairing(const MatrixXcd &phi,
 
       VectorXcd integrand = P_i.conjugate().cwiseProduct(P_j);
 
-      double V0 = t == NucleonType::N ? params.V0N : params.V0P;
+      double V0 = params.V0;
       using Wavefunction::density;
       G_p(p, q) = V0 * Operators::integral(
                            (VectorXd)(density(phi.col(i), grid).array() *
@@ -121,12 +121,10 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
   MatrixXd G = 0.5 * G_pairing;
 
   VectorXd Delta = VectorXd::Constant(num_pairs, initDelta);
-  std::cout << "Old Delta size: " << oldDelta.size()
-            << ", norm: " << oldDelta.norm() << std::endl;
   if (oldDelta.size() == num_pairs && oldDelta.maxCoeff() > 1e-3) {
     Delta = oldDelta;
   } else {
-    std::cout << "Reinitializing Delta" << std::endl;
+    std::cout << "Reinitializing pairing gaps" << std::endl;
   }
   const double window_smoothness = params.window / 10.0;
 
@@ -217,7 +215,6 @@ BCSResult solveBCS(const VectorXd &eps_pairs, const MatrixXd &G_pairing, int A,
     Delta = DeltaMixed;
 
     if (ldiff < PairingPrec && dnorm < tol) {
-      std::cout << "BCS Iterations: " << iter << std::endl;
       break;
     }
   }
@@ -314,8 +311,6 @@ BCSResult BCSiter(const MatrixXcd &phi, const VectorXd &eps, int A,
     }
   }
 
-  std::cout << "Converged Lambda: " << pair_results.lambda
-            << ", Epair: " << pair_results.Epair << std::endl;
   BCSResult final_results = {u2_full,
                              v2_full,
                              Delta_full,

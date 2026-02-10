@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 #include <cassert>
 #include <complex>
+#include <iostream>
 #include <vector>
 
 using namespace Eigen;
@@ -22,7 +23,7 @@ Utilities::solve(const ComplexSparseMatrix &matrix,
                  const Eigen::MatrixXcd &guess) {
   return gcgm_complex_no_B_lock(
       matrix, guess, ConjDir, guess.cols(), 0.0, calc.maxIter, calc.tol,
-      calc.steps, (calc.cgTol), true, EigenpairsOrdering::ASCENDING_ENERGIES);
+      calc.steps, (calc.cgTol), false, EigenpairsOrdering::ASCENDING_ENERGIES);
 }
 
 std::pair<Eigen::MatrixXcd, Eigen::VectorXd>
@@ -32,6 +33,24 @@ Utilities::solve(const ComplexSparseMatrix &matrix,
   return gcgm_complex_no_B_lock(matrix, guess, ConjDir, nev, 0.0, calc.maxIter,
                                 calc.tol, calc.steps, (calc.cgTol), false,
                                 EigenpairsOrdering::ASCENDING_ENERGIES);
+}
+
+void Utilities::printKV(const std::string &key, double value, int widthKey = 18,
+                        int widthVal = 12, int precision = 3,
+                        bool scientific = false) {
+  using std::cout, std::endl;
+  cout << "  " << std::left << std::setw(widthKey) << key << std::right
+       << std::setw(widthVal);
+
+  if (scientific)
+    cout << std::scientific;
+  else
+    cout << std::fixed;
+
+  cout << std::setprecision(precision) << value << endl;
+
+  // reset flags
+  cout.unsetf(std::ios::floatfield);
 }
 
 void Utilities::skyrmeHamiltonian(std::vector<std::shared_ptr<Potential>> &pots,

@@ -953,7 +953,7 @@ std::pair<ComplexDenseMatrix, DenseVector> gcgm_complex_no_B_lock(
       sorted_X.col(k) = final_X.col(indices[k]);
     }
   }
-  std::cout << sorted_lambda.transpose() << std::endl;
+  // std::cout << sorted_lambda.transpose() << std::endl;
 
   return {sorted_X, sorted_lambda};
 }
