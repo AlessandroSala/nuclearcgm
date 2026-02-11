@@ -18,13 +18,13 @@
         "type": "HFB",
         "neutron": {
           "windowBoth": true,
-          "basisSize": 40,
+          "basisSize": 60,
           "window": 5.0,
           "V0": 300.0
         },
         "proton": {
           "windowBoth": true,
-          "basisSize": 40,
+          "basisSize": 60,
           "window": 5.0,
           "V0": 300.0
         }

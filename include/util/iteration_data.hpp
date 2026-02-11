@@ -17,11 +17,11 @@ typedef struct QuadrupoleDeformation {
 } QuadrupoleDeformation;
 
 typedef struct UV {
-  Eigen::MatrixXcd U;
-  Eigen::MatrixXcd V;
+  Eigen::MatrixXd U;
+  Eigen::MatrixXd V;
+  Eigen::MatrixXd kappa;
+  Eigen::VectorXd pairingField;
   double lambda;
-  Eigen::MatrixXcd kappa;
-  Eigen::VectorXcd pairingField;
   double energy;
 } UV;
 typedef struct HFBResult {
@@ -81,6 +81,8 @@ public:
   HFBResult solvePairingHFB(
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
+
+  Eigen::MatrixXcd pairingTensorExpansion(const Eigen::MatrixXcd &phi);
 
   void solvePairingBCS(
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
