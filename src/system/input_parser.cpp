@@ -60,8 +60,10 @@ InputParser::InputParser(std::string inputFile) {
 
     if (pairingData.contains("neutron")) {
       pairingN = PairingParameters{
-          pairingData["neutron"]["window"],
-          pairingData["neutron"]["basisSize"].get<int>() - (A - Z),
+          pairingData["neutron"].contains("window")
+              ? pairingData["neutron"]["window"].get<double>()
+              : 5.0,
+          pairingData["neutron"]["HFbasisSize"].get<int>() - (A - Z),
           pairingData["neutron"]["V0"],
           pairingData["neutron"].contains("alpha")
               ? pairingData["neutron"]["alpha"].get<double>()
@@ -79,8 +81,10 @@ InputParser::InputParser(std::string inputFile) {
     }
     if (pairingData.contains("proton")) {
       pairingP = PairingParameters{
-          pairingData["proton"]["window"],
-          pairingData["proton"]["basisSize"].get<int>() - (A - Z),
+          pairingData["proton"].contains("window")
+              ? pairingData["proton"]["window"].get<double>()
+              : 5.0,
+          pairingData["proton"]["HFbasisSize"].get<int>() - (A - Z),
           pairingData["proton"]["V0"],
           pairingData["proton"].contains("alpha")
               ? pairingData["proton"]["alpha"].get<double>()
@@ -216,7 +220,8 @@ std::string InputParser::getOutputName() { return data["outputName"]; }
 nlohmann::json InputParser::get_json() { return data; }
 
 Grid InputParser::get_grid() {
-  return Grid(data["box"]["axisGridPoints"], data["box"]["sideSize"]);
+  return Grid(data["box"]["axisMeshPoints"],
+              data["box"]["boxSize"].get<double>() / 2.0);
 }
 
 int InputParser::getA() { return A; }

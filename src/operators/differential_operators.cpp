@@ -5,7 +5,7 @@
 Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
                                     const Grid &grid, char dir) {
   Eigen::VectorXd res(grid.get_total_spatial_points());
-#pragma omp parallel for collapse(3)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {
       for (int k = 0; k < grid.get_n(); ++k) {
@@ -28,7 +28,7 @@ Eigen::VectorXcd Operators::dvNoSpin(const Eigen::VectorXcd &psi,
                                      const Grid &grid, char dir) {
   Eigen::VectorXcd res(grid.get_total_spatial_points());
 
-#pragma omp parallel for collapse(3)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {
       for (int k = 0; k < grid.get_n(); ++k) {
@@ -50,7 +50,7 @@ Eigen::VectorXcd Operators::dvNoSpin(const Eigen::VectorXcd &psi,
 Eigen::VectorXcd Operators::dv2(const Eigen::VectorXcd &psi, const Grid &grid,
                                 char dir) {
   Eigen::VectorXcd res(grid.get_total_points());
-#pragma omp parallel for collapse(3)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {
       for (int k = 0; k < grid.get_n(); ++k) {
@@ -67,7 +67,7 @@ Eigen::VectorXcd Operators::dv2(const Eigen::VectorXcd &psi, const Grid &grid,
 Eigen::VectorXd Operators::dv2NoSpin(const Eigen::VectorXd &psi,
                                      const Grid &grid, char dir) {
   Eigen::VectorXd res(grid.get_total_points());
-#pragma omp parallel for collapse(3)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {
       for (int k = 0; k < grid.get_n(); ++k) {
@@ -86,7 +86,7 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd &psi, const Grid &grid,
   // (size 2) and is kept sequential within each parallel iteration for
   // efficiency. The 'res(idx)' write is safe as 'idx' is unique for each
   // (i,j,k,s).
-#pragma omp parallel for collapse(3)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {
       for (int k = 0; k < grid.get_n(); ++k) {

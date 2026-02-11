@@ -618,8 +618,8 @@ HFBResult IterationData::solvePairingHFB(
                              const Eigen::VectorXd &hf_energies, UV &result,
                              double targetNumber, std::string speciesName,
                              PairingParameters params) {
-    double window = 5.0;
-    double smooth = 0.5;
+    double window = params.window;
+    double smooth = params.window / 10.0;
     auto fermi_factor = [&](double e, double lambda) {
       double val = 1.0 / (1.0 + std::exp((e - lambda - window) / smooth));
       val *= 1.0 / (1.0 + std::exp(-(e - lambda + window) / smooth));
@@ -871,7 +871,7 @@ void IterationData::updateQuantities(
   if (input.pairingType == PairingType::hfb) {
 
     if (iter < input.startHFBIter) {
-      std::cout << "> BCS Iteration " << (iter + 1) << "/" << input.startHFBIter
+      std::cout << "> BCS step " << (iter + 1) << "/" << input.startHFBIter
                 << " to seed HFB" << std::endl;
       solvePairingBCS(neutronsPair, protonsPair);
       neutrons = neutronsFromBCS(neutronsPair.first);
