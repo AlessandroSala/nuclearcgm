@@ -10,6 +10,7 @@ namespace Wavefunction {
 Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid);
 
 Eigen::MatrixXcd timeReverse(const Eigen::MatrixXcd &psi);
+Eigen::MatrixXcd TROrder(Eigen::MatrixXcd &psi);
 
 Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid);
 Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rho, const Grid &grid,
@@ -33,8 +34,7 @@ soDensityLagrange(const Eigen::MatrixXcd &psi);
 
 Eigen::VectorXd divJ(const Eigen::MatrixXcd &psi, const Grid &grid);
 void normalize(Eigen::MatrixXcd &psi, const Grid &grid);
-std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::MatrixXcd>
-hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid);
+
 void printShells(std::pair<Eigen::MatrixXcd, Eigen::VectorXd> levels,
                  const Grid &grid);
 void printShellsToFile(std::pair<Eigen::MatrixXcd, Eigen::VectorXd> levels,

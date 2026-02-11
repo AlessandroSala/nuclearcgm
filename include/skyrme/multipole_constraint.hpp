@@ -4,7 +4,7 @@
 
 class MultipoleConstraint : public Constraint {
 public:
-  MultipoleConstraint(double mu20, int l, int m);
+  MultipoleConstraint(double mu20, int l, int m, IterationData *data);
 
   Eigen::VectorXd getField(IterationData *data) override;
 

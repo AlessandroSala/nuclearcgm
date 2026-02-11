@@ -516,75 +516,6 @@ Eigen::VectorXd divJ(const Eigen::MatrixXcd &psi, const Grid &grid) {
   return -W;
 }
 
-std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::MatrixXcd>
-hfVectors(const Eigen::MatrixXcd &psi, const Grid &grid) {
-  using std::complex;
-  Eigen::VectorXd rho(grid.get_total_spatial_points());
-  Eigen::VectorXd tau(grid.get_total_spatial_points());
-  Eigen::MatrixXcd J(grid.get_total_spatial_points(), 3);
-  J.setZero();
-  rho.setZero();
-  tau.setZero();
-  int n = grid.get_n();
-  auto pauli_matrices = nuclearConstants::getPauli();
-
-#pragma omp parallel for collapse(3)
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      for (int k = 0; k < n; ++k) {
-        int rho_idx = grid.idxNoSpin(i, j, k);
-        int psi_idx_s0 = grid.idx(i, j, k, 0);
-        int psi_idx_s1 = grid.idx(i, j, k, 1);
-
-        double point_density = 0.0;
-        complex<double> Jx_point(0.0, 0.0);
-        complex<double> Jy_point(0.0, 0.0);
-        complex<double> Jz_point(0.0, 0.0);
-        for (int col = 0; col < psi.cols(); ++col) {
-          Eigen::Matrix<complex<double>, 2, 3>
-              chiGrad;          // Stores nabla_x chi, nabla_y chi, nabla_z chi
-                                // for spin up/down
-          Eigen::Vector2cd chi; // Spinor for current point and orbital
-          point_density += std::norm(
-              psi(psi_idx_s0, col)); // std::norm(complex) = |complex|^2
-          point_density += std::norm(psi(psi_idx_s1, col));
-          for (int s = 0; s < 2; ++s) {
-            std::complex<double> dx =
-                Operators::derivative(psi.col(col), i, j, k, s, grid, 'x');
-            std::complex<double> dy =
-                Operators::derivative(psi.col(col), i, j, k, s, grid, 'y');
-            std::complex<double> dz =
-                Operators::derivative(psi.col(col), i, j, k, s, grid, 'z');
-            tau(rho_idx) += std::norm(dx) + std::norm(dy) + std::norm(dz);
-            chiGrad(s, 0) = Operators::derivative(psi.col(col), i, j, k, s,
-                                                  grid, 'x'); // d/dx psi_s
-            chiGrad(s, 1) = Operators::derivative(psi.col(col), i, j, k, s,
-                                                  grid, 'y'); // d/dy psi_s
-            chiGrad(s, 2) = Operators::derivative(psi.col(col), i, j, k, s,
-                                                  grid, 'z'); // d/dz psi_s
-
-            chi(s) = psi(grid.idx(i, j, k, s), col);
-          }
-          Jx_point += chi.dot(pauli_matrices[2] * chiGrad.col(1) -
-                              pauli_matrices[1] * chiGrad.col(2));
-          Jy_point += chi.dot(pauli_matrices[0] * chiGrad.col(2) -
-                              pauli_matrices[2] * chiGrad.col(0));
-          Jz_point += chi.dot(pauli_matrices[1] * chiGrad.col(0) -
-                              pauli_matrices[0] * chiGrad.col(1));
-        }
-        J(rho_idx, 0) = Jx_point;
-        J(rho_idx, 1) = Jy_point;
-        J(rho_idx, 2) = Jz_point;
-        rho(rho_idx) = point_density; // Each thread writes to a unique
-                                      // element of rho
-      }
-    }
-  }
-
-  return std::tuple<Eigen::VectorXd, Eigen::VectorXd, Eigen::MatrixXcd>(
-      rho, tau, (-nuclearConstants::img) * J);
-}
-
 std::string pretty(double x) {
   return "" + std::to_string(x * 2).substr(0, 1) + "/2";
 }
@@ -646,5 +577,60 @@ Eigen::MatrixXcd timeReverse(const Eigen::MatrixXcd &psi) {
     }
   }
   return res;
+}
+Eigen::MatrixXcd TROrder(Eigen::MatrixXcd &psi) {
+  int nStates = psi.cols();
+  int rows = psi.rows();
+
+  Eigen::MatrixXcd ord = psi.adjoint() * timeReverse(psi);
+
+  Eigen::MatrixXcd sortedPsi(rows, nStates);
+
+  std::vector<bool> used(nStates, false);
+  std::vector<int> ordering(nStates);
+
+  int currentSlot = 0;
+
+  for (int i = 0; i < nStates; ++i) {
+    if (used[i])
+      continue;
+
+    sortedPsi.col(currentSlot) = psi.col(i);
+    used[i] = true;
+    ordering[currentSlot] = i;
+
+    int best_j = -1;
+    double max_overlap = -1.0;
+
+    for (int j = 0; j < nStates; ++j) {
+      if (used[j])
+        continue;
+
+      double overlap = std::abs(ord(i, j));
+      if (overlap > max_overlap) {
+        max_overlap = std::abs(overlap);
+        best_j = j;
+      }
+    }
+
+    if (best_j != -1) {
+
+      sortedPsi.col(currentSlot + 1) = psi.col(best_j);
+      used[best_j] = true;
+      ordering[currentSlot + 1] = best_j;
+
+    } else {
+      std::cerr << "Error in Kramer pairs ordering: Could not find a TR "
+                   "partner for state "
+                << i << std::endl;
+      return psi;
+    }
+
+    currentSlot += 2;
+    if (currentSlot >= nStates)
+      break;
+  }
+
+  return sortedPsi;
 }
 } // namespace Wavefunction

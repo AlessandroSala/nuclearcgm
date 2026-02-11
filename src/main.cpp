@@ -161,10 +161,11 @@ int main(int argc, char **argv) {
       // constraints.push_back(make_unique<YCMConstraint>(0.0));
       // constraints.push_back(make_unique<ZCMConstraint>(0.0));
       //  constraints.clear();
-      if (input.multipoleConstraints.size() > 0) {
-        for (auto &c : input.multipoleConstraints)
-          constraints.push_back(
-              make_unique<MultipoleConstraint>(c.target, c.l, c.m));
+
+      if (input.constrainCOM) {
+        constraints.push_back(make_unique<XCMConstraint>(0.0));
+        constraints.push_back(make_unique<YCMConstraint>(0.0));
+        constraints.push_back(make_unique<ZCMConstraint>(0.0));
       }
       if ((int)mu20s.size() > 0) {
         if (i == 0) {
@@ -191,7 +192,15 @@ int main(int argc, char **argv) {
       protonSPEDiff.setOnes();
 
       for (hfIter = 0; hfIter < calc.hf.cycles; ++hfIter) {
+        if (hfIter == 1) {
 
+          if (input.multipoleConstraints.size() > 0) {
+            for (auto &c : input.multipoleConstraints) {
+              constraints.push_back(
+                  make_unique<MultipoleConstraint>(c.target, c.l, c.m, &data));
+            }
+          }
+        }
         data.updateQuantities(neutronsEigenpair, protonsEigenpair, hfIter,
                               constraints);
         int maxIterGCGHF = calc.hf.gcg.maxIter;
@@ -243,6 +252,13 @@ int main(int argc, char **argv) {
         Wavefunction::normalize(newNeutronsEigenpair.first, grid);
         Wavefunction::normalize(newProtonsEigenpair.first, grid);
 
+        if (input.pairingType != PairingType::none) {
+          newNeutronsEigenpair.first =
+              Wavefunction::TROrder(newNeutronsEigenpair.first);
+          newProtonsEigenpair.first =
+              Wavefunction::TROrder(newProtonsEigenpair.first);
+        }
+
         if (hfIter > 0) {
           MatrixXcd tmp;
           tmp.noalias() =
@@ -289,8 +305,13 @@ int main(int argc, char **argv) {
           std::cout << "Constraints errors: ";
           for (auto &&constraint : constraints) {
             std::cout << constraint->error() << ", ";
-            constraintsConv = constraintsConv && (constraint->error() < 1e-3);
+            constraintsConv =
+                constraintsConv && (constraint->error() < input.constraintsTol);
           }
+          // std::cout << "Constraints energies: ";
+          // for (auto &&constraint : constraints) {
+          //   std::cout << constraint->evaluate(&data) << ", ";
+          // }
         }
         std::cout << std::endl;
         HFEnergies.push_back(newHFEnergy);

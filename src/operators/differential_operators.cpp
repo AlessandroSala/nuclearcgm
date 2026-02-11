@@ -1,16 +1,10 @@
 #include "operators/differential_operators.hpp"
-#include <iostream>
-#include <omp.h> // Include OpenMP header
+#include <omp.h>
 #include <unsupported/Eigen/CXX11/Tensor>
 
 Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
                                     const Grid &grid, char dir) {
   Eigen::VectorXd res(grid.get_total_spatial_points());
-// Parallelize the outer loops. Each thread will handle a portion of the (i,j,k)
-// iterations. The 'res(idx)' write is safe as 'idx' will be unique for each
-// (i,j,k). collapse(3) treats the three nested loops as a single larger loop
-// for parallelization, which can improve load balancing and reduce overhead if
-// grid.get_n() is large enough.
 #pragma omp parallel for collapse(3)
   for (int i = 0; i < grid.get_n(); ++i) {
     for (int j = 0; j < grid.get_n(); ++j) {

@@ -3,13 +3,16 @@
 #include "spherical_harmonics.hpp"
 #include "util/fields.hpp"
 #include "util/iteration_data.hpp"
-#include <iostream>
 
-MultipoleConstraint::MultipoleConstraint(double target_, int l_, int m_)
-    : C(0.005), lambda(0.0), l(l_), m(m_) {
+MultipoleConstraint::MultipoleConstraint(double target_, int l_, int m_,
+                                         IterationData *data_)
+    : lambda(0.0), l(l_), m(m_) {
 
   value = 0.0;
   target = target_;
+  C = 1.0;
+  double en = evaluate(data_);
+  C = 0.01 / en;
 }
 
 Eigen::VectorXd MultipoleConstraint::getField(IterationData *data) {

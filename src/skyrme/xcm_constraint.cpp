@@ -10,6 +10,7 @@ XCMConstraint::XCMConstraint(double mu20)
   value = 0.0;
   residuals.clear();
 }
+double XCMConstraint::error() const { return 0.0; }
 Eigen::VectorXd XCMConstraint::getField(IterationData *data) {
   using Eigen::VectorXd;
   using Operators::integral;

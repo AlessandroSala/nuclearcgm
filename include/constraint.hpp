@@ -4,7 +4,7 @@
 class Constraint : public FunctionalTerm {
 public:
   double evaluate(IterationData *data) const override;
-  double error() const;
+  virtual double error() const;
   virtual Eigen::VectorXd getField(IterationData *data);
   virtual ~Constraint() = default;
 

@@ -33,6 +33,11 @@ InputParser::InputParser(std::string inputFile) {
 
   startHFBIter =
       data.contains("startHFBIter") ? data["startHFBIter"].get<int>() : 3;
+  constrainCOM =
+      data.contains("constrainCOM") ? data["constrainCOM"].get<bool>() : false;
+  constraintsTol = data.contains("constraintsTol")
+                       ? data["constraintsTol"].get<double>()
+                       : 1e-3;
 
   densityMix =
       data.contains("densityMix") ? data["densityMix"].get<double>() : 0.25;

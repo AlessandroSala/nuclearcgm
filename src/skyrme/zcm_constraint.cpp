@@ -10,6 +10,7 @@ ZCMConstraint::ZCMConstraint(double mu20)
   value = 0.0;
   residuals.clear();
 }
+double ZCMConstraint::error() const { return 0.0; }
 Eigen::VectorXd ZCMConstraint::getField(IterationData *data) {
   using Eigen::VectorXd;
   using Operators::integral;
@@ -34,7 +35,7 @@ Eigen::VectorXd ZCMConstraint::getField(IterationData *data) {
   // std::cout << "mu20: " << mu20 << std::endl;
 
   auto constraintEnergy = evaluate(data);
-  std::cout << "Constraint energy: " << constraintEnergy << std::endl;
+  // std::cout << "Constraint energy: " << constraintEnergy << std::endl;
 
   double mu20 = target;
   if (firstIter) {

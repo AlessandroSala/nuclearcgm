@@ -10,6 +10,7 @@ YCMConstraint::YCMConstraint(double target_)
   value = 0.0;
   residuals.clear();
 }
+double YCMConstraint::error() const { return 0.0; }
 Eigen::VectorXd YCMConstraint::getField(IterationData *data) {
   using Eigen::VectorXd;
   using Operators::integral;
