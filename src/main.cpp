@@ -299,14 +299,12 @@ int main(int argc, char **argv) {
         double e_int_diff_rel = e_int_diff / newIntegralEnergy;
         std::cout << "ED diff (rel): " << e_int_diff_rel
                   << " (abs): " << e_int_diff << std::endl;
-        std::cout << "Max SP energy diff: " << maxSPEDiff << std::endl;
         enErrors.push_back((newIntegralEnergy - integralEnergy));
         double maxDiff = 0.0;
 
         double tol = input.getCalculation().hf.energyTol;
         if (abs(newIntegralEnergy - integralEnergy) < tol &&
-            abs(newHFEnergy - HFEnergy) < tol && constraintsConv &&
-            maxSPEDiff < tol) {
+            abs(newHFEnergy - HFEnergy) < tol && constraintsConv) {
           break;
         }
         data.energyDiff = std::abs(newHFEnergy - HFEnergy);

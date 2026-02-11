@@ -112,6 +112,8 @@ public:
   WSSpinOrbitParameters _WSSpinOrbitParameters;
   Calculation calculation;
 
+  int startHFBIter;
+
 private:
   nlohmann::json data;
   nlohmann::json woodsSaxonData;

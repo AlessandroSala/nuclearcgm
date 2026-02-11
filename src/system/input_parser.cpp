@@ -31,6 +31,9 @@ InputParser::InputParser(std::string inputFile) {
                    ? data["coulombInteraction"].get<bool>()
                    : true;
 
+  startHFBIter =
+      data.contains("startHFBIter") ? data["startHFBIter"].get<int>() : 3;
+
   densityMix =
       data.contains("densityMix") ? data["densityMix"].get<double>() : 0.25;
   A = data["nucleus"]["A"];

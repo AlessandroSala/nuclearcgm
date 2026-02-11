@@ -15,13 +15,18 @@
         "Z": 20
     },
     "pairing": {
-        "type": "BCS",
+        "type": "HFB",
         "neutron": {
           "windowBoth": true,
-          "basisSize": 50,
+          "basisSize": 40,
           "window": 5.0,
-          "V0": 250.0
+          "V0": 300.0
+        },
+        "proton": {
+          "windowBoth": true,
+          "basisSize": 40,
+          "window": 5.0,
+          "V0": 300.0
         }
     }
-
 }

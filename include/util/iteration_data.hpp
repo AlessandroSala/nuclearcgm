@@ -22,7 +22,6 @@ typedef struct UV {
   double lambda;
   Eigen::MatrixXcd kappa;
   Eigen::VectorXcd pairingField;
-  Eigen::MatrixXcd Delta;
   double energy;
 } UV;
 typedef struct HFBResult {
