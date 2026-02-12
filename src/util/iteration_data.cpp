@@ -634,15 +634,15 @@ HFBResult IterationData::solvePairingHFB(
     }
 
     int start = 0, end = hf_energies.size() - 1;
-    double pairingThreshold = 1e-2;
+    double pairingThreshold = input.pairingThreshold;
 
-    for (int i = 0; i < hf_energies.size(); ++i) {
+    for (int i = 0; i < hf_energies.size(); i += 2) {
       if (fermi_factors(i) > pairingThreshold) {
         start = i;
         break;
       }
     }
-    for (int i = start; i < hf_energies.size(); ++i) {
+    for (int i = start; i < hf_energies.size(); i += 2) {
       if (fermi_factors(i) < pairingThreshold) {
         end = i;
         break;
@@ -794,7 +794,7 @@ HFBResult IterationData::solvePairingHFB(
     Eigen::MatrixXd kappaNew = (V * U.transpose());
 
     // KappaNew.adjoint
-    auto pairingEnergy = (Delta * kappaNew.transpose()).trace();
+    auto pairingEnergy = 0.5 * (Delta * kappaNew.transpose()).trace();
 
     Eigen::MatrixXd fullU =
         Eigen::MatrixXd::Zero(hf_energies.size(), hf_energies.size());

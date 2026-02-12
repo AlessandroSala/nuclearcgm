@@ -82,8 +82,6 @@ public:
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);
 
-  Eigen::MatrixXcd pairingTensorExpansion(const Eigen::MatrixXcd &phi);
-
   void solvePairingBCS(
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &neutronsPair,
       const std::pair<Eigen::MatrixXcd, Eigen::VectorXd> &protonsPair);

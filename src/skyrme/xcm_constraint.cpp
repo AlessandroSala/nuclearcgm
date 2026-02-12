@@ -17,9 +17,9 @@ Eigen::VectorXd XCMConstraint::getField(IterationData *data) {
   auto grid = *Grid::getInstance();
 
   VectorXd O(grid.get_total_spatial_points());
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         O(idx) = grid.get_xs()[i];
       }
@@ -73,9 +73,9 @@ double XCMConstraint::evaluate(IterationData *data) const {
 
   Eigen::VectorXd rho = *(data->rhoN) + *(data->rhoP);
   Eigen::VectorXd O(grid.get_total_spatial_points());
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         O(idx) = grid.get_xs()[i];
       }

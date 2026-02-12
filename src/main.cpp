@@ -48,6 +48,10 @@ int main(int argc, char **argv) {
   for (const auto &dirEntry : recursive_directory_iterator("input/exec")) {
     cout << "Reading input from " << dirEntry.path() << endl;
     InputParser input(dirEntry.path().string());
+    if (!input.check()) {
+      continue;
+    }
+
     Output out("output/" + input.outputDirectory);
 
     auto computationBegin = std::chrono::steady_clock::now();
@@ -163,6 +167,7 @@ int main(int argc, char **argv) {
       //  constraints.clear();
 
       if (input.constrainCOM) {
+        std::cout << "Constraining COM to the origin" << std::endl;
         constraints.push_back(make_unique<XCMConstraint>(0.0));
         constraints.push_back(make_unique<YCMConstraint>(0.0));
         constraints.push_back(make_unique<ZCMConstraint>(0.0));
@@ -304,9 +309,11 @@ int main(int argc, char **argv) {
         if (constraints.size() > 0) {
           std::cout << "Constraints errors: ";
           for (auto &&constraint : constraints) {
-            std::cout << constraint->error() << ", ";
-            constraintsConv =
-                constraintsConv && (constraint->error() < input.constraintsTol);
+            if (constraint->error() != 0.0) {
+              std::cout << constraint->error() << ", ";
+              constraintsConv = constraintsConv &&
+                                (constraint->error() < input.constraintsTol);
+            }
           }
           // std::cout << "Constraints energies: ";
           // for (auto &&constraint : constraints) {

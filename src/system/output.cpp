@@ -39,9 +39,9 @@ void Output::swapAxes(Eigen::VectorXd &rho, int a1, int a2) {
   const int n = grid->get_n();
 
 #pragma omp parallel for collapse(3)
-  for (int i = 0; i < n; ++i) {
+  for (int k = 0; k < n; ++k) {
     for (int j = 0; j < n; ++j) {
-      for (int k = 0; k < n; ++k) {
+      for (int i = 0; i < n; ++i) {
         int dest_idx = grid->idxNoSpin(i, j, k);
 
         std::array<int, 3> src_coords = {i, j, k};
@@ -62,9 +62,9 @@ double Output::x2(IterationData *data, const Grid &grid, char dir) {
   auto rho = *(data->rhoN) + *(data->rhoP);
   int n = grid.get_n();
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         double ii = grid.get_xs()[i];
         double jj = grid.get_ys()[j];

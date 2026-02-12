@@ -7,9 +7,9 @@ std::complex<double> Operators::integral(const Eigen::VectorXcd &psi,
   double hhh = h * h * h;
 
   std::complex<double> res(0.0, 0.0);
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         for (int s = 0; s < 2; ++s) {
           int idx = grid.idx(i, j, k, s);
           double w = 1.0;
@@ -36,9 +36,9 @@ std::complex<double> Operators::integralNoSpin(const Eigen::VectorXcd &psi,
   double h = grid.get_h();
   double hhh = h * h * h;
   std::complex<double> res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         double w = 1.0;
 
@@ -63,9 +63,9 @@ double Operators::integral(const Eigen::VectorXd &psi, const Grid &grid) {
   double h = grid.get_h();
   double hhh = h * h * h;
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         double w = 1.0;
 

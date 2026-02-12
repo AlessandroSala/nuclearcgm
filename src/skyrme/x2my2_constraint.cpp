@@ -18,9 +18,9 @@ Eigen::VectorXd X2MY2Constraint::getField(IterationData *data) {
   VectorXd x(grid.get_total_spatial_points());
   VectorXd y(grid.get_total_spatial_points());
 
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         x(idx) = grid.get_xs()[i];
         y(idx) = grid.get_ys()[j];
@@ -80,9 +80,9 @@ double X2MY2Constraint::evaluate(IterationData *data) const {
   VectorXd x(grid.get_total_spatial_points());
   VectorXd y(grid.get_total_spatial_points());
 
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         x(idx) = grid.get_xs()[i];
         y(idx) = grid.get_ys()[j];

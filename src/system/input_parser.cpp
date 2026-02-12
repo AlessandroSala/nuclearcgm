@@ -4,6 +4,49 @@
 #include <fstream>
 #include <iostream>
 
+bool InputParser::check() {
+  if (getA() % 2 != 0 || getZ() % 2 != 0) {
+    std::cout << "Nucleus must be even-even" << std::endl;
+    return false;
+  }
+  if (getA() < getZ()) {
+    std::cout << "Nucleus A must be larger than Z" << std::endl;
+    return false;
+  }
+  if (pairing) {
+    if (pairingN.V0 < 0.0 || pairingP.V0 < 0.0) {
+      std::cout << "Pairing strength must be positive" << std::endl;
+      return false;
+    }
+    if (pairingN.eta < 0.0 || pairingP.eta < 0.0 || pairingN.eta > 1.0 ||
+        pairingP.eta > 1.0) {
+      std::cout << "Pairing eta must be between 0 and 1" << std::endl;
+      return false;
+    }
+    if (pairingN.additionalStates <= 0) {
+      std::cout << "Neutron HF basis size must be larger than particle number"
+                << std::endl;
+      return false;
+    }
+    if (pairingP.additionalStates <= 0) {
+      std::cout << "Proton HF basis size must be larger than particle number"
+                << std::endl;
+      return false;
+    }
+    if (pairingN.additionalStates % 2 != 0 ||
+        pairingP.additionalStates % 2 != 0) {
+      std::cout << "HF basis size must be even" << std::endl;
+      return false;
+    }
+  }
+  if (data["box"]["axisMeshPoints"].get<int>() % 2 != 0) {
+    std::cout << "Mesh points must be even" << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
 InputParser::InputParser(std::string inputFile) {
   using std::ifstream;
   ifstream file(inputFile);
@@ -38,6 +81,9 @@ InputParser::InputParser(std::string inputFile) {
   constraintsTol = data.contains("constraintsTol")
                        ? data["constraintsTol"].get<double>()
                        : 1e-3;
+  pairingThreshold = data.contains("pairingThreshold")
+                         ? data["pairingThreshold"].get<double>()
+                         : 1e-3;
 
   densityMix =
       data.contains("densityMix") ? data["densityMix"].get<double>() : 0.25;
@@ -84,7 +130,7 @@ InputParser::InputParser(std::string inputFile) {
           pairingData["proton"].contains("window")
               ? pairingData["proton"]["window"].get<double>()
               : 5.0,
-          pairingData["proton"]["HFbasisSize"].get<int>() - (A - Z),
+          pairingData["proton"]["HFbasisSize"].get<int>() - Z,
           pairingData["proton"]["V0"],
           pairingData["proton"].contains("alpha")
               ? pairingData["proton"]["alpha"].get<double>()
@@ -102,12 +148,12 @@ InputParser::InputParser(std::string inputFile) {
     }
     if (!pairingData.contains("neutron") && !pairingData.contains("proton")) {
       int basisSizeN, basisSizeP;
-      if (pairingData.contains("basisSizeN")) {
-        basisSizeN = pairingData["basisSizeN"].get<int>();
-        basisSizeP = pairingData["basisSizeP"].get<int>();
+      if (pairingData.contains("HFbasisSizeN")) {
+        basisSizeN = pairingData["HFbasisSizeN"].get<int>();
+        basisSizeP = pairingData["HFbasisSizeP"].get<int>();
       } else {
-        basisSizeN = pairingData["basisSize"];
-        basisSizeP = pairingData["basisSize"];
+        basisSizeN = pairingData["HFbasisSize"];
+        basisSizeP = pairingData["HFbasisSize"];
       }
       pairingP = PairingParameters{
           pairingData["window"],
@@ -165,8 +211,9 @@ InputParser::InputParser(std::string inputFile) {
                       ? data["deformation"]["guess"].get<double>()
                       : deformationCurve.start * 1;
   } else {
-    initialBeta =
-        data.contains("initialBeta") ? data["initialBeta"].get<double>() : 0.0;
+    initialBeta = data.contains("initialBeta2")
+                      ? data["initialBeta2"].get<double>()
+                      : 0.0;
   }
   beta3 = data.contains("beta3") ? data["beta3"].get<double>() : 0.0;
 

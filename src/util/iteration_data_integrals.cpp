@@ -72,9 +72,9 @@ double IterationData::axis2Exp(char dir) {
   auto grid = *Grid::getInstance();
   int n = grid.get_n();
   double res = 0.0;
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         double ii = grid.get_xs()[i];
         double jj = grid.get_ys()[j];

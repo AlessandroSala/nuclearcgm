@@ -6,9 +6,9 @@ Eigen::VectorXd Operators::dvNoSpin(const Eigen::VectorXd &psi,
                                     const Grid &grid, char dir) {
   Eigen::VectorXd res(grid.get_total_spatial_points());
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         res(idx) = Operators::derivativeNoSpin(psi, i, j, k, grid, dir);
       }
@@ -29,9 +29,9 @@ Eigen::VectorXcd Operators::dvNoSpin(const Eigen::VectorXcd &psi,
   Eigen::VectorXcd res(grid.get_total_spatial_points());
 
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         res(idx) = Operators::derivativeNoSpin(psi, i, j, k, grid, dir);
       }
@@ -51,9 +51,9 @@ Eigen::VectorXcd Operators::dv2(const Eigen::VectorXcd &psi, const Grid &grid,
                                 char dir) {
   Eigen::VectorXcd res(grid.get_total_points());
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         for (int s = 0; s < 2; ++s) {
           int idx = grid.idx(i, j, k, s);
           res(idx) = Operators::derivative2(psi, i, j, k, s, grid, dir);
@@ -68,9 +68,9 @@ Eigen::VectorXd Operators::dv2NoSpin(const Eigen::VectorXd &psi,
                                      const Grid &grid, char dir) {
   Eigen::VectorXd res(grid.get_total_points());
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         int idx = grid.idxNoSpin(i, j, k);
         res(idx) = Operators::derivative2NoSpin(psi, i, j, k, grid, dir);
       }
@@ -87,9 +87,9 @@ Eigen::VectorXcd Operators::dv(const Eigen::VectorXcd &psi, const Grid &grid,
   // efficiency. The 'res(idx)' write is safe as 'idx' is unique for each
   // (i,j,k,s).
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < grid.get_n(); ++i) {
+  for (int k = 0; k < grid.get_n(); ++k) {
     for (int j = 0; j < grid.get_n(); ++j) {
-      for (int k = 0; k < grid.get_n(); ++k) {
+      for (int i = 0; i < grid.get_n(); ++i) {
         for (int s = 0; s < 2; ++s) {
           int idx = grid.idx(i, j, k, s);
           res(idx) = Operators::derivative(psi, i, j, k, s, grid, dir);

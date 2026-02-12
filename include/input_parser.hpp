@@ -112,9 +112,12 @@ public:
   WSSpinOrbitParameters _WSSpinOrbitParameters;
   Calculation calculation;
 
+  double pairingThreshold;
   double constraintsTol;
   int startHFBIter;
   bool constrainCOM;
+
+  bool check();
 
 private:
   nlohmann::json data;

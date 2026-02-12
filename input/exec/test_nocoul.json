@@ -1,28 +1,31 @@
 {
     "functional": "SLy5",
-    "outputName": "tensor_test",
-    "outputDirectory": "o16",
+    "outputName": "test",
+    "outputDirectory": "test_dir",
     "coulombInteraction": true,
     "maxIterations": 150,
     "energyTol": 1e-05,
-    "densityMix": 0.35,
+    "densityMix": 0.2,
+    "initialBeta2": 0.1,
     "box": {
-        "boxSize": 20.0,
-        "axisMeshPoints": 20
+        "boxSize": 30.0,
+        "axisMeshPoints": 30
     },
     "nucleus": {
-        "A": 44,
-        "Z": 20
+        "A": 110,
+        "Z": 40
     },
     "pairing": {
         "type": "HFB",
         "neutron": {
-          "HFbasisSize": 60,
-          "V0": 300.0
+          "HFbasisSize": 100,
+          "V0": 500.0
         },
         "proton": {
-          "HFbasisSize": 60,
-          "V0": 300.0
+          "HFbasisSize": 82,
+          "V0": 500.0
         }
-    }
+    },
+    "constrainCOM": true,
+    "constraints": []
 }

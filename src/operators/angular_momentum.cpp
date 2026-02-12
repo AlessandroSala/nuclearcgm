@@ -12,11 +12,11 @@ Eigen::VectorXcd Operators::J(const Eigen::VectorXcd &psi, const Grid &grid)
     int n = grid.get_n();
     auto pauli = getPauli();
 
-    for (int i = 0; i < n; ++i)
+    for (int k = 0; k < n; ++k)
     {
         for (int j = 0; j < n; ++j)
         {
-            for (int k = 0; k < n; ++k)
+            for (int i = 0; i < n; ++i)
             {
                 Eigen::VectorXcd chi(2);
                 chi(0) = psi(grid.idx(i, j, k, 0));
@@ -84,11 +84,11 @@ Eigen::VectorXcd Operators::L2(const Eigen::VectorXcd &psi, const Grid &grid)
             }
         }
     }
-    for (int i = 0; i < n; ++i)
+    for (int k = 0; k < n; ++k)
     {
         for (int j = 0; j < n; ++j)
         {
-            for (int k = 0; k < n; ++k)
+            for (int i = 0; i < n; ++i)
             {
                 for (int s = 0; s < 2; ++s)
                 {
@@ -126,11 +126,11 @@ Eigen::VectorXcd Operators::LS(const Eigen::VectorXcd &psi, const Grid &grid)
     // Prefactor for L.S operator: -i * h_bar^2 / 2
     std::complex<double> prefactor = -img * h_bar * h_bar * 0.5;
 
-    for (int i = 0; i < n; ++i)
+    for (int k = 0; k < n; ++k)
     {
         for (int j = 0; j < n; ++j)
         {
-            for (int k = 0; k < n; ++k)
+            for (int i = 0; i < n; ++i)
             {
                 // Coordinates of the current grid point
                 double x = grid.get_xs()[i];
@@ -187,9 +187,9 @@ Eigen::VectorXcd Operators::Sz(const Eigen::VectorXcd &psi, const Grid &grid) {
     using nuclearConstants::h_bar;
     auto sigma_z = nuclearConstants::getPauli()[2];
     int n = grid.get_n();
-    for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
         for (int j = 0; j < n; ++j) {
-            for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
                 Eigen::Vector2cd spinPart(2);
                 int idx = grid.idx(i, j, k, 0);
                 spinPart(0) = psi(idx);
@@ -210,9 +210,9 @@ Eigen::VectorXcd Operators::Lx(const Eigen::VectorXcd &psi, const Grid &grid) {
     auto dZ = Operators::dv(psi, grid, 'z');
     auto dY = Operators::dv(psi, grid, 'y');
     int n = grid.get_n();
-    for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
         for (int j = 0; j < n; ++j) {
-            for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
                 double z = grid.get_zs()[k];
                 double y = grid.get_ys()[j];
                 for (int s = 0; s < 2; ++s) {
@@ -231,9 +231,9 @@ Eigen::VectorXcd Operators::Ly(const Eigen::VectorXcd &psi, const Grid &grid) {
     auto dX = Operators::dv(psi, grid, 'x');
     auto dZ = Operators::dv(psi, grid, 'z');
     int n = grid.get_n();
-    for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
         for (int j = 0; j < n; ++j) {
-            for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
                 double x = grid.get_xs()[i];
                 double z = grid.get_zs()[k];
                 for (int s = 0; s < 2; ++s) {
@@ -252,9 +252,9 @@ Eigen::VectorXcd Operators::Lz(const Eigen::VectorXcd &psi, const Grid &grid) {
     auto dX = Operators::dv(psi, grid, 'x');
     auto dY = Operators::dv(psi, grid, 'y');
     int n = grid.get_n();
-    for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
         for (int j = 0; j < n; ++j) {
-            for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
                 double x = grid.get_xs()[i];
                 double y = grid.get_ys()[j];
                 for (int s = 0; s < 2; ++s) {
@@ -274,11 +274,11 @@ Eigen::VectorXcd Operators::Jz(const Eigen::VectorXcd &psi, const Grid &grid)
     Eigen::VectorXcd res(grid.get_total_points());
     int n = grid.get_n();
 
-    for (int i = 0; i < n; ++i)
+    for (int k = 0; k < n; ++k)
     {
         for (int j = 0; j < n; ++j)
         {
-            for (int k = 0; k < n; ++k)
+            for (int i = 0; i < n; ++i)
             {
                 std::complex<double> derX = Operators::derivative(psi, i, j, k, 0, grid, 'x');
                 std::complex<double> derY = Operators::derivative(psi, i, j, k, 0, grid, 'y');
@@ -306,11 +306,11 @@ double Operators::JzExp(const Eigen::VectorXcd &psi, const Grid &grid)
     DenseVector f(grid.get_total_spatial_points());
     ComplexDenseVector Jzpsi = Jz(psi, grid);
     double res = 0;
-    for (int i = 0; i < n; ++i)
+    for (int k = 0; k < n; ++k)
     {
         for (int j = 0; j < n; ++j)
         {
-            for (int k = 0; k < n; ++k)
+            for (int i = 0; i < n; ++i)
             {
                 res += ((norm(psi(grid.idx(i, j, k, 0))) + norm(psi(grid.idx(i, j, k, 1)))) * norm(Jzpsi(grid.idx(i, j, k, 0))) * norm(Jzpsi(grid.idx(i, j, k, 1)))) * pow(grid.get_h(), 3);
             }

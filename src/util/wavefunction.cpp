@@ -24,9 +24,9 @@ Eigen::VectorXd density(const Eigen::MatrixXcd &psi, const Grid &grid) {
   rho.setZero();
 
 #pragma omp parallel for collapse(3)
-  for (int i = 0; i < n; ++i) {
+  for (int k = 0; k < n; ++k) {
     for (int j = 0; j < n; ++j) {
-      for (int k = 0; k < n; ++k) {
+      for (int i = 0; i < n; ++i) {
         int rho_idx = grid.idxNoSpin(i, j, k);
         int psi_idx_s0 = grid.idx(i, j, k, 0);
         int psi_idx_s1 = grid.idx(i, j, k, 1);
@@ -108,9 +108,9 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
   };
 
 #pragma omp parallel for collapse(3)
-  for (int i = 0; i < nnew; i++) {
+  for (int k = 0; k < nnew; k++) {
     for (int j = 0; j < nnew; j++) {
-      for (int k = 0; k < nnew; k++) {
+      for (int i = 0; i < nnew; i++) {
 
         int idx = idxNoSpin(i, j, k, nnew);
         double x = -a - 2 * h + i * h;
@@ -132,8 +132,8 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
 
 // i = 0 (contributi da -1, -2)
 #pragma omp parallel for collapse(2)
-  for (int j = 0; j < n; ++j) {
-    for (int k = 0; k < n; ++k) {
+  for (int k = 0; k < n; ++k) {
+    for (int j = 0; j < n; ++j) {
       int rhs_idx = idxNoSpin(0, j, k, n);
       rhs(rhs_idx) -=
           (16.0 / 12.0) * Uquad(idxNoSpin(1, j + 2, k + 2, nnew)) / hh;
@@ -147,8 +147,8 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
 
 // i = n-1 (contributi da n, n+1)
 #pragma omp parallel for collapse(2)
-  for (int j = 0; j < n; ++j) {
-    for (int k = 0; k < n; ++k) {
+  for (int k = 0; k < n; ++k) {
+    for (int j = 0; j < n; ++j) {
       int rhs_idx = idxNoSpin(n - 1, j, k, n);
       rhs(rhs_idx) -=
           (16.0 / 12.0) * Uquad(idxNoSpin(n + 2, j + 2, k + 2, nnew)) / hh;
@@ -162,8 +162,8 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
 
 // j = 0
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < n; ++i) {
-    for (int k = 0; k < n; ++k) {
+  for (int k = 0; k < n; ++k) {
+    for (int i = 0; i < n; ++i) {
       int rhs_idx = idxNoSpin(i, 0, k, n);
       rhs(rhs_idx) -=
           (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, 1, k + 2, nnew)) / hh;
@@ -177,8 +177,8 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
 
 // j = n-1
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < n; ++i) {
-    for (int k = 0; k < n; ++k) {
+  for (int k = 0; k < n; ++k) {
+    for (int i = 0; i < n; ++i) {
       int rhs_idx = idxNoSpin(i, n - 1, k, n);
       rhs(rhs_idx) -=
           (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, n + 2, k + 2, nnew)) / hh;
@@ -192,8 +192,8 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
 
 // k = 0
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
+  for (int j = 0; j < n; ++j) {
+    for (int i = 0; i < n; ++i) {
       int rhs_idx = idxNoSpin(i, j, 0, n);
       rhs(rhs_idx) -=
           (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, 1, nnew)) / hh;
@@ -207,8 +207,8 @@ Eigen::VectorXd coulombFieldPoisson(Eigen::VectorXd &rhoP, const Grid &grid,
 
 // k = n-1
 #pragma omp parallel for collapse(2)
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
+  for (int j = 0; j < n; ++j) {
+    for (int i = 0; i < n; ++i) {
       int rhs_idx = idxNoSpin(i, j, n - 1, n);
       rhs(rhs_idx) -=
           (16.0 / 12.0) * Uquad(idxNoSpin(i + 2, j + 2, n + 2, nnew)) / hh;
@@ -240,9 +240,9 @@ Eigen::VectorXd coulombField(Eigen::VectorXd &rho, const Grid &grid) {
         int iNS = grid.idxNoSpin(ii, jj, kk);
         double potential_sum = 0.0;
 
-        for (int i = 0; i < n; ++i) {
+        for (int k = 0; k < n; ++k) {
           for (int j = 0; j < n; ++j) {
-            for (int k = 0; k < n; ++k) {
+            for (int i = 0; i < n; ++i) {
               if (ii == i && jj == j && kk == k) {
                 continue;
               }
@@ -314,9 +314,9 @@ Eigen::Matrix3Xd spinDensity(const Eigen::MatrixXcd &psi, const Grid &grid) {
       Eigen::Matrix3Xd::Zero(3, grid.get_total_spatial_points());
   auto pauli = nuclearConstants::getPauli();
   for (int col = 0; col < psi.cols(); ++col) {
-    for (int i = 0; i < grid.get_n(); ++i) {
+    for (int k = 0; k < grid.get_n(); ++k) {
       for (int j = 0; j < grid.get_n(); ++j) {
-        for (int k = 0; k < grid.get_n(); ++k) {
+        for (int i = 0; i < grid.get_n(); ++i) {
           int idx = grid.idx(i, j, k, 0);
           int idxNoSpin = grid.idxNoSpin(i, j, k);
           Eigen::Vector2cd chi = psi(Eigen::seq(idx, idx + 1), col);
@@ -386,9 +386,9 @@ soDensityLagrange(const Eigen::MatrixXcd &psi) {
     Eigen::MatrixX3cd grad = Operators::gradLagrange(psi.col(col));
 
 #pragma omp parallel for collapse(3)
-    for (int i = 0; i < grid.get_n(); ++i) {
+    for (int k = 0; k < grid.get_n(); ++k) {
       for (int j = 0; j < grid.get_n(); ++j) {
-        for (int k = 0; k < grid.get_n(); ++k) {
+        for (int i = 0; i < grid.get_n(); ++i) {
           int idx = grid.idx(i, j, k, 0);
 
           for (int mu = 0; mu < 3; ++mu) {
@@ -434,9 +434,9 @@ Eigen::Matrix<double, Eigen::Dynamic, 9> soDensity(const Eigen::MatrixXcd &psi,
     Eigen::MatrixX3cd grad = Operators::grad(psi.col(col), grid);
 
 #pragma omp parallel for collapse(3)
-    for (int i = 0; i < grid.get_n(); ++i) {
+    for (int k = 0; k < grid.get_n(); ++k) {
       for (int j = 0; j < grid.get_n(); ++j) {
-        for (int k = 0; k < grid.get_n(); ++k) {
+        for (int i = 0; i < grid.get_n(); ++i) {
           int idx = grid.idx(i, j, k, 0);
 
           for (int mu = 0; mu < 3; ++mu) {
@@ -473,9 +473,9 @@ Eigen::VectorXd divJ(const Eigen::MatrixXcd &psi, const Grid &grid) {
   for (int col = 0; col < psi.cols(); ++col) {
     Eigen::MatrixXcd grad = Operators::grad(psi.col(col), grid);
 
-    for (int i = 0; i < grid.get_n(); ++i)
+    for (int k = 0; k < grid.get_n(); ++k)
       for (int j = 0; j < grid.get_n(); ++j)
-        for (int k = 0; k < grid.get_n(); ++k) {
+        for (int i = 0; i < grid.get_n(); ++i) {
           int idx_up = grid.idx(i, j, k, 0);
           int idx_down = grid.idx(i, j, k, 1);
           int idx_spatial = grid.idxNoSpin(i, j, k);

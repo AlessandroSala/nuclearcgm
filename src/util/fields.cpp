@@ -7,10 +7,10 @@ Eigen::VectorXd Fields::position() {
   auto xs = grid->get_xs();
   auto ys = grid->get_ys();
   auto zs = grid->get_zs();
-#pragma omp parallel for collapse(3)
-  for (int i = 0; i < n; ++i) {
+#pragma omp parallel for collapse(2)
+  for (int k = 0; k < n; ++k) {
     for (int j = 0; j < n; ++j) {
-      for (int k = 0; k < n; ++k) {
+      for (int i = 0; i < n; ++i) {
         int idx = grid->idxNoSpin(i, j, k);
         double x = xs[i];
         double y = ys[j];
